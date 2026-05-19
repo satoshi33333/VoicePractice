@@ -766,14 +766,15 @@ function stopRecording() {
   document.getElementById('recordLabel').textContent = 'クリックして再録音';
   document.getElementById('waveform').classList.remove('visible');
 
-  computeMetrics();
+  setTimeout(computeMetrics, 800);
 }
-
-// ── Volume tracking ──────────────────────────────────────────
+  animFrameId = 0;
+    tick();
+  }// ── Volume tracking ──────────────────────────────────────────
 function startVolumeTracking() {
   const buf = new Uint8Array(analyser.frequencyBinCount);
   function tick() {
-    if (!isRecording) return;
+    if (animFrameId === -1) return;
     analyser.getByteFrequencyData(buf);
     const avg = buf.reduce((a,b) => a+b, 0) / buf.length;
     volumeSamples.push(avg);
@@ -793,7 +794,7 @@ function computeMetrics() {
   const elapsed = (Date.now() - startTime) / 1000 / 60; // minutes
   const text = fullTranscript.trim();
 
-  if (!text || elapsed < 0.05) {
+  if (!text) {
     document.getElementById('transcriptBox').textContent = '（音声が認識されませんでした）';
     document.getElementById('transcriptBox').className = 'transcript-box placeholder';
     return;

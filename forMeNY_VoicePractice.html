@@ -631,8 +631,16 @@ function setLang(l) {
   document.getElementById('speedHint').textContent = l === 'ja' ? '目安: 350–400 chars/min' : '目安: 130–150 words/min';
   document.getElementById('speedUnit').textContent = l === 'ja' ? 'chars/min' : 'words/min';
 }
-
-function selectTopic(btn) {
+let isStarting = false;
+  async function toggleRecord() {
+      if (isRecording) {
+            stopRecording();
+      } else {
+            if (isStarting) return;
+            isStarting = true;
+            try { await startRecording(); } finally { isStarting = false; }
+      }
+  }function selectTopic(btn) {
   document.querySelectorAll('.topic-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   selectedTopic = btn.dataset.topic;
@@ -873,7 +881,7 @@ async function requestFeedback() {
 
   document.getElementById('analyzeBtn').disabled = true;
 
-  const { transcript, speed, speedClass, pauseCount, pauseClass, durationMin, lang } = lastMetrics;
+  const { transcript, speed, speedClass, pauseCount, pauseClass, durationMin, lang, topic } = lastMetrics;  const usedTopic = topic || selectedTopic;
   const durationSec = Math.round(durationMin * 60);
 
   const speedRef = lang === 'ja'
@@ -895,7 +903,7 @@ async function requestFeedback() {
 - 録音時間: ${durationSec}秒
 - スピード: ${speedRef}（評価: ${speedClass === 'ok' ? '良好' : speedClass === 'warn' ? '要調整' : '大きく外れ'}）
 - 有意な間の回数: ${pauseCount}回（評価: ${pauseClass === 'ok' ? '良好' : '要改善'}）
-- トピック: 「${selectedTopic}」`;
+- トピック: 「${usedTopic}」`;
 
   const userContent = `以下のスピーチを分析してフィードバックをください。\n\n「${transcript}」\n\n数値の分析に加え、このスピーチの「伝わり方」「声の質」について、FOR ME NYのメソッドの観点からフィードバックをお願いします。`;
 

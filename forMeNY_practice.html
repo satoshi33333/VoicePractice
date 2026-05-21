@@ -475,10 +475,10 @@
 
     <!-- API Key -->
     <div>
-      <div class="section-label">Anthropic API Key</div>
+      <div class="section-label">OpenAI API Key</div>
       <div id="setupPanel">
         <div class="key-row">
-          <input class="key-input" id="apiKeyInput" type="password" placeholder="sk-ant-..." />
+          <input class="key-input" id="apiKeyInput" type="password" placeholder="sk-..." />
           <button class="key-save-btn" onclick="saveKey()">保存</button>
         </div>
         <div class="key-status" id="keyStatus">未設定</div>
@@ -894,7 +894,7 @@ function updateTranscriptDisplay(text) {
 // ── Claude API ──────────────────────────────────────────
 async function requestFeedback() {
   if (!apiKey) {
-    addAIMessage('APIキーが設定されていません。左のパネルからAnthropicのAPIキーを入力してください。');
+    addAIMessage('APIキーが設定されていません。左のパネルからOpenAIのAPIキーを入力してください。');
     return;
   }
   if (!lastMetrics) return;
@@ -929,19 +929,23 @@ async function requestFeedback() {
   const userContent = `以下のスピーチを分析してフィードバックをください。\n\n「${transcript}」\n\n数値の分析に加え、このスピーチの「伝わり方」「声の質」について、FOR ME NYのメソッドの観点からフィードバックをお願いします。`;
 
   chatHistory.push({ role: 'user', content: userContent });
-
   addUserMessage('📊 録音を送信しました。フィードバックをお願いします。');
   showTyping();
 
   try {
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    const resp = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + apiKey
+      },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'gpt-4o',
         max_tokens: 1000,
-        system: systemPrompt,
-        messages: chatHistory
+        messages: [
+          { role: 'system', content: systemPrompt },
+          ...chatHistory
+        ]
       })
     });
     const data = await resp.json();
@@ -950,16 +954,18 @@ async function requestFeedback() {
     if (data.error) {
       addAIMessage('エラーが発生しました: ' + data.error.message);
       chatHistory.pop();
+      document.getElementById('analyzeBtn').disabled = false;
       return;
     }
 
-    const reply = data.content.map(b => b.text || '').join('');
+    const reply = data.choices[0].message.content;
     chatHistory.push({ role: 'assistant', content: reply });
     addAIMessage(reply);
   } catch(e) {
     hideTyping();
     addAIMessage('通信エラーが発生しました。APIキーとネットワーク接続を確認してください。');
     chatHistory.pop();
+    document.getElementById('analyzeBtn').disabled = false;
   }
 }
 
@@ -978,20 +984,25 @@ async function sendMessage() {
 温かく、具体的で、相手が安心できるトーンで返答してください。「正解はない」という姿勢を忘れずに。返答は日本語で200〜400文字程度。`;
 
   try {
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    const resp = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + apiKey
+      },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'gpt-4o',
         max_tokens: 1000,
-        system: systemPrompt,
-        messages: chatHistory
+        messages: [
+          { role: 'system', content: systemPrompt },
+          ...chatHistory
+        ]
       })
     });
     const data = await resp.json();
     hideTyping();
     if (data.error) { addAIMessage('エラー: ' + data.error.message); chatHistory.pop(); return; }
-    const reply = data.content.map(b => b.text||'').join('');
+    const reply = data.choices[0].message.content;
     chatHistory.push({ role: 'assistant', content: reply });
     addAIMessage(reply);
   } catch(e) {

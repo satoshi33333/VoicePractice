@@ -62,7 +62,7 @@
     display: grid;
     grid-template-columns: 1fr 380px;
     gap: 0;
-    max-height: calc(100vh - 57px);
+    height: calc(100vh - 57px);
     overflow: hidden;
   }
 
@@ -73,7 +73,9 @@
     flex-direction: column;
     gap: 24px;
     overflow-y: auto;
+    overflow-x: hidden;
     border-right: 1px solid var(--border);
+    scroll-behavior: smooth;
   }
 
   /* Topic selector */
@@ -777,6 +779,17 @@ function stopRecording() {
   pendingComputeTimer = setTimeout(() => {
     pendingComputeTimer = null;
     computeMetrics(snapStart, snapTranscript);
+    // メトリクスが見えるよう自動スクロール
+    setTimeout(() => {
+      const el = document.querySelector('.metrics-row');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 150);
+    // チャットに通知＋自動フィードバック開始
+    setTimeout(() => {
+      if (lastMetrics) {
+        requestFeedback();
+      }
+    }, 1200);
   }, 800);
 }
 

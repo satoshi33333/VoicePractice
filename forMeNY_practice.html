@@ -188,6 +188,22 @@
 
   ::-webkit-scrollbar { width: 3px; }
   ::-webkit-scrollbar-thumb { background: var(--border); }
+
+  .end-roleplay-btn {
+    background: transparent;
+    border: 1px solid rgba(196,92,58,0.4);
+    color: var(--red);
+    padding: 8px 20px;
+    cursor: pointer;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    transition: all 0.15s;
+  }
+  .end-roleplay-btn:hover {
+    border-color: var(--red);
+    background: rgba(196,92,58,0.08);
+  }
 </style>
 </head>
 <body>
@@ -274,6 +290,11 @@
         <div class="dot" id="dot"></div>
       </button>
       <div class="record-label" id="recordLabel">クリックして録音開始</div>
+      <div id="aiSpeakingIndicator" style="display:none;align-items:center;gap:8px;font-size:10px;color:#7aaabb;">
+        <div class="typing-indicator"><div class="typing-dot" style="background:#4a7a9b"></div><div class="typing-dot" style="background:#4a7a9b"></div><div class="typing-dot" style="background:#4a7a9b"></div></div>
+        <span id="aiSpeakingLabel">相手が話しています…</span>
+      </div>
+      <button class="end-roleplay-btn" id="endRoleplaysBtn" style="display:none" onclick="endRoleplay()">ロールプレイを終了する</button>
     </div>
 
     <!-- Metrics (speech mode only, compact) -->
@@ -586,44 +607,33 @@ async function startRoleplaysScene() {
   roleplaysHistory = [];
   roleplaysRoundCount = 0;
 
-  // Update header to show role
   document.getElementById('aiAvatar').textContent = selectedRoleplay.role[0];
   document.getElementById('aiAvatar').className = 'ai-avatar roleplay';
   document.getElementById('chatHeaderText').textContent = selectedRoleplay.role + ' 役';
+  document.getElementById('endRoleplaysBtn').style.display = 'block';
 
-  // Coach sets the scene first
-  addCoachMessage(`シナリオ：${selectedRoleplay.role}\n\n${selectedRoleplay.situation}\n\n準備ができたら録音ボタンを押して話しかけてください。「終了」と言うとロールプレイが終わり、振り返りに移ります。`);
+  addCoachMessage(`シナリオ：${selectedRoleplay.role}\n\n${selectedRoleplay.situation}\n\n録音ボタンを押して話しかけてください。終わったら「ロールプレイを終了する」ボタンを押してください。`);
 
-  // Then AI character opens
   showTyping();
   try {
     const opener = await callOpenAI([
-      { role: 'user', content: 'シーンを開始してください。オープニングセリフを言ってください。' }
+      { role: 'user', content: 'シーンを開始してください。オープニングの一言を言ってください。' }
     ], buildRoleplaysSystemPrompt());
     hideTyping();
     addRoleMessage(opener);
     roleplaysHistory.push({ role: 'assistant', content: opener });
     roleplaysRoundCount++;
+    speakAsRole(opener);
   } catch(e) {
     hideTyping();
     addRoleMessage(selectedRoleplay.opener);
     roleplaysHistory.push({ role: 'assistant', content: selectedRoleplay.opener });
     roleplaysRoundCount++;
+    speakAsRole(selectedRoleplay.opener);
   }
 }
 
 async function handleRoleplaysUserTurn(userSpeech) {
-  // Check for exit keyword
-  if (userSpeech.includes('終了') || userSpeech.toLowerCase().includes('end session')) {
-    addUserMessage(userSpeech);
-    // Restore header
-    document.getElementById('aiAvatar').textContent = 'F';
-    document.getElementById('aiAvatar').className = 'ai-avatar';
-    document.getElementById('chatHeaderText').textContent = 'FOR ME NY AI Coach';
-    setTimeout(() => startRoleplaysReflect(), 400);
-    return;
-  }
-
   addUserMessage(userSpeech);
   roleplaysHistory.push({ role: 'user', content: userSpeech });
   roleplaysRoundCount++;
@@ -635,6 +645,8 @@ async function handleRoleplaysUserTurn(userSpeech) {
     addRoleMessage(reply);
     roleplaysHistory.push({ role: 'assistant', content: reply });
     document.getElementById('recordLabel').textContent = 'クリックして返答（録音）';
+    // Speak the AI reply
+    speakAsRole(reply);
   } catch(e) {
     hideTyping();
     addCoachMessage('通信エラーが発生しました。もう一度お試しください。');
@@ -647,12 +659,14 @@ function buildRoleplaysSystemPrompt() {
 シナリオ：${selectedRoleplay.situation}
 
 演じ方のルール：
-- リアルだが圧迫ではない。緊張感はあるが安心して練習できる雰囲気を保つ
-- 相手役として自然に返答する。コーチとしてのコメントは一切しない
-- 返答は2〜4文程度。簡潔にリアルに
-- 質問を1つ交えることで会話を続ける
-- ユーザーが「終了」と言ったらシーンを終了する
-- 日本語で返答する`;
+- リアルだが圧迫しない。緊張感はあるが練習できる安心感を保つ
+- 返答は1〜2文の短め。テンポよく会話のキャッチボールを続ける
+- コーチや評価者としてのコメントは一切しない。キャラクターとして返すだけ
+- 必ず最後に短い質問や反応を加えて相手に返す
+  例：「なるほど。それで、具体的なスケジュールはどう考えてる？」
+  例：「ふむ。コストはどのくらいを想定しているの？」
+- 日本語で返答する
+- 音声で読まれるので、記号や箇条書きは使わず自然な話し言葉で`;
 }
 
 async function startRoleplaysReflect() {
@@ -667,7 +681,68 @@ async function startRoleplaysReflect() {
   lastMetrics = { roleplaysHistory: roleplaysHistory, roleplaysRole: selectedRoleplay.role, roleplaysRounds: roleplaysRoundCount, isRoleplay: true };
 }
 
-// ── Speech Reflect ──────────────────────────────────────────
+// ── Speech Synthesis (AI voice) ──────────────────────────────────────────
+let currentUtterance = null;
+
+function speakAsRole(text) {
+  if (!('speechSynthesis' in window)) return;
+  // Stop any ongoing speech
+  window.speechSynthesis.cancel();
+
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = 'ja-JP';
+  utterance.rate = 0.95;
+  utterance.pitch = 1.0;
+
+  // Try to pick a good Japanese voice
+  const voices = window.speechSynthesis.getVoices();
+  const jaVoice = voices.find(v => v.lang === 'ja-JP' && v.name.includes('Google'))
+    || voices.find(v => v.lang === 'ja-JP')
+    || voices.find(v => v.lang.startsWith('ja'));
+  if (jaVoice) utterance.voice = jaVoice;
+
+  utterance.onstart = () => {
+    const ind = document.getElementById('aiSpeakingIndicator');
+    const label = document.getElementById('aiSpeakingLabel');
+    if (ind) { ind.style.display = 'flex'; label.textContent = (selectedRoleplay?.role || 'AI') + 'が話しています…'; }
+    document.getElementById('recordBtn').disabled = true;
+  };
+  utterance.onend = () => {
+    const ind = document.getElementById('aiSpeakingIndicator');
+    if (ind) ind.style.display = 'none';
+    document.getElementById('recordBtn').disabled = false;
+  };
+  utterance.onerror = () => {
+    const ind = document.getElementById('aiSpeakingIndicator');
+    if (ind) ind.style.display = 'none';
+    document.getElementById('recordBtn').disabled = false;
+  };
+
+  currentUtterance = utterance;
+  window.speechSynthesis.speak(utterance);
+}
+
+// voices load async on some browsers
+window.speechSynthesis.onvoiceschanged = () => {};
+
+// ── End roleplay button ──────────────────────────────────────────
+function endRoleplay() {
+  // Stop any speech
+  if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+  // Stop recording if active
+  if (isRecording) stopRecording();
+
+  document.getElementById('endRoleplaysBtn').style.display = 'none';
+  document.getElementById('aiSpeakingIndicator').style.display = 'none';
+  document.getElementById('recordBtn').disabled = false;
+
+  // Restore avatar
+  document.getElementById('aiAvatar').textContent = 'F';
+  document.getElementById('aiAvatar').className = 'ai-avatar';
+  document.getElementById('chatHeaderText').textContent = 'FOR ME NY AI Coach';
+
+  setTimeout(() => startRoleplaysReflect(), 200);
+}
 function startReflect() {
   setPhase('reflect');
   addCoachMessage(`話し終えました。\n\nまず聞かせてください。今、どんな感覚がありますか？話してみてどうでしたか？`);

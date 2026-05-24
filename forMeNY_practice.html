@@ -253,12 +253,12 @@
     <div id="voiceSelectorSection" style="display:none">
       <div class="section-label" id="labelVoice">AI Voice（ロールプレイ）</div>
       <div class="voice-grid" id="voiceGrid">
-        <button class="voice-btn" data-voice="nova" onclick="setVoice(this)">Nova<span class="voice-tag" id="vt-nova">女性・自然</span></button>
+        <button class="voice-btn active" data-voice="nova" onclick="setVoice(this)">Nova<span class="voice-tag" id="vt-nova">女性・自然</span></button>
         <button class="voice-btn" data-voice="shimmer" onclick="setVoice(this)">Shimmer<span class="voice-tag" id="vt-shimmer">女性・柔らか</span></button>
-        <button class="voice-btn active" data-voice="onyx" onclick="setVoice(this)">Onyx<span class="voice-tag" id="vt-onyx">男性・低音</span></button>
-        <button class="voice-btn" data-voice="echo" onclick="setVoice(this)">Echo<span class="voice-tag" id="vt-echo">男性・若め</span></button>
-        <button class="voice-btn" data-voice="fable" onclick="setVoice(this)">Fable<span class="voice-tag" id="vt-fable">中性・若め</span></button>
         <button class="voice-btn" data-voice="alloy" onclick="setVoice(this)">Alloy<span class="voice-tag" id="vt-alloy">中性・落ち着き</span></button>
+        <button class="voice-btn" data-voice="fable" onclick="setVoice(this)">Fable<span class="voice-tag" id="vt-fable">中性・若め</span></button>
+        <button class="voice-btn" data-voice="echo" onclick="setVoice(this)">Echo<span class="voice-tag" id="vt-echo">男性・若め</span></button>
+        <button class="voice-btn" data-voice="onyx" onclick="setVoice(this)">Onyx<span class="voice-tag" id="vt-onyx">男性・低音</span></button>
       </div>
     </div>
 
@@ -764,7 +764,7 @@ async function startRoleplaysReflect() {
 // ── Speech Synthesis — OpenAI TTS HD ──────────────────────────────────────────
 let currentAudio = null;
 let onSpeechEndCallback = null;
-let selectedVoice = 'onyx'; // default: 男性・低音
+let selectedVoice = 'nova'; // default: 日本語に最適
 
 async function speakAsRole(text, onEnd) {
   onSpeechEndCallback = onEnd || null;
@@ -785,7 +785,7 @@ async function speakAsRole(text, onEnd) {
         model: 'tts-1-hd',
         input: text,
         voice: selectedVoice,
-        speed: 1.0
+        speed: lang === 'ja' ? 0.92 : 1.0  // slightly slower for natural Japanese
       })
     });
 
@@ -1178,12 +1178,12 @@ function setLang(l) {
 
   // Voice tags
   const vt = {
-    'vt-nova': t('女性・自然', 'Female · Natural'),
-    'vt-shimmer': t('女性・柔らか', 'Female · Soft'),
-    'vt-onyx': t('男性・低音', 'Male · Deep'),
-    'vt-echo': t('男性・若め', 'Male · Young'),
-    'vt-fable': t('中性・若め', 'Neutral · Young'),
+    'vt-nova': t('女性・自然 ★日本語推奨', 'Female · Natural'),
+    'vt-shimmer': t('女性・柔らか ★日本語推奨', 'Female · Soft'),
     'vt-alloy': t('中性・落ち着き', 'Neutral · Calm'),
+    'vt-fable': t('中性・若め', 'Neutral · Young'),
+    'vt-echo': t('男性・若め', 'Male · Young'),
+    'vt-onyx': t('男性・低音', 'Male · Deep'),
   };
   Object.entries(vt).forEach(([id, text]) => {
     const el = document.getElementById(id);

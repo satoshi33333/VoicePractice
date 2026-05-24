@@ -235,7 +235,7 @@
       <div class="section-label">OpenAI API Key</div>
       <div class="key-row">
         <input class="key-input" id="apiKeyInput" type="password" placeholder="sk-..." />
-        <button class="key-save-btn" onclick="saveKey()">保存</button>
+        <button class="key-save-btn" onclick="saveKey()" id="btnSave">保存</button>
       </div>
       <div class="key-status" id="keyStatus">未設定</div>
     </div>
@@ -249,16 +249,16 @@
       </div>
     </div>
 
-    <!-- AI Voice -->
-    <div id="voiceSelectorSection">
-      <div class="section-label">AI Voice（ロールプレイ）</div>
+    <!-- AI Voice — shown only in roleplay mode -->
+    <div id="voiceSelectorSection" style="display:none">
+      <div class="section-label" id="labelVoice">AI Voice（ロールプレイ）</div>
       <div class="voice-grid" id="voiceGrid">
-        <button class="voice-btn" data-voice="nova" onclick="setVoice(this)">Nova<span class="voice-tag">女性・自然</span></button>
-        <button class="voice-btn" data-voice="shimmer" onclick="setVoice(this)">Shimmer<span class="voice-tag">女性・柔らか</span></button>
-        <button class="voice-btn active" data-voice="onyx" onclick="setVoice(this)">Onyx<span class="voice-tag">男性・低音</span></button>
-        <button class="voice-btn" data-voice="echo" onclick="setVoice(this)">Echo<span class="voice-tag">男性・若め</span></button>
-        <button class="voice-btn" data-voice="fable" onclick="setVoice(this)">Fable<span class="voice-tag">中性・若め</span></button>
-        <button class="voice-btn" data-voice="alloy" onclick="setVoice(this)">Alloy<span class="voice-tag">中性・落ち着き</span></button>
+        <button class="voice-btn" data-voice="nova" onclick="setVoice(this)">Nova<span class="voice-tag" id="vt-nova">女性・自然</span></button>
+        <button class="voice-btn" data-voice="shimmer" onclick="setVoice(this)">Shimmer<span class="voice-tag" id="vt-shimmer">女性・柔らか</span></button>
+        <button class="voice-btn active" data-voice="onyx" onclick="setVoice(this)">Onyx<span class="voice-tag" id="vt-onyx">男性・低音</span></button>
+        <button class="voice-btn" data-voice="echo" onclick="setVoice(this)">Echo<span class="voice-tag" id="vt-echo">男性・若め</span></button>
+        <button class="voice-btn" data-voice="fable" onclick="setVoice(this)">Fable<span class="voice-tag" id="vt-fable">中性・若め</span></button>
+        <button class="voice-btn" data-voice="alloy" onclick="setVoice(this)">Alloy<span class="voice-tag" id="vt-alloy">中性・落ち着き</span></button>
       </div>
     </div>
 
@@ -266,8 +266,8 @@
     <div>
       <div class="section-label">Mode</div>
       <div class="mode-tabs">
-        <button class="mode-tab active speech" id="modeTabSpeech" onclick="setMode('speech')">🎙 スピーチ練習</button>
-        <button class="mode-tab roleplay" id="modeTabRoleplay" onclick="setMode('roleplay')">🎭 ロールプレイ</button>
+        <button class="mode-tab active speech" id="modeTabSpeech" onclick="setMode('speech')">🎙 <span id="modeLabelSpeech">スピーチ練習</span></button>
+        <button class="mode-tab roleplay" id="modeTabRoleplay" onclick="setMode('roleplay')">🎭 <span id="modeLabelRoleplay">ロールプレイ</span></button>
       </div>
       <div class="mode-hint" id="modeHint">一人で話して計測・フィードバックを受ける</div>
     </div>
@@ -279,25 +279,25 @@
       <!-- Speech scenarios -->
       <div id="speechScenarios">
         <div class="topic-grid">
-          <button class="topic-btn active" data-topic="自己紹介（1分間）" onclick="selectTopic(this, 'speech')">自己紹介<span class="topic-tag">1分間スピーチ</span></button>
-          <button class="topic-btn" data-topic="プロジェクト提案プレゼン（3分）" onclick="selectTopic(this, 'speech')">提案プレゼン<span class="topic-tag">3分間</span></button>
-          <button class="topic-btn" data-topic="FOR ME NYのワークショップについて説明する" onclick="selectTopic(this, 'speech')">FOR ME NY<span class="topic-tag">ワークショップ説明</span></button>
-          <button class="topic-btn" data-topic="AIと人間の共存についての意見を述べる" onclick="selectTopic(this, 'speech')">AI × 人間<span class="topic-tag">意見スピーチ</span></button>
+          <button class="topic-btn active" data-topic="自己紹介（1分間）" onclick="selectTopic(this, 'speech')"><span id="t-intro">自己紹介</span><span class="topic-tag" id="tt-intro">1分間スピーチ</span></button>
+          <button class="topic-btn" data-topic="プロジェクト提案プレゼン（3分）" onclick="selectTopic(this, 'speech')"><span id="t-pres">提案プレゼン</span><span class="topic-tag" id="tt-pres">3分間</span></button>
+          <button class="topic-btn" data-topic="FOR ME NYのワークショップについて説明する" onclick="selectTopic(this, 'speech')"><span>FOR ME NY</span><span class="topic-tag" id="tt-fmny">ワークショップ説明</span></button>
+          <button class="topic-btn" data-topic="AIと人間の共存についての意見を述べる" onclick="selectTopic(this, 'speech')"><span id="t-ai">AI × 人間</span><span class="topic-tag" id="tt-ai">意見スピーチ</span></button>
         </div>
-        <textarea class="custom-input" id="customTopicSpeech" placeholder="カスタムトピックを入力…" oninput="onCustomTopic('speech')"></textarea>
+        <textarea class="custom-input" id="customTopicSpeech" placeholder="カスタムトピックを入力…" id="customTopicSpeechInput" oninput="onCustomTopic('speech')"></textarea>
       </div>
 
       <!-- Roleplay scenarios -->
       <div id="roleplaysScenarios" style="display:none">
         <div class="topic-grid">
-          <button class="topic-btn roleplay-btn" data-role="上司" data-situation="部下が上司に新しいプロジェクトのアイデアを提案している。上司は多忙で懐疑的だが話を聞く姿勢はある" data-opener="「少しお時間よろしいですか？提案があるのですが」" onclick="selectRoleplay(this)">上司へ提案<span class="topic-tag">アイデアを売り込む</span></button>
-          <button class="topic-btn roleplay-btn" data-role="面接官" data-situation="就職・転職面接。面接官はプロフェッショナルで、鋭い質問をするが圧迫ではない" data-opener="「では自己紹介からお願いできますか」" onclick="selectRoleplay(this)">面接<span class="topic-tag">自己PRと質疑応答</span></button>
-          <button class="topic-btn roleplay-btn" data-role="教授・指導教員" data-situation="学生が教授に研究の方向性や進捗を報告・相談している。教授は厳格だが学生思い" data-opener="「今日は研究の進捗を聞かせてください」" onclick="selectRoleplay(this)">教授へ相談<span class="topic-tag">研究・学習の報告</span></button>
-          <button class="topic-btn roleplay-btn" data-role="クライアント（初対面）" data-situation="初めて会うクライアントへのサービス説明。クライアントはまだ信頼を持っておらず、質問が多い" data-opener="「本日はお時間いただきありがとうございます」" onclick="selectRoleplay(this)">クライアント<span class="topic-tag">初対面・サービス説明</span></button>
-          <button class="topic-btn roleplay-btn" data-role="意見が対立するチームメンバー" data-situation="チーム内で方向性の意見が対立している。感情的にならず、相手の意見も尊重しながら自分の立場を伝える必要がある" data-opener="「少し話し合いたいことがあって」" onclick="selectRoleplay(this)">意見対立<span class="topic-tag">対話・交渉</span></button>
-          <button class="topic-btn roleplay-btn" data-role="昇給交渉の相手（人事・上司）" data-situation="昇給・待遇改善の交渉。相手は会社の立場を守りながらも、合理的な理由があれば検討する姿勢" data-opener="「今後のキャリアと待遇についてお話ししたいのですが」" onclick="selectRoleplay(this)">昇給交渉<span class="topic-tag">待遇・キャリア</span></button>
+          <button class="topic-btn roleplay-btn" data-role="上司" data-situation="部下が上司に新しいプロジェクトのアイデアを提案している。上司は多忙で懐疑的だが話を聞く姿勢はある" data-opener="「少しお時間よろしいですか？提案があるのですが」" onclick="selectRoleplay(this)"><span id="r-boss">上司へ提案</span><span class="topic-tag" id="rt-boss">アイデアを売り込む</span></button>
+          <button class="topic-btn roleplay-btn" data-role="面接官" data-situation="就職・転職面接。面接官はプロフェッショナルで、鋭い質問をするが圧迫ではない" data-opener="「では自己紹介からお願いできますか」" onclick="selectRoleplay(this)"><span id="r-int">面接</span><span class="topic-tag" id="rt-int">自己PRと質疑応答</span></button>
+          <button class="topic-btn roleplay-btn" data-role="教授・指導教員" data-situation="学生が教授に研究の方向性や進捗を報告・相談している。教授は厳格だが学生思い" data-opener="「今日は研究の進捗を聞かせてください」" onclick="selectRoleplay(this)"><span id="r-prof">教授へ相談</span><span class="topic-tag" id="rt-prof">研究・学習の報告</span></button>
+          <button class="topic-btn roleplay-btn" data-role="クライアント（初対面）" data-situation="初めて会うクライアントへのサービス説明。クライアントはまだ信頼を持っておらず、質問が多い" data-opener="「本日はお時間いただきありがとうございます」" onclick="selectRoleplay(this)"><span id="r-client">クライアント</span><span class="topic-tag" id="rt-client">初対面・サービス説明</span></button>
+          <button class="topic-btn roleplay-btn" data-role="意見が対立するチームメンバー" data-situation="チーム内で方向性の意見が対立している。感情的にならず、相手の意見も尊重しながら自分の立場を伝える必要がある" data-opener="「少し話し合いたいことがあって」" onclick="selectRoleplay(this)"><span id="r-conflict">意見対立</span><span class="topic-tag" id="rt-conflict">対話・交渉</span></button>
+          <button class="topic-btn roleplay-btn" data-role="昇給交渉の相手（人事・上司）" data-situation="昇給・待遇改善の交渉。相手は会社の立場を守りながらも、合理的な理由があれば検討する姿勢" data-opener="「今後のキャリアと待遇についてお話ししたいのですが」" onclick="selectRoleplay(this)"><span id="r-salary">昇給交渉</span><span class="topic-tag" id="rt-salary">待遇・キャリア</span></button>
         </div>
-        <textarea class="custom-input" id="customTopicRoleplay" placeholder="カスタムシナリオを入力（例：医師への症状説明）…" oninput="onCustomTopic('roleplay')"></textarea>
+        <textarea class="custom-input" id="customTopicRoleplay" placeholder="カスタムシナリオを入力（例：医師への症状説明）…" id="customRoleplaysInput" oninput="onCustomTopic('roleplay')"></textarea>
       </div>
 
       <!-- Roleplay context display -->
@@ -366,8 +366,8 @@
     </div>
     <div class="chat-messages" id="chatMessages"></div>
     <div class="chat-input-area">
-      <input class="chat-input" id="chatInput" placeholder="ここに入力…" onkeydown="if(event.key==='Enter')sendMessage()" />
-      <button class="send-btn" onclick="sendMessage()">送信</button>
+      <input class="chat-input" id="chatInput" placeholder="ここに入力…" id="chatInputPlaceholder" onkeydown="if(event.key==='Enter')sendMessage()" />
+      <button class="send-btn" id="btnSend" onclick="sendMessage()">送信</button>
     </div>
   </div>
 </div>
@@ -405,7 +405,7 @@ let roleplaysRoundCount = 0;
 // ── Init ──────────────────────────────────────────
 if (apiKey) {
   document.getElementById('apiKeyInput').value = '••••••••';
-  document.getElementById('keyStatus').textContent = '設定済み ✓';
+  document.getElementById('keyStatus').textContent = t('設定済み ✓', 'Saved ✓');
   document.getElementById('keyStatus').className = 'key-status ok';
 }
 setTimeout(() => startPrepare(), 400);
@@ -418,23 +418,23 @@ function setMode(m) {
   document.getElementById('speechScenarios').style.display = m === 'speech' ? 'block' : 'none';
   document.getElementById('roleplaysScenarios').style.display = m === 'roleplay' ? 'block' : 'none';
   document.getElementById('roleplaysInfo').classList.remove('visible');
+  // Show voice selector only in roleplay mode
+  document.getElementById('voiceSelectorSection').style.display = m === 'roleplay' ? 'block' : 'none';
+
   document.getElementById('modeHint').textContent = m === 'speech'
-    ? '一人で話して計測・フィードバックを受ける'
-    : 'AIが相手役になりきってリアルな対話を練習する';
-  document.getElementById('scenarioLabel').textContent = m === 'speech' ? 'Topic / シナリオ' : 'ロールプレイ シナリオ';
+    ? t('一人で話して計測・フィードバックを受ける', 'Speak alone — get metrics & feedback')
+    : t('AIが相手役になりきってリアルな対話を練習する', 'AI plays a role for realistic conversation practice');
+  document.getElementById('scenarioLabel').textContent = m === 'speech'
+    ? t('Topic / シナリオ', 'Topic / Scenario')
+    : t('ロールプレイ シナリオ', 'Roleplay Scenario');
 
   const btn = document.getElementById('recordBtn');
   if (m === 'roleplay') {
     btn.classList.add('roleplay-mode');
-    document.getElementById('recordLabel').textContent = 'クリックして話す（録音）';
+    document.getElementById('recordLabel').textContent = t('クリックして話す（録音）', 'Click to speak (record)');
   } else {
     btn.classList.remove('roleplay-mode');
-    document.getElementById('recordLabel').textContent = 'クリックして録音開始';
-  }
-
-  // Reset if no roleplay selected
-  if (m === 'roleplay' && !selectedRoleplay) {
-    // prompt user to pick a scenario
+    document.getElementById('recordLabel').textContent = t('クリックして録音開始', 'Click to start recording');
   }
 }
 
@@ -478,9 +478,12 @@ function onCustomTopic(m) {
 // ── Phase management ──────────────────────────────────────────
 function startPrepare() {
   setPhase('prepare');
-  const q = `ようこそ。ここはあなたが自分の声を、安心して探求できる場所です。\n\n今日はどちらで練習しますか？スピーチ練習なら左上のトピックを選んで、ロールプレイなら「ロールプレイ」タブからシナリオを選んでください。\n\n録音を始める前に、今この瞬間の気持ちを少し聞かせてください。`;
+  const q = t(
+    `ようこそ。ここはあなたが自分の声を、安心して探求できる場所です。\n\n今日はどちらで練習しますか？スピーチ練習なら左上のトピックを選んで、ロールプレイなら「ロールプレイ」タブからシナリオを選んでください。\n\n録音を始める前に、今この瞬間の気持ちを少し聞かせてください。`,
+    `Welcome. This is a safe space to explore your voice.\n\nChoose a mode: Speech Practice for solo speaking, or Role Play for conversation practice.\n\nBefore you begin, how are you feeling right now?`
+  );
   addCoachMessage(q);
-  document.getElementById('chatInput').placeholder = '気持ちを教えてください…';
+  document.getElementById('chatInput').placeholder = t('気持ちを教えてください…', 'Share how you feel…');
 }
 
 function setPhase(p) {
@@ -497,12 +500,12 @@ async function toggleRecord() {
     stopRecording();
   } else {
     if (mode === 'roleplay' && !selectedRoleplay) {
-      addCoachMessage('まずロールプレイのシナリオを選んでください。');
+      addCoachMessage(t('まずロールプレイのシナリオを選んでください。', 'Please select a roleplay scenario first.'));
       return;
     }
     // Don't start recording while AI audio is playing
     if (currentAudio && !currentAudio.paused) {
-      addCoachMessage('相手が話し終わるまでお待ちください。');
+      addCoachMessage(t('相手が話し終わるまでお待ちください。', 'Please wait until the other person finishes speaking.'));
       return;
     }
     if (isStarting) return;
@@ -531,9 +534,9 @@ async function startRecording() {
   if (mode === 'speech') {
     setPhase('rehearse');
     if (!prepareAnswered) {
-      addCoachMessage(`「${selectedTopic}」について、自由に話してください。正解はありません。`);
+      addCoachMessage(t(`「${selectedTopic}」について、自由に話してください。正解はありません。`, `Speak freely about "${selectedTopic}". There are no right answers.`));
     } else {
-      addCoachMessage(`「${selectedTopic}」について話してください。自分のペースで。`);
+      addCoachMessage(t(`「${selectedTopic}」について話してください。自分のペースで。`, `Speak about "${selectedTopic}". Take your time.`));
     }
     document.getElementById('transcriptSection').style.display = 'block';
   } else {
@@ -545,7 +548,7 @@ async function startRecording() {
     }
     // Show transcript so user can confirm speech is being captured
     document.getElementById('transcriptSection').style.display = 'block';
-    document.getElementById('transcriptBox').textContent = '（話しかけてください…）';
+    document.getElementById('transcriptBox').textContent = t('（話しかけてください…）', '(Start speaking…)');
     document.getElementById('transcriptBox').className = 'transcript-box placeholder';
   }
 
@@ -583,10 +586,10 @@ async function startRecording() {
   recognition.onerror = (e) => {
     console.warn('SR error:', e.error);
     if (e.error === 'not-allowed') {
-      addCoachMessage('マイクのアクセスが拒否されました。ブラウザの設定でマイクを許可してください。');
+      addCoachMessage(t('マイクのアクセスが拒否されました。ブラウザの設定でマイクを許可してください。', 'Microphone access denied. Please allow microphone access in browser settings.'));
       stopRecording();
     } else if (e.error === 'audio-capture') {
-      addCoachMessage('マイクが見つかりません。接続を確認してください。');
+      addCoachMessage(t('マイクが見つかりません。接続を確認してください。', 'No microphone found. Please check your connection.'));
       stopRecording();
     }
   };
@@ -643,7 +646,7 @@ function stopRecording() {
   const snapTranscript = fullTranscript;
 
   if (mode === 'speech') {
-    document.getElementById('recordLabel').textContent = 'クリックして再録音';
+    document.getElementById('recordLabel').textContent = t('クリックして再録音', 'Click to record again');
     pendingComputeTimer = setTimeout(() => {
       pendingComputeTimer = null;
       computeMetrics(snapStart, snapTranscript);
@@ -652,7 +655,7 @@ function stopRecording() {
     }, 800);
   } else {
     // Roleplay: send user's speech to AI character
-    document.getElementById('recordLabel').textContent = 'AIが返答しています…';
+    document.getElementById('recordLabel').textContent = t('AIが返答しています…', 'AI is responding…');
     document.getElementById('recordBtn').disabled = true;
     pendingComputeTimer = setTimeout(() => {
       pendingComputeTimer = null;
@@ -673,12 +676,12 @@ async function startRoleplaysScene() {
   document.getElementById('chatHeaderText').textContent = selectedRoleplay.role + ' 役';
   document.getElementById('endRoleplaysBtn').style.display = 'block';
 
-  addCoachMessage(`シナリオ：${selectedRoleplay.role}\n\n${selectedRoleplay.situation}\n\nAIが最初に話しかけます。話し終わったら録音ボタンを押して返答してください。`);
+  addCoachMessage(t(`シナリオ：${selectedRoleplay.role}\n\n${selectedRoleplay.situation}\n\nAIが最初に話しかけます。話し終わったら録音ボタンを押して返答してください。`, `Scenario: ${selectedRoleplay.role}\n\n${selectedRoleplay.situation}\n\nThe AI will speak first. When they finish, press the record button to respond.`));
 
   showTyping();
   try {
     const opener = await callOpenAI([
-      { role: 'user', content: 'シーンを開始してください。オープニングの一言を言ってください。' }
+      { role: 'user', content: t(t('シーンを開始してください。オープニングの一言を言ってください。', 'Please start the scene with your opening line.'), 'Please start the scene. Say your opening line.') }
     ], buildRoleplaysSystemPrompt());
     hideTyping();
     addRoleMessage(opener);
@@ -686,7 +689,7 @@ async function startRoleplaysScene() {
     roleplaysRoundCount++;
     // Speak opener — after speech ends, user can record
     speakAsRole(opener, () => {
-      document.getElementById('recordLabel').textContent = 'クリックして返答（録音）';
+      document.getElementById('recordLabel').textContent = t('クリックして返答（録音）', 'Click to respond (record)');
     });
   } catch(e) {
     hideTyping();
@@ -694,7 +697,7 @@ async function startRoleplaysScene() {
     roleplaysHistory.push({ role: 'assistant', content: selectedRoleplay.opener });
     roleplaysRoundCount++;
     speakAsRole(selectedRoleplay.opener, () => {
-      document.getElementById('recordLabel').textContent = 'クリックして返答（録音）';
+      document.getElementById('recordLabel').textContent = t('クリックして返答（録音）', 'Click to respond (record)');
     });
   }
 }
@@ -712,40 +715,48 @@ async function handleRoleplaysUserTurn(userSpeech) {
     roleplaysHistory.push({ role: 'assistant', content: reply });
     // Speak reply — after speech ends, enable recording again
     speakAsRole(reply, () => {
-      document.getElementById('recordLabel').textContent = 'クリックして返答（録音）';
+      document.getElementById('recordLabel').textContent = t('クリックして返答（録音）', 'Click to respond (record)');
     });
   } catch(e) {
     hideTyping();
-    addCoachMessage('通信エラーが発生しました。もう一度お試しください。');
+    addCoachMessage(t('通信エラーが発生しました。もう一度お試しください。', 'Connection error. Please try again.'));
     document.getElementById('recordBtn').disabled = false;
   }
 }
 
 function buildRoleplaysSystemPrompt() {
-  return `あなたは「${selectedRoleplay.role}」を演じています。
+  const langInstruction = lang === 'en'
+    ? 'Respond in English.'
+    : '日本語で返答する';
+  const examples = lang === 'en'
+    ? `Examples: "I see. So what timeline are you thinking?" / "Hmm. What's the budget estimate?"`
+    : `例：「なるほど。それで、具体的なスケジュールはどう考えてる？」\n  例：「ふむ。コストはどのくらいを想定しているの？」`;
+  return `You are playing the role of "${selectedRoleplay.role}".
 
-シナリオ：${selectedRoleplay.situation}
+Scenario: ${selectedRoleplay.situation}
 
-演じ方のルール：
-- リアルだが圧迫しない。緊張感はあるが練習できる安心感を保つ
-- 返答は1〜2文の短め。テンポよく会話のキャッチボールを続ける
-- コーチや評価者としてのコメントは一切しない。キャラクターとして返すだけ
-- 必ず最後に短い質問や反応を加えて相手に返す
-  例：「なるほど。それで、具体的なスケジュールはどう考えてる？」
-  例：「ふむ。コストはどのくらいを想定しているの？」
-- 日本語で返答する
-- 音声で読まれるので、記号や箇条書きは使わず自然な話し言葉で`;
+Rules:
+- Realistic but not intimidating. Keep some tension but maintain a safe practice atmosphere
+- Keep responses to 1–2 short sentences. Maintain a conversational back-and-forth tempo
+- Never break character to coach or evaluate. Just respond as the character
+- Always end with a short question or reaction to keep the conversation going
+  ${examples}
+- ${langInstruction}
+- No symbols or bullet points — natural spoken language only (this will be read aloud)`;
 }
 
 async function startRoleplaysReflect() {
   setPhase('reflect');
-  document.getElementById('recordLabel').textContent = 'クリックして録音開始';
+  document.getElementById('recordLabel').textContent = t('クリックして録音開始', 'Click to start recording');
   // Build a summary from roleplay history for the coach
   const summary = roleplaysHistory.map(m => `${m.role === 'user' ? 'あなた' : selectedRoleplay.role}：${m.content}`).join('\n');
   const roundsText = ['', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'][roleplaysRoundCount] || String(roleplaysRoundCount);
-  const q = `ロールプレイお疲れ様でした。${roundsText}往復の対話でした。\n\nまず、やってみてどうでしたか？どんな瞬間が難しかったですか、あるいは手応えを感じましたか？`;
+  const q = t(
+    `ロールプレイお疲れ様でした。${roundsText}往復の対話でした。\n\nまず、やってみてどうでしたか？どんな瞬間が難しかったですか、あるいは手応えを感じましたか？`,
+    `Good work on the roleplay — ${roundsText} exchange${roleplaysRoundCount > 1 ? 's' : ''} completed.\n\nFirst, how did it feel? What moments were challenging, or where did you feel confident?`
+  );
   addCoachMessage(q);
-  document.getElementById('chatInput').placeholder = '感じたことを教えてください…';
+  document.getElementById('chatInput').placeholder = t('感じたことを教えてください…', 'Share what you noticed…');
   // Store for reflect
   lastMetrics = { roleplaysHistory: roleplaysHistory, roleplaysRole: selectedRoleplay.role, roleplaysRounds: roleplaysRoundCount, isRoleplay: true };
 }
@@ -828,8 +839,8 @@ function endRoleplay() {
 }
 function startReflect() {
   setPhase('reflect');
-  addCoachMessage(`話し終えました。\n\nまず聞かせてください。今、どんな感覚がありますか？話してみてどうでしたか？`);
-  document.getElementById('chatInput').placeholder = '感じたことを教えてください…';
+  addCoachMessage(t(`話し終えました。\n\nまず聞かせてください。今、どんな感覚がありますか？話してみてどうでしたか？`, `You've finished speaking.\n\nFirst, I'd like to hear from you — how did that feel? What did you notice?`));
+  document.getElementById('chatInput').placeholder = t('感じたことを教えてください…', 'Share what you noticed…');
 }
 
 // ── Volume tracking ──────────────────────────────────────────
@@ -854,7 +865,7 @@ function computeMetrics(snapStart, snapTranscript) {
   const elapsed = (Date.now() - usedStart) / 1000 / 60;
 
   if (!usedTranscript) {
-    document.getElementById('transcriptBox').textContent = '（音声が認識されませんでした。マイクの許可を確認してください）';
+    document.getElementById('transcriptBox').textContent = t('（音声が認識されませんでした。マイクの許可を確認してください）', '(No speech detected. Please check microphone permissions.)');  
     document.getElementById('transcriptBox').className = 'transcript-box placeholder';
     return;
   }
@@ -926,7 +937,7 @@ async function sendMessage() {
   const input = document.getElementById('chatInput');
   const text = input.value.trim();
   if (!text) return;
-  if (!apiKey) { addCoachMessage('APIキーを設定してください。'); return; }
+  if (!apiKey) { addCoachMessage(t('APIキーを設定してください。', 'Please set your API key.')); return; }
   input.value = '';
 
   addUserMessage(text);
@@ -941,13 +952,24 @@ async function sendMessage() {
     addCoachMessage(reply);
   } catch(e) {
     hideTyping();
-    addCoachMessage('通信エラーが発生しました。APIキーとネットワーク接続を確認してください。');
+    addCoachMessage(t('通信エラーが発生しました。APIキーとネットワーク接続を確認してください。', 'Connection error. Please check your API key and network.'));
     chatHistory.pop();
   }
 }
 
 function buildCoachSystemPrompt() {
-  const base = `あなたはFOR ME NYのAIコーチです。FOR ME NYはインプロビゼーション×心理的安全性×感情知性を大切にする表現教育メソッドです。
+  const isEn = lang === 'en';
+  const base = isEn
+    ? `You are an AI coach for FOR ME NY, an expressive education method built on improvisation, psychological safety, and emotional intelligence.
+
+Core principles:
+- Prioritize questions that spark awareness over evaluation
+- Use numbers only as gentle starting points for reflection — never as scores
+- Always hold the attitude: "There are no right answers. Your voice has unique value."
+- Suggest only one next step, offered softly
+- Respond in a dialogue style with questions woven in
+- Keep responses to 50–100 words. Concise and warm.`
+    : `あなたはFOR ME NYのAIコーチです。FOR ME NYはインプロビゼーション×心理的安全性×感情知性を大切にする表現教育メソッドです。
 
 核心原則：
 - 評価より「気づき」を促す問いかけを優先する
@@ -958,13 +980,28 @@ function buildCoachSystemPrompt() {
 - 返答は日本語で200〜400文字程度。簡潔に、温かく。`;
 
   if (phase === 'prepare') {
-    return base + `\n\n現在はPrepareフェーズ。ユーザーの気持ちを受け止め、安心感を作ってください。最後に「いつでも始めてください」と伝えてください。`;
+    return base + (isEn
+      ? `\n\nThis is the Prepare phase. Receive the user's feelings warmly and create a sense of safety. End by saying "start whenever you're ready".`
+      : `\n\n現在はPrepareフェーズ。ユーザーの気持ちを受け止め、安心感を作ってください。最後に「いつでも始めてください」と伝えてください。`);
   }
   if (phase === 'reflect' && lastMetrics) {
     if (lastMetrics.isRoleplay) {
       const hist = lastMetrics.roleplaysHistory || [];
-      const summary = hist.slice(0,6).map(m => `${m.role === 'user' ? 'あなた' : lastMetrics.roleplaysRole}：「${m.content.slice(0,60)}${m.content.length>60?'…':''}」`).join('\n');
-      return base + `\n\n現在はReflectフェーズ（ロールプレイ後）。
+      const userLabel = isEn ? 'You' : 'あなた';
+      const summary = hist.slice(0,6).map(m => `${m.role === 'user' ? userLabel : lastMetrics.roleplaysRole}: "${m.content.slice(0,60)}${m.content.length>60?'…':''}"`).join('\n');
+      return base + (isEn
+        ? `\n\nThis is the Reflect phase (post-roleplay).
+
+Roleplay summary:
+- Role: ${lastMetrics.roleplaysRole}
+- Exchanges: ${lastMetrics.roleplaysRounds}
+- Excerpt:\n${summary}
+
+Approach:
+1. Receive the user's impressions with care
+2. Ask one question to spark awareness (e.g. "What was the hardest moment?" "Did anything surprise you about their response?")
+3. Suggest one thing to try next`
+        : `\n\n現在はReflectフェーズ（ロールプレイ後）。
 
 ロールプレイ概要：
 - 相手役：${lastMetrics.roleplaysRole}
@@ -974,14 +1011,29 @@ function buildCoachSystemPrompt() {
 進め方：
 1. ユーザーの感想をしっかり受け止める
 2. 対話の中で気づきを促す問いを1つ投げかける（例：「一番難しかった瞬間はどこでしたか？」「相手の反応で意外だったことはありましたか？」）
-3. 「次にやってみること」を1つ提案する`;
+3. 「次にやってみること」を1つ提案する`);
     } else {
       const m = lastMetrics;
-      return base + `\n\n現在はReflectフェーズ（スピーチ後）。
+      const speedRef = isEn ? `${m.speed} wpm (target 130–150)` : `${m.speed}字/分（目安350〜400）`;
+      return base + (isEn
+        ? `\n\nThis is the Reflect phase (post-speech).
+
+Recording data (reference only — don't push):
+- Topic: ${m.topic}
+- Speed: ${speedRef}
+- Pauses: ${m.pauseCount}
+- Transcript excerpt: "${m.transcript.slice(0,150)}${m.transcript.length>150?'…':''}"
+
+Approach:
+1. Receive the user's impressions
+2. Ask one awareness question based on the transcript or numbers
+3. For numbers, ask: "X came up — how does that feel to you?"
+4. Suggest only one thing to try next`
+        : `\n\n現在はReflectフェーズ（スピーチ後）。
 
 録音データ（参考。押しつけない）：
 - トピック：${m.topic}
-- スピード：${m.speed}字/分（目安350〜400）
+- スピード：${speedRef}
 - 間：${m.pauseCount}回
 - 書き起こし抜粋：「${m.transcript.slice(0,150)}${m.transcript.length>150?'…':''}」
 
@@ -989,7 +1041,7 @@ function buildCoachSystemPrompt() {
 1. ユーザーの感想を受け止める
 2. 書き起こしや数値から気づきを促す問いを1つ投げかける
 3. 数値は「〜という数字が出ました。どう感じますか？」と問いかける形で
-4. 「次にやってみること」を1つだけ提案する`;
+4. 「次にやってみること」を1つだけ提案する`);
     }
   }
   return base;
@@ -1038,7 +1090,7 @@ function saveKey() {
   apiKey = val;
   localStorage.setItem('formeny_openai_key', val);
   document.getElementById('apiKeyInput').value = '••••••••';
-  document.getElementById('keyStatus').textContent = '設定済み ✓';
+  document.getElementById('keyStatus').textContent = t('設定済み ✓', 'Saved ✓');
   document.getElementById('keyStatus').className = 'key-status ok';
 }
 
@@ -1048,12 +1100,112 @@ function setVoice(btn) {
   selectedVoice = btn.dataset.voice;
 }
 
+// ── i18n helper ──────────────────────────────────────────
+function t(ja, en) { return lang === 'en' ? en : ja; }
+
 function setLang(l) {
   lang = l;
   document.getElementById('langJA').classList.toggle('active', l === 'ja');
   document.getElementById('langEN').classList.toggle('active', l === 'en');
-  document.getElementById('speedHint').textContent = l === 'ja' ? '目安 350–400' : 'target 130–150';
-  document.getElementById('speedUnit').textContent = l === 'ja' ? 'chars/min' : 'words/min';
+
+  // Section labels
+  document.getElementById('speedHint').textContent = t('目安 350–400', 'target 130–150');
+  document.getElementById('speedUnit').textContent = t('chars/min', 'words/min');
+  document.getElementById('labelVoice').textContent = t('AI Voice（ロールプレイ）', 'AI Voice (Roleplay)');
+  document.getElementById('scenarioLabel').textContent = mode === 'speech'
+    ? t('Topic / シナリオ', 'Topic / Scenario')
+    : t('ロールプレイ シナリオ', 'Roleplay Scenario');
+  document.getElementById('modeHint').textContent = mode === 'speech'
+    ? t('一人で話して計測・フィードバックを受ける', 'Speak alone — get metrics & feedback')
+    : t('AIが相手役になりきってリアルな対話を練習する', 'AI plays a role for realistic conversation practice');
+
+  // Mode tab labels
+  document.getElementById('modeLabelSpeech').textContent = t('スピーチ練習', 'Speech Practice');
+  document.getElementById('modeLabelRoleplay').textContent = t('ロールプレイ', 'Role Play');
+
+  // Save / send buttons
+  document.getElementById('btnSave').textContent = t('保存', 'Save');
+  document.getElementById('btnSend').textContent = t('送信', 'Send');
+
+  // Key status
+  if (apiKey) {
+    document.getElementById('keyStatus').textContent = t('設定済み ✓', 'Saved ✓');
+  } else {
+    document.getElementById('keyStatus').textContent = t('未設定', 'Not set');
+  }
+
+  // Speech topics
+  const st = {
+    't-intro': [t('自己紹介', 'Self-Introduction'), ''],
+    'tt-intro': ['', t('1分間スピーチ', '1-Minute Speech')],
+    't-pres': [t('提案プレゼン', 'Project Pitch'), ''],
+    'tt-pres': ['', t('3分間', '3 Minutes')],
+    'tt-fmny': ['', t('ワークショップ説明', 'Workshop Explanation')],
+    't-ai': [t('AI × 人間', 'AI × Human'), ''],
+    'tt-ai': ['', t('意見スピーチ', 'Opinion Speech')],
+  };
+  Object.entries(st).forEach(([id, [main, sub]]) => {
+    const el = document.getElementById(id);
+    if (el && main) el.textContent = main;
+    if (el && sub) el.textContent = sub;
+  });
+
+  // Custom topic placeholder
+  const csi = document.getElementById('customTopicSpeech');
+  if (csi) csi.placeholder = t('カスタムトピックを入力…', 'Enter custom topic…');
+  const cri = document.getElementById('customTopicRoleplay');
+  if (cri) cri.placeholder = t('カスタムシナリオを入力（例：医師への症状説明）…', 'Enter custom scenario (e.g. explaining symptoms to a doctor)…');
+
+  // Roleplay topics
+  const rt = {
+    'r-boss': t('上司へ提案', 'Propose to Boss'),
+    'rt-boss': t('アイデアを売り込む', 'Pitch an idea'),
+    'r-int': t('面接', 'Job Interview'),
+    'rt-int': t('自己PRと質疑応答', 'Self-PR & Q&A'),
+    'r-prof': t('教授へ相談', 'Meet with Professor'),
+    'rt-prof': t('研究・学習の報告', 'Research Check-in'),
+    'r-client': t('クライアント', 'Client Meeting'),
+    'rt-client': t('初対面・サービス説明', 'First Meeting'),
+    'r-conflict': t('意見対立', 'Disagreement'),
+    'rt-conflict': t('対話・交渉', 'Dialogue & Negotiation'),
+    'r-salary': t('昇給交渉', 'Salary Negotiation'),
+    'rt-salary': t('待遇・キャリア', 'Compensation & Career'),
+  };
+  Object.entries(rt).forEach(([id, text]) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = text;
+  });
+
+  // Voice tags
+  const vt = {
+    'vt-nova': t('女性・自然', 'Female · Natural'),
+    'vt-shimmer': t('女性・柔らか', 'Female · Soft'),
+    'vt-onyx': t('男性・低音', 'Male · Deep'),
+    'vt-echo': t('男性・若め', 'Male · Young'),
+    'vt-fable': t('中性・若め', 'Neutral · Young'),
+    'vt-alloy': t('中性・落ち着き', 'Neutral · Calm'),
+  };
+  Object.entries(vt).forEach(([id, text]) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = text;
+  });
+
+  // Record button label
+  if (!isRecording) {
+    document.getElementById('recordLabel').textContent =
+      mode === 'roleplay'
+        ? t('クリックして話す（録音）', 'Click to speak (record)')
+        : t('クリックして録音開始', 'Click to start recording');
+  }
+
+  // Chat input placeholder
+  const ci = document.getElementById('chatInput');
+  if (ci && phase === 'prepare') ci.placeholder = t('気持ちを教えてください…', 'Share how you feel…');
+  else if (ci && phase === 'reflect') ci.placeholder = t('感じたことを教えてください…', 'Share what you noticed…');
+  else if (ci) ci.placeholder = t('ここに入力…', 'Type here…');
+
+  // Recognition language update (takes effect on next recording)
+  if (recognition) recognition.lang = l === 'ja' ? 'ja-JP' : 'en-US';
 }
 
 function escHtml(s) {

@@ -628,13 +628,18 @@ async function startRecording() {
 
 function stopRecording() {
   isRecording = false;
-  // Fully kill recognition to prevent ghost restarts
+
+  // Tell recognition to stop but keep onresult alive briefly to capture final results
   if (recognition) {
-    recognition.onend = null;
-    recognition.onresult = null;
+    recognition.onend = null;  // prevent auto-restart
     recognition.onerror = null;
     recognition.onspeechend = null;
     try { recognition.stop(); } catch(e) {}
+    // Null out onresult after 600ms to capture any final recognition results
+    const r = recognition;
+    setTimeout(() => {
+      if (r) { r.onresult = null; }
+    }, 600);
     recognition = null;
   }
   if (timerInterval) clearInterval(timerInterval);
@@ -648,10 +653,15 @@ function stopRecording() {
   document.getElementById('waveform').classList.remove('visible');
 
   const snapStart = startTime;
-  // Use transcriptBox content — it always reflects the latest recognized text including interim
-  const boxText = document.getElementById('transcriptBox')?.textContent || '';
-  const isPlaceholder = boxText.includes('話しかけてください') || boxText.includes('Start speaking') || boxText.includes('認識中');
-  const snapTranscript = isPlaceholder ? fullTranscript : (boxText || fullTranscript);
+  // fullTranscript accumulates all finalized results throughout recording
+  // We also grab the current interim from transcriptBox and append it
+  const currentBox = document.getElementById('transcriptBox')?.textContent || '';
+  const isPlaceholder = currentBox.includes('話しかけてください') || currentBox.includes('Start speaking') || currentBox.includes('認識中');
+  // Append any interim text that hasn't been finalized yet
+  const interimExtra = (!isPlaceholder && currentBox.startsWith(fullTranscript.trim()))
+    ? currentBox.slice(fullTranscript.trim().length).trim()
+    : '';
+  const snapTranscript = (fullTranscript + (interimExtra ? ' ' + interimExtra : '')).trim();
 
   if (mode === 'speech') {
     document.getElementById('recordLabel').textContent = t('クリックして再録音', 'Click to record again');
@@ -667,11 +677,10 @@ function stopRecording() {
     document.getElementById('recordBtn').disabled = true;
     pendingComputeTimer = setTimeout(() => {
       pendingComputeTimer = null;
-      // Re-read transcriptBox at this point — final text should be confirmed by now
-      const finalBox = document.getElementById('transcriptBox')?.textContent || '';
-      const isStillPlaceholder = finalBox.includes('話しかけてください') || finalBox.includes('Start speaking') || finalBox.includes('認識中');
-      const userSpeech = (!isStillPlaceholder && finalBox) ? finalBox : snapTranscript.trim();
-      handleRoleplaysUserTurn(userSpeech || '（沈黙）');
+      // fullTranscript has all finalized speech. Use it as primary source.
+      // snapTranscript already includes any interim that was captured at stop time.
+      const userSpeech = snapTranscript || fullTranscript.trim();
+      handleRoleplaysUserTurn(userSpeech || t('（沈黙）', '(silence)'));
     }, 1200);
   }
 }

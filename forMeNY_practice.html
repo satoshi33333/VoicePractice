@@ -253,8 +253,8 @@
     <div id="voiceSelectorSection" style="display:none">
       <div class="section-label" id="labelVoice">AI Voice（ロールプレイ）</div>
       <div class="voice-grid" id="voiceGrid">
-        <button class="voice-btn active" data-voice="nova" onclick="setVoice(this)">Nova<span class="voice-tag" id="vt-nova">女性・自然</span></button>
-        <button class="voice-btn" data-voice="shimmer" onclick="setVoice(this)">Shimmer<span class="voice-tag" id="vt-shimmer">女性・柔らか</span></button>
+        <button class="voice-btn" data-voice="nova" onclick="setVoice(this)">Nova<span class="voice-tag" id="vt-nova">女性・自然</span></button>
+        <button class="voice-btn active" data-voice="shimmer" onclick="setVoice(this)">Shimmer<span class="voice-tag" id="vt-shimmer">女性・柔らか</span></button>
         <button class="voice-btn" data-voice="alloy" onclick="setVoice(this)">Alloy<span class="voice-tag" id="vt-alloy">中性・落ち着き</span></button>
         <button class="voice-btn" data-voice="fable" onclick="setVoice(this)">Fable<span class="voice-tag" id="vt-fable">中性・若め</span></button>
         <button class="voice-btn" data-voice="echo" onclick="setVoice(this)">Echo<span class="voice-tag" id="vt-echo">男性・若め</span></button>
@@ -700,7 +700,7 @@ async function startRoleplaysScene() {
   showTyping();
   try {
     const opener = await callOpenAI([
-      { role: 'user', content: t(t('シーンを開始してください。オープニングの一言を言ってください。', 'Please start the scene with your opening line.'), 'Please start the scene. Say your opening line.') }
+      { role: 'user', content: t('シーンを始めてください。最初の一言を、自然な話し言葉で短く言ってください。', 'Please start the scene. Say your opening line naturally and briefly.') }
     ], buildRoleplaysSystemPrompt());
     hideTyping();
     addRoleMessage(opener);
@@ -744,13 +744,8 @@ async function handleRoleplaysUserTurn(userSpeech) {
 }
 
 function buildRoleplaysSystemPrompt() {
-  const langInstruction = lang === 'en'
-    ? 'Respond in English.'
-    : '日本語で返答する';
-  const examples = lang === 'en'
-    ? `Examples: "I see. So what timeline are you thinking?" / "Hmm. What's the budget estimate?"`
-    : `例：「なるほど。それで、具体的なスケジュールはどう考えてる？」\n  例：「ふむ。コストはどのくらいを想定しているの？」`;
-  return `You are playing the role of "${selectedRoleplay.role}".
+  if (lang === 'en') {
+    return `You are playing the role of "${selectedRoleplay.role}".
 
 Scenario: ${selectedRoleplay.situation}
 
@@ -759,9 +754,34 @@ Rules:
 - Keep responses to 1–2 short sentences. Maintain a conversational back-and-forth tempo
 - Never break character to coach or evaluate. Just respond as the character
 - Always end with a short question or reaction to keep the conversation going
-  ${examples}
-- ${langInstruction}
-- No symbols or bullet points — natural spoken language only (this will be read aloud)`;
+- Respond in English. Natural spoken language only — no symbols or bullet points (this will be read aloud)`;
+  }
+
+  // Japanese mode — highly specific for natural spoken Japanese
+  return `あなたは「${selectedRoleplay.role}」を演じるロールプレイのパートナーです。
+
+【シナリオ】
+${selectedRoleplay.situation}
+
+【話し方のルール — 厳守】
+- 完全に「${selectedRoleplay.role}」として話す。コーチや評価者としてのコメントは一切しない
+- 返答は2〜3文。短くテンポよく。長い説明は避ける
+- 必ず最後に短い問いかけや反応を入れて会話を続ける
+- 音声で読み上げるので、記号・箇条書き・括弧は使わない
+
+【日本語の話し方 — 重要】
+- 書き言葉ではなく、実際の会話でよく使う話し言葉を使う
+- 文末は「〜です」「〜ます」だけでなく「〜だね」「〜かな」「〜なの？」なども使う
+- 間投詞を自然に入れる：「ああ」「なるほどね」「うーん」「そうか」「へえ」など
+- 相手の言葉を受けてから返す：「〇〇なんだね」「それは〜ということ？」
+- 単語や短いフレーズで反応することもOK：「なるほど」「それで？」「うん、聞いてるよ」
+
+【会話の流れ例】
+悪い例：「ご提案の内容について確認させていただきます。具体的なスケジュールはどのようにお考えですか？」
+良い例：「ああ、なるほどね。で、いつ頃からやる気でいるの？」
+
+悪い例：「そのプロジェクトについて詳しく教えていただけますか？」
+良い例：「うーん、面白そうだけど。コストはどのくらいかかりそう？」`;
 }
 
 async function startRoleplaysReflect() {
@@ -783,7 +803,7 @@ async function startRoleplaysReflect() {
 // ── Speech Synthesis — OpenAI TTS HD ──────────────────────────────────────────
 let currentAudio = null;
 let onSpeechEndCallback = null;
-let selectedVoice = 'nova'; // default: 日本語に最適
+let selectedVoice = 'shimmer'; // default: 日本語に最適（自然な発声）
 
 async function speakAsRole(text, onEnd) {
   onSpeechEndCallback = onEnd || null;
@@ -997,7 +1017,7 @@ Core principles:
 - 「正解はない」「あなたの声には固有の価値がある」という姿勢を常に保つ
 - 改善点は「次にやってみること」として1つだけ、柔らかく提案する
 - フィードバックは問いかけを交えた対話形式で行う
-- 返答は日本語で200〜400文字程度。簡潔に、温かく。`;
+- 返答は日本語で150〜300文字程度。自然な話し言葉で、簡潔に、温かく。`;
 
   if (phase === 'prepare') {
     return base + (isEn

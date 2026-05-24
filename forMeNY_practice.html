@@ -473,6 +473,11 @@ async function toggleRecord() {
       addCoachMessage('まずロールプレイのシナリオを選んでください。');
       return;
     }
+    // Don't start recording while AI audio is playing
+    if (currentAudio && !currentAudio.paused) {
+      addCoachMessage('相手が話し終わるまでお待ちください。');
+      return;
+    }
     if (isStarting) return;
     isStarting = true;
     try { await startRecording(); } finally { isStarting = false; }
@@ -501,13 +506,15 @@ async function startRecording() {
     }
     document.getElementById('transcriptSection').style.display = 'block';
   } else {
-    // roleplay mode: first turn
+    // roleplay mode: just record, scene was already set up
     setPhase('roleplay');
     if (roleplaysRoundCount === 0) {
-      // AI opens the scene
+      // First button press = set up scene, don't start recording yet
+      isStarting = false; // release lock
       await startRoleplaysScene();
+      return; // recording will start on next button press
     }
-    // subsequent turns: user speaks
+    // 2nd press onwards: normal recording
   }
 
   try {
@@ -612,7 +619,7 @@ async function startRoleplaysScene() {
   document.getElementById('chatHeaderText').textContent = selectedRoleplay.role + ' 役';
   document.getElementById('endRoleplaysBtn').style.display = 'block';
 
-  addCoachMessage(`シナリオ：${selectedRoleplay.role}\n\n${selectedRoleplay.situation}\n\n録音ボタンを押して話しかけてください。終わったら「ロールプレイを終了する」ボタンを押してください。`);
+  addCoachMessage(`シナリオ：${selectedRoleplay.role}\n\n${selectedRoleplay.situation}\n\nAIが最初に話しかけます。話し終わったら録音ボタンを押して返答してください。`);
 
   showTyping();
   try {
@@ -623,13 +630,18 @@ async function startRoleplaysScene() {
     addRoleMessage(opener);
     roleplaysHistory.push({ role: 'assistant', content: opener });
     roleplaysRoundCount++;
-    speakAsRole(opener);
+    // Speak opener — after speech ends, user can record
+    speakAsRole(opener, () => {
+      document.getElementById('recordLabel').textContent = 'クリックして返答（録音）';
+    });
   } catch(e) {
     hideTyping();
     addRoleMessage(selectedRoleplay.opener);
     roleplaysHistory.push({ role: 'assistant', content: selectedRoleplay.opener });
     roleplaysRoundCount++;
-    speakAsRole(selectedRoleplay.opener);
+    speakAsRole(selectedRoleplay.opener, () => {
+      document.getElementById('recordLabel').textContent = 'クリックして返答（録音）';
+    });
   }
 }
 
@@ -644,12 +656,14 @@ async function handleRoleplaysUserTurn(userSpeech) {
     hideTyping();
     addRoleMessage(reply);
     roleplaysHistory.push({ role: 'assistant', content: reply });
-    document.getElementById('recordLabel').textContent = 'クリックして返答（録音）';
-    // Speak the AI reply
-    speakAsRole(reply);
+    // Speak reply — after speech ends, enable recording again
+    speakAsRole(reply, () => {
+      document.getElementById('recordLabel').textContent = 'クリックして返答（録音）';
+    });
   } catch(e) {
     hideTyping();
     addCoachMessage('通信エラーが発生しました。もう一度お試しください。');
+    document.getElementById('recordBtn').disabled = false;
   }
 }
 
@@ -681,54 +695,68 @@ async function startRoleplaysReflect() {
   lastMetrics = { roleplaysHistory: roleplaysHistory, roleplaysRole: selectedRoleplay.role, roleplaysRounds: roleplaysRoundCount, isRoleplay: true };
 }
 
-// ── Speech Synthesis (AI voice) ──────────────────────────────────────────
-let currentUtterance = null;
+// ── Speech Synthesis — OpenAI TTS HD ──────────────────────────────────────────
+let currentAudio = null;
+let onSpeechEndCallback = null;
 
-function speakAsRole(text) {
-  if (!('speechSynthesis' in window)) return;
-  // Stop any ongoing speech
-  window.speechSynthesis.cancel();
+async function speakAsRole(text, onEnd) {
+  onSpeechEndCallback = onEnd || null;
+  // Stop any ongoing audio
+  if (currentAudio) { currentAudio.pause(); currentAudio = null; }
 
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = 'ja-JP';
-  utterance.rate = 0.95;
-  utterance.pitch = 1.0;
+  const ind = document.getElementById('aiSpeakingIndicator');
+  const label = document.getElementById('aiSpeakingLabel');
+  const recordBtn = document.getElementById('recordBtn');
+  if (ind) { ind.style.display = 'flex'; label.textContent = (selectedRoleplay?.role || 'AI') + 'が話しています…'; }
+  recordBtn.disabled = true;
 
-  // Try to pick a good Japanese voice
-  const voices = window.speechSynthesis.getVoices();
-  const jaVoice = voices.find(v => v.lang === 'ja-JP' && v.name.includes('Google'))
-    || voices.find(v => v.lang === 'ja-JP')
-    || voices.find(v => v.lang.startsWith('ja'));
-  if (jaVoice) utterance.voice = jaVoice;
+  try {
+    const resp = await fetch('https://api.openai.com/v1/audio/speech', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
+      body: JSON.stringify({
+        model: 'tts-1-hd',
+        input: text,
+        voice: 'nova',   // 自然な女性声。他の選択肢: alloy, echo, fable, onyx, shimmer
+        speed: 1.0
+      })
+    });
 
-  utterance.onstart = () => {
-    const ind = document.getElementById('aiSpeakingIndicator');
-    const label = document.getElementById('aiSpeakingLabel');
-    if (ind) { ind.style.display = 'flex'; label.textContent = (selectedRoleplay?.role || 'AI') + 'が話しています…'; }
-    document.getElementById('recordBtn').disabled = true;
-  };
-  utterance.onend = () => {
-    const ind = document.getElementById('aiSpeakingIndicator');
+    if (!resp.ok) throw new Error('TTS failed: ' + resp.status);
+
+    const blob = await resp.blob();
+    const url = URL.createObjectURL(blob);
+    const audio = new Audio(url);
+    currentAudio = audio;
+
+    audio.onended = () => {
+      URL.revokeObjectURL(url);
+      currentAudio = null;
+      if (ind) ind.style.display = 'none';
+      recordBtn.disabled = false;
+      if (onSpeechEndCallback) { onSpeechEndCallback(); onSpeechEndCallback = null; }
+    };
+    audio.onerror = () => {
+      currentAudio = null;
+      if (ind) ind.style.display = 'none';
+      recordBtn.disabled = false;
+      if (onSpeechEndCallback) { onSpeechEndCallback(); onSpeechEndCallback = null; }
+    };
+    audio.play();
+
+  } catch(e) {
+    console.warn('TTS error:', e);
     if (ind) ind.style.display = 'none';
-    document.getElementById('recordBtn').disabled = false;
-  };
-  utterance.onerror = () => {
-    const ind = document.getElementById('aiSpeakingIndicator');
-    if (ind) ind.style.display = 'none';
-    document.getElementById('recordBtn').disabled = false;
-  };
-
-  currentUtterance = utterance;
-  window.speechSynthesis.speak(utterance);
+    recordBtn.disabled = false;
+    if (onSpeechEndCallback) { onSpeechEndCallback(); onSpeechEndCallback = null; }
+  }
 }
-
-// voices load async on some browsers
-window.speechSynthesis.onvoiceschanged = () => {};
 
 // ── End roleplay button ──────────────────────────────────────────
 function endRoleplay() {
-  // Stop any speech
-  if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+  // Stop any playing audio
+  if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+  onSpeechEndCallback = null;
   // Stop recording if active
   if (isRecording) stopRecording();
 
@@ -736,7 +764,6 @@ function endRoleplay() {
   document.getElementById('aiSpeakingIndicator').style.display = 'none';
   document.getElementById('recordBtn').disabled = false;
 
-  // Restore avatar
   document.getElementById('aiAvatar').textContent = 'F';
   document.getElementById('aiAvatar').className = 'ai-avatar';
   document.getElementById('chatHeaderText').textContent = 'FOR ME NY AI Coach';

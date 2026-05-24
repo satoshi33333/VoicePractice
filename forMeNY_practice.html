@@ -170,6 +170,7 @@
   .msg-role { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 4px; }
   .msg-bubble { padding: 11px 13px; line-height: 1.7; }
   .msg.ai .msg-bubble { background: var(--surface2); border-left: 2px solid var(--gold-dim); color: var(--text); font-family: 'Cormorant Garamond', serif; font-size: 15px; }
+  .msg.ai .msg-bubble strong, .msg.ai .msg-bubble .num { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--cream); }
   .msg.role-player .msg-bubble { background: rgba(74,122,155,0.08); border-left: 2px solid rgba(74,122,155,0.5); color: var(--text); font-family: 'Cormorant Garamond', serif; font-size: 15px; font-style: italic; }
   .msg.user .msg-bubble { background: rgba(201,168,76,0.05); border-left: 2px solid var(--gold); color: var(--cream-dim); font-size: 12px; }
 
@@ -516,12 +517,16 @@ async function startRecording() {
     return;
   }
 
+  // Wait briefly to ensure previous audioContext/micStream are fully released
+  await new Promise(r => setTimeout(r, 150));
+
   fullTranscript = '';
   silenceEvents = [];
   volumeSamples = [];
   lastSpeechTime = null;
   currentSilenceStart = null;
   animFrameId = null;
+  recognition = null; // ensure clean slate
 
   if (mode === 'speech') {
     setPhase('rehearse');
@@ -532,15 +537,16 @@ async function startRecording() {
     }
     document.getElementById('transcriptSection').style.display = 'block';
   } else {
-    // roleplay mode: just record, scene was already set up
     setPhase('roleplay');
     if (roleplaysRoundCount === 0) {
-      // First button press = set up scene, don't start recording yet
-      isStarting = false; // release lock
+      isStarting = false;
       await startRoleplaysScene();
-      return; // recording will start on next button press
+      return;
     }
-    // 2nd press onwards: normal recording
+    // Show transcript so user can confirm speech is being captured
+    document.getElementById('transcriptSection').style.display = 'block';
+    document.getElementById('transcriptBox').textContent = '（話しかけてください…）';
+    document.getElementById('transcriptBox').className = 'transcript-box placeholder';
   }
 
   try {
@@ -574,8 +580,22 @@ async function startRecording() {
     updateTranscriptDisplay(fullTranscript + interim);
   };
   recognition.onspeechend = () => { currentSilenceStart = Date.now(); };
-  recognition.onerror = (e) => { if (e.error !== 'no-speech') console.warn('SR:', e.error); };
-  recognition.onend = () => { if (isRecording) recognition.start(); };
+  recognition.onerror = (e) => {
+    console.warn('SR error:', e.error);
+    if (e.error === 'not-allowed') {
+      addCoachMessage('マイクのアクセスが拒否されました。ブラウザの設定でマイクを許可してください。');
+      stopRecording();
+    } else if (e.error === 'audio-capture') {
+      addCoachMessage('マイクが見つかりません。接続を確認してください。');
+      stopRecording();
+    }
+  };
+  recognition.onend = () => {
+    // Only restart if still actively recording and recognition wasn't killed
+    if (isRecording && recognition) {
+      try { recognition.start(); } catch(e) { console.warn('SR restart failed:', e); }
+    }
+  };
   recognition.start();
 
   isRecording = true;
@@ -722,7 +742,8 @@ async function startRoleplaysReflect() {
   document.getElementById('recordLabel').textContent = 'クリックして録音開始';
   // Build a summary from roleplay history for the coach
   const summary = roleplaysHistory.map(m => `${m.role === 'user' ? 'あなた' : selectedRoleplay.role}：${m.content}`).join('\n');
-  const q = `ロールプレイお疲れ様でした。${roleplaysRoundCount}往復の対話でした。\n\nまず、やってみてどうでしたか？どんな瞬間が難しかったですか、あるいは手応えを感じましたか？`;
+  const roundsText = ['', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'][roleplaysRoundCount] || String(roleplaysRoundCount);
+  const q = `ロールプレイお疲れ様でした。${roundsText}往復の対話でした。\n\nまず、やってみてどうでしたか？どんな瞬間が難しかったですか、あるいは手応えを感じましたか？`;
   addCoachMessage(q);
   document.getElementById('chatInput').placeholder = '感じたことを教えてください…';
   // Store for reflect

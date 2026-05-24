@@ -804,6 +804,7 @@ async function speakAsRole(text, onEnd) {
       if (onSpeechEndCallback) { onSpeechEndCallback(); onSpeechEndCallback = null; }
     };
     audio.onerror = () => {
+      URL.revokeObjectURL(url);
       currentAudio = null;
       if (ind) ind.style.display = 'none';
       recordBtn.disabled = false;

@@ -204,6 +204,19 @@
     border-color: var(--red);
     background: rgba(196,92,58,0.08);
   }
+
+  /* Voice selector */
+  .voice-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; }
+  .voice-btn {
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--cream-dim); padding: 7px 6px; cursor: pointer;
+    font-family: 'DM Mono', monospace; font-size: 10px;
+    text-align: center; transition: all 0.15s;
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+  }
+  .voice-btn:hover { border-color: var(--gold-dim); color: var(--cream); }
+  .voice-btn.active { border-color: #4a7a9b; color: #7aaabb; background: rgba(74,122,155,0.08); }
+  .voice-tag { font-size: 8px; color: var(--text-dim); }
 </style>
 </head>
 <body>
@@ -232,6 +245,19 @@
       <div class="lang-toggle">
         <button class="lang-btn active" id="langJA" onclick="setLang('ja')">日本語</button>
         <button class="lang-btn" id="langEN" onclick="setLang('en')">English</button>
+      </div>
+    </div>
+
+    <!-- AI Voice -->
+    <div id="voiceSelectorSection">
+      <div class="section-label">AI Voice（ロールプレイ）</div>
+      <div class="voice-grid" id="voiceGrid">
+        <button class="voice-btn" data-voice="nova" onclick="setVoice(this)">Nova<span class="voice-tag">女性・自然</span></button>
+        <button class="voice-btn" data-voice="shimmer" onclick="setVoice(this)">Shimmer<span class="voice-tag">女性・柔らか</span></button>
+        <button class="voice-btn active" data-voice="onyx" onclick="setVoice(this)">Onyx<span class="voice-tag">男性・低音</span></button>
+        <button class="voice-btn" data-voice="echo" onclick="setVoice(this)">Echo<span class="voice-tag">男性・若め</span></button>
+        <button class="voice-btn" data-voice="fable" onclick="setVoice(this)">Fable<span class="voice-tag">中性・若め</span></button>
+        <button class="voice-btn" data-voice="alloy" onclick="setVoice(this)">Alloy<span class="voice-tag">中性・落ち着き</span></button>
       </div>
     </div>
 
@@ -574,11 +600,19 @@ async function startRecording() {
 
 function stopRecording() {
   isRecording = false;
-  if (recognition) { recognition.onend = null; recognition.stop(); }
+  // Fully kill recognition to prevent ghost restarts
+  if (recognition) {
+    recognition.onend = null;
+    recognition.onresult = null;
+    recognition.onerror = null;
+    recognition.onspeechend = null;
+    try { recognition.stop(); } catch(e) {}
+    recognition = null;
+  }
   if (timerInterval) clearInterval(timerInterval);
   if (animFrameId !== null) { cancelAnimationFrame(animFrameId); animFrameId = -1; }
-  if (micStream) { micStream.getTracks().forEach(t => t.stop()); }
-  if (audioContext) audioContext.close();
+  if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
+  if (audioContext) { audioContext.close(); audioContext = null; }
 
   document.getElementById('recordBtn').classList.remove('recording');
   document.getElementById('dot').style.borderRadius = '50%';
@@ -598,13 +632,13 @@ function stopRecording() {
     }, 800);
   } else {
     // Roleplay: send user's speech to AI character
-    document.getElementById('recordLabel').textContent = 'クリックして返答（録音）';
+    document.getElementById('recordLabel').textContent = 'AIが返答しています…';
+    document.getElementById('recordBtn').disabled = true;
     pendingComputeTimer = setTimeout(() => {
       pendingComputeTimer = null;
       const userSpeech = snapTranscript.trim();
-      if (userSpeech) {
-        handleRoleplaysUserTurn(userSpeech);
-      }
+      // Even if empty, send a short placeholder so AI responds
+      handleRoleplaysUserTurn(userSpeech || '（沈黙）');
     }, 800);
   }
 }
@@ -698,6 +732,7 @@ async function startRoleplaysReflect() {
 // ── Speech Synthesis — OpenAI TTS HD ──────────────────────────────────────────
 let currentAudio = null;
 let onSpeechEndCallback = null;
+let selectedVoice = 'onyx'; // default: 男性・低音
 
 async function speakAsRole(text, onEnd) {
   onSpeechEndCallback = onEnd || null;
@@ -717,7 +752,7 @@ async function speakAsRole(text, onEnd) {
       body: JSON.stringify({
         model: 'tts-1-hd',
         input: text,
-        voice: 'nova',   // 自然な女性声。他の選択肢: alloy, echo, fable, onyx, shimmer
+        voice: selectedVoice,
         speed: 1.0
       })
     });
@@ -984,6 +1019,12 @@ function saveKey() {
   document.getElementById('apiKeyInput').value = '••••••••';
   document.getElementById('keyStatus').textContent = '設定済み ✓';
   document.getElementById('keyStatus').className = 'key-status ok';
+}
+
+function setVoice(btn) {
+  document.querySelectorAll('.voice-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  selectedVoice = btn.dataset.voice;
 }
 
 function setLang(l) {

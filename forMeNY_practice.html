@@ -457,6 +457,9 @@ function selectRoleplay(btn) {
   const info = document.getElementById('roleplaysInfo');
   info.textContent = `相手役：${selectedRoleplay.role} / ${selectedRoleplay.situation}`;
   info.classList.add('visible');
+  // Reset roleplay state so new scenario starts fresh
+  roleplaysRoundCount = 0;
+  roleplaysHistory = [];
 }
 
 function onCustomTopic(m) {
@@ -468,6 +471,8 @@ function onCustomTopic(m) {
     if (v) {
       document.querySelectorAll('#roleplaysScenarios .topic-btn').forEach(b => b.classList.remove('active'));
       selectedRoleplay = { role: 'カスタム相手', situation: v, opener: 'では始めましょう。' };
+      roleplaysRoundCount = 0;
+      roleplaysHistory = [];
       const info = document.getElementById('roleplaysInfo');
       info.textContent = `シナリオ：${v}`;
       info.classList.add('visible');

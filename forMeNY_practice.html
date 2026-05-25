@@ -508,8 +508,8 @@ async function toggleRecord() {
       addCoachMessage(t('まずロールプレイのシナリオを選んでください。', 'Please select a roleplay scenario first.'));
       return;
     }
-    // Don't start recording while AI audio is playing
-    if (currentAudio && !currentAudio.paused) {
+    // Don't start recording while AI is speaking
+    if (window.speechSynthesis.speaking) {
       addCoachMessage(t('相手が話し終わるまでお待ちください。', 'Please wait until the other person finishes speaking.'));
       return;
     }
@@ -653,21 +653,15 @@ function stopRecording() {
   document.getElementById('waveform').classList.remove('visible');
 
   const snapStart = startTime;
-  // fullTranscript accumulates all finalized results throughout recording
-  // We also grab the current interim from transcriptBox and append it
-  const currentBox = document.getElementById('transcriptBox')?.textContent || '';
-  const isPlaceholder = currentBox.includes('話しかけてください') || currentBox.includes('Start speaking') || currentBox.includes('認識中');
-  // Append any interim text that hasn't been finalized yet
-  const interimExtra = (!isPlaceholder && currentBox.startsWith(fullTranscript.trim()))
-    ? currentBox.slice(fullTranscript.trim().length).trim()
-    : '';
-  const snapTranscript = (fullTranscript + (interimExtra ? ' ' + interimExtra : '')).trim();
+  // Don't snap transcript here — wait for recognition to deliver final results
+  // snapTranscript will be read when the timer fires (1200ms later)
 
   if (mode === 'speech') {
     document.getElementById('recordLabel').textContent = t('クリックして再録音', 'Click to record again');
     pendingComputeTimer = setTimeout(() => {
       pendingComputeTimer = null;
-      computeMetrics(snapStart, snapTranscript);
+      const finalTranscript = fullTranscript.trim();
+      computeMetrics(snapStart, finalTranscript);
       setTimeout(() => document.getElementById('metricsRow').scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 150);
       setTimeout(() => startReflect(), 600);
     }, 1200);
@@ -677,9 +671,8 @@ function stopRecording() {
     document.getElementById('recordBtn').disabled = true;
     pendingComputeTimer = setTimeout(() => {
       pendingComputeTimer = null;
-      // fullTranscript has all finalized speech. Use it as primary source.
-      // snapTranscript already includes any interim that was captured at stop time.
-      const userSpeech = snapTranscript || fullTranscript.trim();
+      // Read fullTranscript NOW — recognition has had 1200ms to deliver final results
+      const userSpeech = fullTranscript.trim();
       handleRoleplaysUserTurn(userSpeech || t('（沈黙）', '(silence)'));
     }, 1200);
   }
@@ -800,15 +793,35 @@ async function startRoleplaysReflect() {
   lastMetrics = { roleplaysHistory: roleplaysHistory, roleplaysRole: selectedRoleplay.role, roleplaysRounds: roleplaysRoundCount, isRoleplay: true };
 }
 
-// ── Speech Synthesis — OpenAI TTS HD ──────────────────────────────────────────
-let currentAudio = null;
+// ── Speech Synthesis — Web Speech API (native Japanese voice) ──────────────────────────────────────────
+let currentUtterance = null;
 let onSpeechEndCallback = null;
-let selectedVoice = 'shimmer'; // default: 日本語に最適（自然な発声）
+let selectedVoice = 'shimmer'; // kept for UI compatibility, actual voice selected from system
 
-async function speakAsRole(text, onEnd) {
+function getBestJapaneseVoice() {
+  const voices = window.speechSynthesis.getVoices();
+  if (lang !== 'ja') {
+    return voices.find(v => v.lang.startsWith('en') && v.localService) || voices.find(v => v.lang.startsWith('en')) || null;
+  }
+  // Priority order for natural Japanese voices
+  const priority = ['O-Ren', 'Kyoko', 'Otoya', 'お-Ren', 'お-レン'];
+  for (const name of priority) {
+    const v = voices.find(v => v.name.includes(name));
+    if (v) return v;
+  }
+  // Fallback: any Japanese local service voice
+  return voices.find(v => v.lang === 'ja-JP' && v.localService)
+    || voices.find(v => v.lang === 'ja-JP')
+    || voices.find(v => v.lang.startsWith('ja'))
+    || null;
+}
+
+function speakAsRole(text, onEnd) {
   onSpeechEndCallback = onEnd || null;
-  // Stop any ongoing audio
-  if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+
+  // Stop any ongoing speech
+  window.speechSynthesis.cancel();
+  if (currentUtterance) { currentUtterance = null; }
 
   const ind = document.getElementById('aiSpeakingIndicator');
   const label = document.getElementById('aiSpeakingLabel');
@@ -816,53 +829,50 @@ async function speakAsRole(text, onEnd) {
   if (ind) { ind.style.display = 'flex'; label.textContent = (selectedRoleplay?.role || 'AI') + 'が話しています…'; }
   recordBtn.disabled = true;
 
-  try {
-    const resp = await fetch('https://api.openai.com/v1/audio/speech', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
-      body: JSON.stringify({
-        model: 'tts-1-hd',
-        input: text,
-        voice: selectedVoice,
-        speed: lang === 'ja' ? 0.92 : 1.0  // slightly slower for natural Japanese
-      })
-    });
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = lang === 'ja' ? 'ja-JP' : 'en-US';
+  utterance.rate = lang === 'ja' ? 0.9 : 1.0;
+  utterance.pitch = 1.0;
 
-    if (!resp.ok) throw new Error('TTS failed: ' + resp.status);
+  // Try to assign best voice — voices may load async
+  const setAndSpeak = () => {
+    const voice = getBestJapaneseVoice();
+    if (voice) utterance.voice = voice;
 
-    const blob = await resp.blob();
-    const url = URL.createObjectURL(blob);
-    const audio = new Audio(url);
-    currentAudio = audio;
-
-    audio.onended = () => {
-      URL.revokeObjectURL(url);
-      currentAudio = null;
+    utterance.onend = () => {
+      currentUtterance = null;
       if (ind) ind.style.display = 'none';
       recordBtn.disabled = false;
       if (onSpeechEndCallback) { onSpeechEndCallback(); onSpeechEndCallback = null; }
     };
-    audio.onerror = () => {
-      URL.revokeObjectURL(url);
-      currentAudio = null;
+    utterance.onerror = (e) => {
+      console.warn('TTS error:', e.error);
+      currentUtterance = null;
       if (ind) ind.style.display = 'none';
       recordBtn.disabled = false;
       if (onSpeechEndCallback) { onSpeechEndCallback(); onSpeechEndCallback = null; }
     };
-    audio.play();
 
-  } catch(e) {
-    console.warn('TTS error:', e);
-    if (ind) ind.style.display = 'none';
-    recordBtn.disabled = false;
-    if (onSpeechEndCallback) { onSpeechEndCallback(); onSpeechEndCallback = null; }
+    currentUtterance = utterance;
+    window.speechSynthesis.speak(utterance);
+  };
+
+  // Voices load asynchronously on first call
+  if (window.speechSynthesis.getVoices().length > 0) {
+    setAndSpeak();
+  } else {
+    window.speechSynthesis.onvoiceschanged = () => {
+      window.speechSynthesis.onvoiceschanged = null;
+      setAndSpeak();
+    };
   }
 }
 
 // ── End roleplay button ──────────────────────────────────────────
 function endRoleplay() {
-  // Stop any playing audio
-  if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+  // Stop any playing speech
+  window.speechSynthesis.cancel();
+  currentUtterance = null;
   onSpeechEndCallback = null;
   // Stop recording if active
   if (isRecording) stopRecording();

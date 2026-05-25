@@ -207,7 +207,7 @@
   }
 
   /* Voice selector */
-  .voice-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; }
+  .voice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
   .voice-btn {
     background: var(--surface); border: 1px solid var(--border);
     color: var(--cream-dim); padding: 7px 6px; cursor: pointer;
@@ -253,12 +253,16 @@
     <div id="voiceSelectorSection" style="display:none">
       <div class="section-label" id="labelVoice">AI Voice（ロールプレイ）</div>
       <div class="voice-grid" id="voiceGrid">
-        <button class="voice-btn" data-voice="nova" onclick="setVoice(this)">Nova<span class="voice-tag" id="vt-nova">女性・自然</span></button>
-        <button class="voice-btn active" data-voice="shimmer" onclick="setVoice(this)">Shimmer<span class="voice-tag" id="vt-shimmer">女性・柔らか</span></button>
-        <button class="voice-btn" data-voice="alloy" onclick="setVoice(this)">Alloy<span class="voice-tag" id="vt-alloy">中性・落ち着き</span></button>
-        <button class="voice-btn" data-voice="fable" onclick="setVoice(this)">Fable<span class="voice-tag" id="vt-fable">中性・若め</span></button>
-        <button class="voice-btn" data-voice="echo" onclick="setVoice(this)">Echo<span class="voice-tag" id="vt-echo">男性・若め</span></button>
-        <button class="voice-btn" data-voice="onyx" onclick="setVoice(this)">Onyx<span class="voice-tag" id="vt-onyx">男性・低音</span></button>
+        <button class="voice-btn active" data-voice="Google 日本語" onclick="setVoice(this)">Google 日本語<span class="voice-tag">女性・自然 ★推奨</span></button>
+        <button class="voice-btn" data-voice="Kyoko" onclick="setVoice(this)">Kyoko<span class="voice-tag">女性・大人</span></button>
+        <button class="voice-btn" data-voice="Flo (Japanese (Japan))" onclick="setVoice(this)">Flo<span class="voice-tag">女性・若め</span></button>
+        <button class="voice-btn" data-voice="Sandy (Japanese (Japan))" onclick="setVoice(this)">Sandy<span class="voice-tag">女性・中性</span></button>
+        <button class="voice-btn" data-voice="Shelley (Japanese (Japan))" onclick="setVoice(this)">Shelley<span class="voice-tag">女性・若め</span></button>
+        <button class="voice-btn" data-voice="Reed (Japanese (Japan))" onclick="setVoice(this)">Reed<span class="voice-tag">男性・大人</span></button>
+        <button class="voice-btn" data-voice="Eddy (Japanese (Japan))" onclick="setVoice(this)">Eddy<span class="voice-tag">男性・若め</span></button>
+        <button class="voice-btn" data-voice="Rocko (Japanese (Japan))" onclick="setVoice(this)">Rocko<span class="voice-tag">男性・若め</span></button>
+        <button class="voice-btn" data-voice="Grandma (Japanese (Japan))" onclick="setVoice(this)">Grandma<span class="voice-tag">女性・年配</span></button>
+        <button class="voice-btn" data-voice="Grandpa (Japanese (Japan))" onclick="setVoice(this)">Grandpa<span class="voice-tag">男性・年配</span></button>
       </div>
     </div>
 
@@ -796,22 +800,23 @@ async function startRoleplaysReflect() {
 // ── Speech Synthesis — Web Speech API (native Japanese voice) ──────────────────────────────────────────
 let currentUtterance = null;
 let onSpeechEndCallback = null;
-let selectedVoice = 'shimmer'; // kept for UI compatibility, actual voice selected from system
+let selectedVoice = 'Google 日本語'; // default: 最も自然な日本語ボイス
 
 function getBestJapaneseVoice() {
   const voices = window.speechSynthesis.getVoices();
   if (lang !== 'ja') {
     return voices.find(v => v.lang.startsWith('en') && v.localService) || voices.find(v => v.lang.startsWith('en')) || null;
   }
-  // Priority order for natural Japanese voices
-  const priority = ['O-Ren', 'Kyoko', 'Otoya', 'お-Ren', 'お-レン'];
-  for (const name of priority) {
-    const v = voices.find(v => v.name.includes(name));
+  // Find voice by exact name match (from selectedVoice)
+  const exact = voices.find(v => v.name === selectedVoice);
+  if (exact) return exact;
+  // Fallback priority
+  const fallbacks = ['Google 日本語', 'Kyoko', 'Flo (Japanese (Japan))', 'Reed (Japanese (Japan))'];
+  for (const name of fallbacks) {
+    const v = voices.find(v => v.name === name);
     if (v) return v;
   }
-  // Fallback: any Japanese local service voice
-  return voices.find(v => v.lang === 'ja-JP' && v.localService)
-    || voices.find(v => v.lang === 'ja-JP')
+  return voices.find(v => v.lang === 'ja-JP')
     || voices.find(v => v.lang.startsWith('ja'))
     || null;
 }
@@ -831,7 +836,7 @@ function speakAsRole(text, onEnd) {
 
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = lang === 'ja' ? 'ja-JP' : 'en-US';
-  utterance.rate = lang === 'ja' ? 0.9 : 1.0;
+  utterance.rate = lang === 'ja' ? 0.85 : 1.0;
   utterance.pitch = 1.0;
 
   // Try to assign best voice — voices may load async
@@ -1228,12 +1233,8 @@ function setLang(l) {
 
   // Voice tags
   const vt = {
-    'vt-nova': t('女性・自然 ★日本語推奨', 'Female · Natural'),
-    'vt-shimmer': t('女性・柔らか ★日本語推奨', 'Female · Soft'),
-    'vt-alloy': t('中性・落ち着き', 'Neutral · Calm'),
-    'vt-fable': t('中性・若め', 'Neutral · Young'),
-    'vt-echo': t('男性・若め', 'Male · Young'),
-    'vt-onyx': t('男性・低音', 'Male · Deep'),
+    // Voice tags are in HTML directly for this version
+
   };
   Object.entries(vt).forEach(([id, text]) => {
     const el = document.getElementById(id);

@@ -337,6 +337,7 @@
     </div>
 
     <!-- Metrics (speech mode only, compact) -->
+    <!-- Metrics -->
     <div class="metrics-row" id="metricsRow" style="display:none">
       <div class="metric">
         <div class="metric-label">Speed</div>
@@ -358,6 +359,27 @@
         <div class="metric-unit">dB avg</div>
         <div class="metric-bar-track"><div class="metric-bar-fill" id="volBar" style="width:0%"></div></div>
         <div class="metric-ref">音量安定度</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Fillers</div>
+        <div class="metric-value" id="fillerVal">—</div>
+        <div class="metric-unit">回</div>
+        <div class="metric-bar-track"><div class="metric-bar-fill" id="fillerBar" style="width:0%"></div></div>
+        <div class="metric-ref">あー・えー・なんか</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Vocab</div>
+        <div class="metric-value" id="vocabVal">—</div>
+        <div class="metric-unit">%多様性</div>
+        <div class="metric-bar-track"><div class="metric-bar-fill" id="vocabBar" style="width:0%"></div></div>
+        <div class="metric-ref">語彙の豊かさ</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Silence</div>
+        <div class="metric-value" id="silenceVal">—</div>
+        <div class="metric-unit">%</div>
+        <div class="metric-bar-track"><div class="metric-bar-fill" id="silenceBar" style="width:0%"></div></div>
+        <div class="metric-ref">沈黙率</div>
       </div>
     </div>
 
@@ -931,7 +953,8 @@ function startVolumeTracking() {
 function computeMetrics(snapStart, snapTranscript) {
   const usedStart = snapStart !== undefined ? snapStart : startTime;
   const usedTranscript = (snapTranscript !== undefined ? snapTranscript : fullTranscript).trim();
-  const elapsed = (Date.now() - usedStart) / 1000 / 60;
+  const elapsedMin = (Date.now() - usedStart) / 1000 / 60;
+  const elapsedSec = elapsedMin * 60;
 
   if (!usedTranscript) {
     document.getElementById('transcriptBox').textContent = t('（音声が認識されませんでした。マイクの許可を確認してください）', '(No speech detected. Please check microphone permissions.)');  
@@ -939,21 +962,24 @@ function computeMetrics(snapStart, snapTranscript) {
     return;
   }
 
+  // ── Speed ──
   let speed, speedPct, speedClass;
   if (lang === 'ja') {
-    speed = Math.round(usedTranscript.replace(/\s/g,'').length / elapsed);
+    speed = Math.round(usedTranscript.replace(/\s/g,'').length / elapsedMin);
     speedPct = Math.min(100, (speed / 500) * 100);
-    speedClass = speed >= 350 && speed <= 400 ? 'ok' : speed < 300 || speed > 480 ? 'bad' : 'warn';
+    speedClass = speed >= 300 && speed <= 400 ? 'ok' : speed < 200 || speed > 480 ? 'bad' : 'warn';
   } else {
-    speed = Math.round(usedTranscript.split(/\s+/).filter(w=>w).length / elapsed);
+    speed = Math.round(usedTranscript.split(/\s+/).filter(w=>w).length / elapsedMin);
     speedPct = Math.min(100, (speed / 200) * 100);
     speedClass = speed >= 130 && speed <= 150 ? 'ok' : speed < 100 || speed > 180 ? 'bad' : 'warn';
   }
 
+  // ── Pauses ──
   const pauseCount = silenceEvents.filter(s => s.duration >= SILENCE_THRESHOLD).length;
   const pausePct = Math.min(100, (pauseCount / 10) * 100);
   const pauseClass = pauseCount >= 2 && pauseCount <= 8 ? 'ok' : pauseCount < 2 ? 'warn' : 'bad';
 
+  // ── Volume ──
   let volDB = 0, volClass = 'ok', volNorm = 0;
   if (volumeSamples.length > 0) {
     const va = volumeSamples.reduce((a,b)=>a+b,0) / volumeSamples.length;
@@ -963,24 +989,56 @@ function computeMetrics(snapStart, snapTranscript) {
     volDB = va > 0 ? Math.round(20 * Math.log10(va / 255) + 60) : 0;
   }
 
-  document.getElementById('speedVal').textContent = speed;
-  document.getElementById('speedBar').style.width = speedPct + '%';
-  document.getElementById('speedBar').className = 'metric-bar-fill ' + speedClass;
-  document.getElementById('pauseVal').textContent = pauseCount;
-  document.getElementById('pauseBar').style.width = pausePct + '%';
-  document.getElementById('pauseBar').className = 'metric-bar-fill ' + pauseClass;
-  document.getElementById('volVal').textContent = volDB;
-  document.getElementById('volBar').style.width = volNorm + '%';
-  document.getElementById('volBar').className = 'metric-bar-fill ' + volClass;
-  document.getElementById('metricsRow').style.display = 'grid';
+  // ── Filler words ──
+  const fillerPatterns = lang === 'ja'
+    ? /\b(あー+|えー+|えーと|うーん|まあ|なんか|ちょっと|あの|そのー|えっと|なんていうか|要するに|つまり)\b/gi
+    : /\b(um+|uh+|er+|like|you know|i mean|basically|literally|actually|so+|well+|right)\b/gi;
+  const fillerMatches = usedTranscript.match(fillerPatterns) || [];
+  const fillerCount = fillerMatches.length;
+  const fillerList = [...new Set(fillerMatches.map(f => f.toLowerCase()))].slice(0, 5);
+  const fillerPct = Math.min(100, (fillerCount / 15) * 100);
+  const fillerClass = fillerCount <= 3 ? 'ok' : fillerCount <= 8 ? 'warn' : 'bad';
 
+  // ── Vocabulary diversity ──
+  const words = usedTranscript.replace(/[、。！？\s]/g, ' ').split(/\s+/).filter(w => w.length > 1);
+  const uniqueWords = new Set(words.map(w => w.toLowerCase()));
+  const vocabScore = words.length > 0 ? Math.round((uniqueWords.size / words.length) * 100) : 0;
+  const vocabClass = vocabScore >= 70 ? 'ok' : vocabScore >= 50 ? 'warn' : 'bad';
+
+  // ── Silence rate ──
+  const totalSilenceSec = silenceEvents.reduce((a, s) => a + s.duration, 0);
+  const silenceRate = elapsedSec > 0 ? Math.round((totalSilenceSec / elapsedSec) * 100) : 0;
+  const silenceClass = silenceRate >= 10 && silenceRate <= 30 ? 'ok' : silenceRate < 5 ? 'warn' : silenceRate > 50 ? 'bad' : 'warn';
+
+  // ── Update DOM ──
+  const set = (id, val, bar, pct, cls) => {
+    document.getElementById(id).textContent = val;
+    if (bar) {
+      document.getElementById(bar).style.width = pct + '%';
+      document.getElementById(bar).className = 'metric-bar-fill ' + cls;
+    }
+  };
+  set('speedVal', speed, 'speedBar', speedPct, speedClass);
+  set('pauseVal', pauseCount, 'pauseBar', pausePct, pauseClass);
+  set('volVal', volDB, 'volBar', volNorm, volClass);
+  set('fillerVal', fillerCount, 'fillerBar', fillerPct, fillerClass);
+  set('vocabVal', vocabScore, 'vocabBar', vocabScore, vocabClass);
+  set('silenceVal', silenceRate, 'silenceBar', Math.min(100, silenceRate * 2), silenceClass);
+
+  document.getElementById('metricsRow').style.display = 'grid';
   updateTranscriptDisplay(usedTranscript);
 
   lastMetrics = {
     isRoleplay: false,
-    transcript: usedTranscript, speed, speedClass,
-    pauseCount, pauseClass, volDB, volClass,
-    durationMin: elapsed, lang, topic: selectedTopic
+    transcript: usedTranscript,
+    speed, speedClass,
+    pauseCount, pauseClass,
+    volDB, volClass,
+    fillerCount, fillerClass, fillerList,
+    vocabScore, vocabClass,
+    silenceRate, silenceClass,
+    durationMin: elapsedMin, durationSec: Math.round(elapsedSec),
+    lang, topic: selectedTopic
   };
 }
 
@@ -1100,17 +1158,29 @@ Approach:
 4. Suggest only one thing to try next`
         : `\n\n現在はReflectフェーズ（スピーチ後）。
 
-録音データ（参考。押しつけない）：
-- トピック：${m.topic}
+録音データ（参考情報。数値を押しつけず、気づきを促す問いかけに使う）：
+- トピック：${m.topic}（${m.durationSec}秒）
 - スピード：${speedRef}
-- 間：${m.pauseCount}回
-- 書き起こし抜粋：「${m.transcript.slice(0,150)}${m.transcript.length>150?'…':''}」
+- 有意な間：${m.pauseCount}回
+- 音量：${m.volDB}dB（${m.volClass === 'ok' ? '安定' : m.volClass === 'warn' ? '要改善' : '不安定'}）
+- フィラー：${m.fillerCount}回（${m.fillerList?.join('・') || 'なし'}）
+- 語彙の多様性：${m.vocabScore}%
+- 沈黙率：${m.silenceRate}%
+- 書き起こし抜粋：「${m.transcript.slice(0,200)}${m.transcript.length>200?'…':''}」
 
-進め方：
-1. ユーザーの感想を受け止める
-2. 書き起こしや数値から気づきを促す問いを1つ投げかける
-3. 数値は「〜という数字が出ました。どう感じますか？」と問いかける形で
-4. 「次にやってみること」を1つだけ提案する`);
+シナリオ別の目安（あくまで参考。正解ではない）：
+- スピード：300〜380字/分が一般的な会話の目安
+- フィラー：3回以下だと流暢に聞こえる。多い場合は「間」で代替できる
+- 語彙の多様性：70%以上だと豊かな表現
+- 沈黙率：10〜30%が自然な会話のリズム
+
+振り返りの進め方：
+1. まずユーザーの感想・気づきをしっかり受け止める
+2. 6つの数値のうち1〜2つを選んで問いかける形で触れる（「フィラーが${m.fillerCount}回出ました。自分で気づいていましたか？」など）
+3. フィラーがある場合は具体的にどんな言葉だったか伝える
+4. 数値よりもTranscriptの内容から「伝わり方」「声の質」について問いかけることを優先する
+5. 「次にやってみること」を1つだけ提案する（具体的に）`);
+
     }
   }
   return base;

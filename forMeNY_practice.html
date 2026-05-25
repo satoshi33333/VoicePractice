@@ -760,37 +760,39 @@ Scenario: ${selectedRoleplay.situation}
 
 Rules:
 - Realistic but not intimidating. Keep some tension but maintain a safe practice atmosphere
-- Keep responses to 1–2 short sentences. Maintain a conversational back-and-forth tempo
-- Never break character to coach or evaluate. Just respond as the character
-- Always end with a short question or reaction to keep the conversation going
-- Respond in English. Natural spoken language only — no symbols or bullet points (this will be read aloud)`;
+- Keep responses to 1–2 short sentences. Conversational back-and-forth tempo
+- Never break character. Just respond as the character would naturally
+- React to what the person actually said — don't ignore it or rush back to the topic
+- End with a short question or reaction to continue the conversation
+- Natural spoken language only — no symbols or bullet points (this will be read aloud)`;
   }
 
-  // Japanese mode — highly specific for natural spoken Japanese
   return `あなたは「${selectedRoleplay.role}」を演じるロールプレイのパートナーです。
 
 【シナリオ】
 ${selectedRoleplay.situation}
 
-【話し方のルール — 厳守】
-- 完全に「${selectedRoleplay.role}」として話す。コーチや評価者としてのコメントは一切しない
-- 返答は2〜3文。短くテンポよく。長い説明は避ける
-- 必ず最後に短い問いかけや反応を入れて会話を続ける
-- 音声で読み上げるので、記号・箇条書き・括弧は使わない
+【最重要：人間らしく反応する】
+相手が言ったことに対して、まず正直に人間として反応すること。
+- 相手が感情的なことを言ったら → その感情をまず受け取る
+- 相手が予想外のことを言ったら → 驚く、戸惑う、笑うなど
+- 相手が話題を変えたら → 自然についていく
+- 本題に強引に戻さない。会話の流れに乗る
 
-【日本語の話し方 — 重要】
-- 書き言葉ではなく、実際の会話でよく使う話し言葉を使う
-- 文末は「〜です」「〜ます」だけでなく「〜だね」「〜かな」「〜なの？」なども使う
-- 間投詞を自然に入れる：「ああ」「なるほどね」「うーん」「そうか」「へえ」など
-- 相手の言葉を受けてから返す：「〇〇なんだね」「それは〜ということ？」
-- 単語や短いフレーズで反応することもOK：「なるほど」「それで？」「うん、聞いてるよ」
+【話し方】
+- 実際の会話で使う話し言葉（「〜だね」「〜かな」「そうなの？」）
+- 間投詞を自然に（「ああ」「うーん」「なるほど」「え、そう？」）
+- 返答は2〜3文。短くテンポよく
+- 音声で読まれるので記号・箇条書き・括弧は使わない
 
-【会話の流れ例】
-悪い例：「ご提案の内容について確認させていただきます。具体的なスケジュールはどのようにお考えですか？」
-良い例：「ああ、なるほどね。で、いつ頃からやる気でいるの？」
+【良い例・悪い例】
+ユーザー：「なんかあなたの喋り方ちょっとやだな」
+悪い例：「そうか、それで話を続けようか」（無視して本題へ）
+良い例：「え、そう？ごめんごめん、どんなとこが？」（まず受け取る）
 
-悪い例：「そのプロジェクトについて詳しく教えていただけますか？」
-良い例：「うーん、面白そうだけど。コストはどのくらいかかりそう？」`;
+ユーザー：「緊張してます」
+悪い例：「では、提案の内容を聞かせてください」
+良い例：「あ、そうなんだ。大丈夫だよ、ゆっくり話して」`;
 }
 
 async function startRoleplaysReflect() {

@@ -259,15 +259,6 @@
       <div class="key-status" id="keyStatus">未設定</div>
     </div>
 
-    <!-- ElevenLabs API Key -->
-    <div>
-      <div class="section-label">ElevenLabs API Key（音声）</div>
-      <div class="key-row">
-        <input class="key-input" id="elevenKeyInput" type="password" placeholder="sk_..." />
-        <button class="key-save-btn" onclick="saveElevenKey()" id="btnSaveEleven">保存</button>
-      </div>
-      <div class="key-status" id="elevenKeyStatus">未設定</div>
-    </div>
 
     <!-- Language -->
     <div>
@@ -282,14 +273,12 @@
     <div id="voiceSelectorSection" style="display:none">
       <div class="section-label" id="labelVoice">AI Voice（ロールプレイ）</div>
       <div class="voice-grid" id="voiceGrid">
-        <button class="voice-btn active" data-voice="Aria" onclick="setVoice(this)">Aria<span class="voice-tag">女性・自然 ★推奨</span></button>
-        <button class="voice-btn" data-voice="Sarah" onclick="setVoice(this)">Sarah<span class="voice-tag">女性・柔らか</span></button>
-        <button class="voice-btn" data-voice="Laura" onclick="setVoice(this)">Laura<span class="voice-tag">女性・若め</span></button>
-        <button class="voice-btn" data-voice="Charlotte" onclick="setVoice(this)">Charlotte<span class="voice-tag">女性・落ち着き</span></button>
-        <button class="voice-btn" data-voice="Callum" onclick="setVoice(this)">Callum<span class="voice-tag">男性・自然</span></button>
-        <button class="voice-btn" data-voice="River" onclick="setVoice(this)">River<span class="voice-tag">男性・若め</span></button>
-        <button class="voice-btn" data-voice="Liam" onclick="setVoice(this)">Liam<span class="voice-tag">男性・落ち着き</span></button>
-        <button class="voice-btn" data-voice="George" onclick="setVoice(this)">George<span class="voice-tag">男性・年配</span></button>
+        <button class="voice-btn active" data-voice="nova" onclick="setVoice(this)">Nova<span class="voice-tag" id="vt-nova">女性・自然 ★推奨</span></button>
+        <button class="voice-btn" data-voice="shimmer" onclick="setVoice(this)">Shimmer<span class="voice-tag" id="vt-shimmer">女性・柔らか ★推奨</span></button>
+        <button class="voice-btn" data-voice="alloy" onclick="setVoice(this)">Alloy<span class="voice-tag" id="vt-alloy">女性・中性</span></button>
+        <button class="voice-btn" data-voice="echo" onclick="setVoice(this)">Echo<span class="voice-tag" id="vt-echo">男性・若め</span></button>
+        <button class="voice-btn" data-voice="fable" onclick="setVoice(this)">Fable<span class="voice-tag" id="vt-fable">男性・中性</span></button>
+        <button class="voice-btn" data-voice="onyx" onclick="setVoice(this)">Onyx<span class="voice-tag" id="vt-onyx">男性・低音</span></button>
       </div>
     </div>
 
@@ -524,11 +513,7 @@ if (apiKey) {
   document.getElementById('keyStatus').textContent = t('設定済み ✓', 'Saved ✓');
   document.getElementById('keyStatus').className = 'key-status ok';
 }
-if (localStorage.getItem('formeny_eleven_key')) {
-  document.getElementById('elevenKeyInput').value = '••••••••';
-  document.getElementById('elevenKeyStatus').textContent = t('設定済み ✓', 'Saved ✓');
-  document.getElementById('elevenKeyStatus').className = 'key-status ok';
-}
+
 setTimeout(() => startPrepare(), 400);
 
 // ── Mode switching ──────────────────────────────────────────
@@ -1026,20 +1011,17 @@ async function startRoleplaysReflect() {
 let currentAudio = null;
 let onSpeechEndCallback = null;
 
-// ElevenLabs voice IDs for Japanese — multilingual v2 model
-// These are ElevenLabs pre-made voices that support Japanese well
-const ELEVENLABS_VOICES = {
-  'Aria':    { id: '9BWtsMINqrJLrRacOk9x', label: '女性・自然', tag: '★推奨' },
-  'Sarah':   { id: 'EXAVITQu4vr4xnSDxMaL', label: '女性・柔らか', tag: '' },
-  'Laura':   { id: 'FGY2WhTYpPnrIDTdsKH5', label: '女性・若め', tag: '' },
-  'Charlotte': { id: 'XB0fDUnXU5powFXDhCwa', label: '女性・落ち着き', tag: '' },
-  'Callum':  { id: 'N2lVS1w4EtoT3dr4eOWO', label: '男性・自然', tag: '' },
-  'River':   { id: 'SAz9YHcvj6GT2YYXdXww', label: '男性・若め', tag: '' },
-  'Liam':    { id: 'TX3LPaxmHKxFdv7VOQHJ', label: '男性・落ち着き', tag: '' },
-  'George':  { id: 'JBFqnCBsd6RMkjVDRZzb', label: '男性・年配', tag: '' },
+// OpenAI TTS voices — mapped to Japanese-friendly labels
+const VOICE_OPTIONS = {
+  'nova':    { label: '女性・自然', tag: '★日本語推奨' },
+  'shimmer': { label: '女性・柔らか', tag: '★日本語推奨' },
+  'alloy':   { label: '女性・中性', tag: '' },
+  'echo':    { label: '男性・若め', tag: '' },
+  'fable':   { label: '男性・中性', tag: '' },
+  'onyx':    { label: '男性・低音', tag: '' },
 };
 
-let selectedVoice = 'Aria'; // default
+let selectedVoice = 'nova'; // default: 日本語に最適
 
 async function speakAsRole(text, onEnd) {
   onSpeechEndCallback = onEnd || null;
@@ -1051,28 +1033,19 @@ async function speakAsRole(text, onEnd) {
   if (ind) { ind.style.display = 'flex'; label.textContent = (selectedRoleplay?.role || 'AI') + 'が話しています…'; }
   recordBtn.disabled = true;
 
-  const elevenKey = localStorage.getItem('formeny_eleven_key') || '';
-  const voiceId = ELEVENLABS_VOICES[selectedVoice]?.id || ELEVENLABS_VOICES['Aria'].id;
-
   try {
-    const resp = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+    const resp = await fetch('https://api.openai.com/v1/audio/speech', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'xi-api-key': elevenKey
-      },
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
       body: JSON.stringify({
-        text: text,
-        model_id: 'eleven_flash_v2_5',  // low latency, supports Japanese
-        voice_settings: { stability: 0.5, similarity_boost: 0.75, style: 0.3, use_speaker_boost: true }
+        model: 'tts-1-hd',
+        input: text,
+        voice: selectedVoice,
+        speed: lang === 'ja' ? 0.92 : 1.0
       })
     });
 
-    if (!resp.ok) {
-      const err = await resp.json().catch(() => ({}));
-      throw new Error('ElevenLabs ' + resp.status + ': ' + (err.detail?.message || resp.statusText));
-    }
-
+    if (!resp.ok) throw new Error('TTS ' + resp.status);
     const blob = await resp.blob();
     const url = URL.createObjectURL(blob);
     const audio = new Audio(url);
@@ -1093,10 +1066,9 @@ async function speakAsRole(text, onEnd) {
     audio.play();
 
   } catch(e) {
-    console.warn('ElevenLabs TTS error:', e);
+    console.warn('TTS error:', e);
     if (ind) ind.style.display = 'none';
     recordBtn.disabled = false;
-    addCoachMessage(t('音声生成エラー：' + e.message, 'Voice error: ' + e.message));
     if (onSpeechEndCallback) { onSpeechEndCallback(); onSpeechEndCallback = null; }
   }
 }
@@ -1453,14 +1425,7 @@ function saveKey() {
   document.getElementById('keyStatus').className = 'key-status ok';
 }
 
-function saveElevenKey() {
-  const val = document.getElementById('elevenKeyInput').value.trim();
-  if (!val || val === '••••••••') return;
-  localStorage.setItem('formeny_eleven_key', val);
-  document.getElementById('elevenKeyInput').value = '••••••••';
-  document.getElementById('elevenKeyStatus').textContent = t('設定済み ✓', 'Saved ✓');
-  document.getElementById('elevenKeyStatus').className = 'key-status ok';
-}
+
 
 function setVoice(btn) {
   document.querySelectorAll('.voice-btn').forEach(b => b.classList.remove('active'));

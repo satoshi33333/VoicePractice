@@ -321,14 +321,45 @@
       <!-- Roleplay scenarios -->
       <div id="roleplaysScenarios" style="display:none">
         <div class="topic-grid">
-          <button class="topic-btn roleplay-btn" data-role="上司" data-situation="部下が上司に新しいプロジェクトのアイデアを提案している。上司は多忙で懐疑的だが話を聞く姿勢はある" data-opener="「少しお時間よろしいですか？提案があるのですが」" onclick="selectRoleplay(this)"><span id="r-boss">上司へ提案</span><span class="topic-tag" id="rt-boss">アイデアを売り込む</span></button>
-          <button class="topic-btn roleplay-btn" data-role="面接官" data-situation="就職・転職面接。面接官はプロフェッショナルで、鋭い質問をするが圧迫ではない" data-opener="「では自己紹介からお願いできますか」" onclick="selectRoleplay(this)"><span id="r-int">面接</span><span class="topic-tag" id="rt-int">自己PRと質疑応答</span></button>
-          <button class="topic-btn roleplay-btn" data-role="教授・指導教員" data-situation="学生が教授に研究の方向性や進捗を報告・相談している。教授は厳格だが学生思い" data-opener="「今日は研究の進捗を聞かせてください」" onclick="selectRoleplay(this)"><span id="r-prof">教授へ相談</span><span class="topic-tag" id="rt-prof">研究・学習の報告</span></button>
-          <button class="topic-btn roleplay-btn" data-role="クライアント（初対面）" data-situation="初めて会うクライアントへのサービス説明。クライアントはまだ信頼を持っておらず、質問が多い" data-opener="「本日はお時間いただきありがとうございます」" onclick="selectRoleplay(this)"><span id="r-client">クライアント</span><span class="topic-tag" id="rt-client">初対面・サービス説明</span></button>
-          <button class="topic-btn roleplay-btn" data-role="意見が対立するチームメンバー" data-situation="チーム内で方向性の意見が対立している。感情的にならず、相手の意見も尊重しながら自分の立場を伝える必要がある" data-opener="「少し話し合いたいことがあって」" onclick="selectRoleplay(this)"><span id="r-conflict">意見対立</span><span class="topic-tag" id="rt-conflict">対話・交渉</span></button>
-          <button class="topic-btn roleplay-btn" data-role="昇給交渉の相手（人事・上司）" data-situation="昇給・待遇改善の交渉。相手は会社の立場を守りながらも、合理的な理由があれば検討する姿勢" data-opener="「今後のキャリアと待遇についてお話ししたいのですが」" onclick="selectRoleplay(this)"><span id="r-salary">昇給交渉</span><span class="topic-tag" id="rt-salary">待遇・キャリア</span></button>
+
+          <button class="topic-btn roleplay-btn"
+            data-role="採用面接官（人事部・中堅企業）"
+            data-situation="新卒または中途採用の一次面接。面接官は人事部のベテランで、丁寧な敬語を使いながらも鋭い質問をする。志望動機・自己PR・学生時代の経験などを確認する。圧迫ではなく、応募者の人となりを見たい。"
+            data-opener="本日はお越しいただきありがとうございます。では早速ですが、まず簡単に自己紹介をお願いできますか。"
+            onclick="selectRoleplay(this)">就職面接<span class="topic-tag">一次面接・自己PR</span></button>
+
+          <button class="topic-btn roleplay-btn"
+            data-role="直属の上司（課長・40代男性）"
+            data-situation="部下が業務改善のアイデアや新しい取り組みを上司に提案する場面。上司は忙しく最初は乗り気でないが、論理的に話せば聞いてくれる。社内の稟議を通すためにはコスト・工数・メリットを具体的に説明する必要がある。"
+            data-opener="あ、ちょうどよかった。何か話があるって聞いたけど、今ちょっとだけなら時間あるよ。"
+            onclick="selectRoleplay(this)">上司への提案<span class="topic-tag">業務改善・社内提案</span></button>
+
+          <button class="topic-btn roleplay-btn"
+            data-role="転職エージェント（キャリアアドバイザー）"
+            data-situation="転職を考えている候補者との初回面談。エージェントは候補者の経歴・希望条件・転職理由を丁寧にヒアリングし、強みを引き出そうとする。候補者は自分のキャリアを整理して伝える必要がある。"
+            data-opener="本日はご相談にいらしていただきありがとうございます。まず現在のお仕事と、転職をお考えになったきっかけを教えていただけますか。"
+            onclick="selectRoleplay(this)">転職相談<span class="topic-tag">キャリア面談</span></button>
+
+          <button class="topic-btn roleplay-btn"
+            data-role="初対面の取引先担当者（30代・やや警戒心あり）"
+            data-situation="初めての営業訪問または打ち合わせ。相手はまだ信頼関係がなく、話を聞く姿勢はあるが慎重。自社サービスや提案を分かりやすく説明し、相手の課題を引き出して信頼を築く必要がある。"
+            data-opener="本日はお時間いただきありがとうございます。御社のことは以前から存じておりまして。今日はどういったお話でしょうか。"
+            onclick="selectRoleplay(this)">初回営業訪問<span class="topic-tag">新規取引先・提案</span></button>
+
+          <button class="topic-btn roleplay-btn"
+            data-role="チームリーダー（同僚・30代）"
+            data-situation="プロジェクトの進め方について意見が食い違っている場面。相手も自分の意見を持っており、感情的にならず建設的に話し合う必要がある。自分の意見を主張しながらも相手を尊重し、落としどころを探る。"
+            data-opener="ちょっとさ、今回のプロジェクトの進め方なんだけど、正直あなたとは少し考え方が違うなって思っていて。話し合いたいんだけど、いいかな。"
+            onclick="selectRoleplay(this)">意見の食い違い<span class="topic-tag">社内・チーム調整</span></button>
+
+          <button class="topic-btn roleplay-btn"
+            data-role="大学のゼミ担当教授（60代・厳格だが学生思い）"
+            data-situation="卒業論文・研究の中間報告や相談。教授は厳しい質問や指摘をするが、学生の成長を願っている。研究の目的・方法・進捗を論理的に説明し、指摘には誠実に答える必要がある。"
+            data-opener="先週提出したレポート、読みましたよ。いくつか気になる点があったんですが、今日はどんな相談でしたっけ。"
+            onclick="selectRoleplay(this)">ゼミ・研究相談<span class="topic-tag">教授・指導教員</span></button>
+
         </div>
-        <textarea class="custom-input" id="customTopicRoleplay" placeholder="カスタムシナリオを入力（例：医師への症状説明）…" id="customRoleplaysInput" oninput="onCustomTopic('roleplay')"></textarea>
+        <textarea class="custom-input" id="customTopicRoleplay" placeholder="カスタムシナリオを入力（例：クレーム対応、病院での症状説明）…" oninput="onCustomTopic('roleplay')"></textarea>
       </div>
 
       <!-- Roleplay context display -->
@@ -751,7 +782,10 @@ function stopRecording() {
       pendingComputeTimer = null;
       const finalTranscript = fullTranscript.trim();
       computeMetrics(snapStart, finalTranscript);
-      setTimeout(() => document.getElementById('metricsRow').scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 150);
+      setTimeout(() => {
+        const el = document.getElementById('metricsRow');
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 150);
       setTimeout(() => startReflect(), 600);
     }, 1200);
   } else {
@@ -834,38 +868,43 @@ Scenario: ${selectedRoleplay.situation}
 Rules:
 - Realistic but not intimidating. Keep some tension but maintain a safe practice atmosphere
 - Keep responses to 1–2 short sentences. Conversational back-and-forth tempo
-- Never break character. Just respond as the character would naturally
-- React to what the person actually said — don't ignore it or rush back to the topic
-- End with a short question or reaction to continue the conversation
+- Never break character. React to what the person actually said first
 - Natural spoken language only — no symbols or bullet points (this will be read aloud)`;
   }
+
+  // Determine appropriate speech register based on role
+  const role = selectedRoleplay.role;
+  const isFormatContext = role.includes('面接') || role.includes('取引先') || role.includes('教授') || role.includes('エージェント');
+  const isSemiFormatContext = role.includes('上司') || role.includes('課長') || role.includes('リーダー');
+
+  const registerGuide = isFormatContext
+    ? `【言葉遣い：丁寧な敬語】
+- 「〜でございます」「〜いただけますか」「〜はいかがでしょうか」などフォーマルな表現
+- 相手への敬意を保ちながらも、温かみのある話し方
+- 例：「なるほど、それは興味深いですね。もう少し詳しくお聞かせいただけますか」`
+    : isSemiFormatContext
+    ? `【言葉遣い：上司→部下の話し言葉】
+- 「〜だけど」「〜かな」「〜してみて」など、上下関係を保ちながらも自然な話し言葉
+- 親しみはあるが軽すぎない
+- 例：「うん、なるほどな。でも、具体的にはどう進めるつもり？」`
+    : `【言葉遣い：対等な同僚の話し言葉】
+- 「〜だね」「〜じゃない？」「〜しようよ」など、フレンドリーな話し言葉
+- 例：「そっか。でも私はちょっと違うと思ってて、聞いてもいい？」`;
 
   return `あなたは「${selectedRoleplay.role}」を演じるロールプレイのパートナーです。
 
 【シナリオ】
 ${selectedRoleplay.situation}
 
-【最重要：人間らしく反応する】
-相手が言ったことに対して、まず正直に人間として反応すること。
-- 相手が感情的なことを言ったら → その感情をまず受け取る
-- 相手が予想外のことを言ったら → 驚く、戸惑う、笑うなど
-- 相手が話題を変えたら → 自然についていく
-- 本題に強引に戻さない。会話の流れに乗る
+${registerGuide}
 
-【話し方】
-- 実際の会話で使う話し言葉（「〜だね」「〜かな」「そうなの？」）
-- 間投詞を自然に（「ああ」「うーん」「なるほど」「え、そう？」）
+【最重要：人間らしく自然に反応する】
+- 相手が言ったことにまず素直に反応する。本題に強引に戻さない
+- 驚き・納得・疑問など感情を自然に出す
+- 相手が敬語を使っていれば、こちらもその場にふさわしい言葉遣いで返す
 - 返答は2〜3文。短くテンポよく
-- 音声で読まれるので記号・箇条書き・括弧は使わない
-
-【良い例・悪い例】
-ユーザー：「なんかあなたの喋り方ちょっとやだな」
-悪い例：「そうか、それで話を続けようか」（無視して本題へ）
-良い例：「え、そう？ごめんごめん、どんなとこが？」（まず受け取る）
-
-ユーザー：「緊張してます」
-悪い例：「では、提案の内容を聞かせてください」
-良い例：「あ、そうなんだ。大丈夫だよ、ゆっくり話して」`;
+- 音声で読まれるので記号・括弧・箇条書きは使わない
+- 必ず会話が続くよう、短い問いかけや反応で締める`;
 }
 
 async function startRoleplaysReflect() {

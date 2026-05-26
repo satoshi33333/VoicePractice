@@ -910,8 +910,97 @@ ${registerGuide}
 async function startRoleplaysReflect() {
   setPhase('reflect');
   document.getElementById('recordLabel').textContent = t('クリックして録音開始', 'Click to start recording');
-  // Build a summary from roleplay history for the coach
-  const summary = roleplaysHistory.map(m => `${m.role === 'user' ? 'あなた' : selectedRoleplay.role}：${m.content}`).join('\n');
+
+  // ── ロールプレイの分析 ──
+  // ユーザーの発言だけを抽出して分析
+  const userTurns = roleplaysHistory.filter(m => m.role === 'user').map(m => m.content);
+  const userTranscript = userTurns.join(' ');
+
+  if (userTranscript.trim()) {
+    // フィラーワード
+    const fillerPatterns = /\b(あー+|えー+|えーと|うーん|まあ|なんか|ちょっと|あの|そのー|えっと|なんていうか|要するに|つまり)\b/gi;
+    const fillerMatches = userTranscript.match(fillerPatterns) || [];
+    const fillerCount = fillerMatches.length;
+    const fillerList = [...new Set(fillerMatches.map(f => f.toLowerCase()))].slice(0, 5);
+    const fillerPct = Math.min(100, (fillerCount / 15) * 100);
+    const fillerClass = fillerCount <= 3 ? 'ok' : fillerCount <= 8 ? 'warn' : 'bad';
+
+    // 語彙の多様性
+    const words = userTranscript.replace(/[、。！？\s]/g, ' ').split(/\s+/).filter(w => w.length > 1);
+    const uniqueWords = new Set(words.map(w => w.toLowerCase()));
+    const vocabScore = words.length > 0 ? Math.round((uniqueWords.size / words.length) * 100) : 0;
+    const vocabClass = vocabScore >= 70 ? 'ok' : vocabScore >= 50 ? 'warn' : 'bad';
+
+    // 発話量（文字数）
+    const totalChars = userTranscript.replace(/\s/g, '').length;
+    const avgCharsPerTurn = userTurns.length > 0 ? Math.round(totalChars / userTurns.length) : 0;
+
+    // Transcriptに最後のユーザー発言を表示
+    document.getElementById('transcriptSection').style.display = 'block';
+    document.getElementById('transcriptBox').textContent = userTurns[userTurns.length - 1] || '';
+    document.getElementById('transcriptBox').className = 'transcript-box';
+
+    // 分析パネルを表示（スピード・ポーズ・音量はロールプレイでは計測不可なのでN/A）
+    document.getElementById('speedVal').textContent = avgCharsPerTurn;
+    document.getElementById('speedUnit').textContent = '字/ターン';
+    document.getElementById('speedHint').textContent = '1ターンの平均文字数';
+    document.getElementById('speedBar').style.width = Math.min(100, avgCharsPerTurn / 2) + '%';
+    document.getElementById('speedBar').className = 'mc-bar-fill ' + (avgCharsPerTurn >= 30 ? 'ok' : 'warn');
+    document.getElementById('cardSpeed').className = 'metric-card ' + (avgCharsPerTurn >= 30 ? 'ok' : 'warn');
+
+    document.getElementById('pauseVal').textContent = userTurns.length;
+    document.getElementById('pauseBar').style.width = Math.min(100, userTurns.length * 10) + '%';
+    document.getElementById('pauseBar').className = 'mc-bar-fill ok';
+    document.getElementById('cardPause').className = 'metric-card ok';
+    document.querySelector('#cardPause .mc-label').textContent = 'Turns';
+    document.querySelector('#cardPause .mc-ref').textContent = '発話ターン数';
+
+    document.getElementById('volVal').textContent = totalChars;
+    document.getElementById('volBar').style.width = Math.min(100, totalChars / 5) + '%';
+    document.getElementById('volBar').className = 'mc-bar-fill ok';
+    document.getElementById('cardVol').className = 'metric-card ok';
+    document.querySelector('#cardVol .mc-label').textContent = 'Volume';
+    document.querySelector('#cardVol .mc-unit').textContent = '総文字数';
+    document.querySelector('#cardVol .mc-ref').textContent = '発話の総量';
+
+    document.getElementById('fillerVal').textContent = fillerCount;
+    document.getElementById('fillerBar').style.width = fillerPct + '%';
+    document.getElementById('fillerBar').className = 'mc-bar-fill ' + fillerClass;
+    document.getElementById('cardFiller').className = 'metric-card ' + fillerClass;
+
+    document.getElementById('vocabVal').textContent = vocabScore;
+    document.getElementById('vocabBar').style.width = vocabScore + '%';
+    document.getElementById('vocabBar').className = 'mc-bar-fill ' + vocabClass;
+    document.getElementById('cardVocab').className = 'metric-card ' + vocabClass;
+
+    // 沈黙率はロールプレイでは「相手の発言数との比率」で代替
+    const aiTurns = roleplaysHistory.filter(m => m.role === 'assistant').length;
+    const turnRatio = aiTurns + userTurns.length > 0
+      ? Math.round((userTurns.length / (aiTurns + userTurns.length)) * 100) : 50;
+    const turnRatioClass = turnRatio >= 40 && turnRatio <= 60 ? 'ok' : 'warn';
+    document.getElementById('silenceVal').textContent = turnRatio;
+    document.getElementById('silenceBar').style.width = turnRatio + '%';
+    document.getElementById('silenceBar').className = 'mc-bar-fill ' + turnRatioClass;
+    document.getElementById('cardSilence').className = 'metric-card ' + turnRatioClass;
+    document.querySelector('#cardSilence .mc-label').textContent = 'Balance';
+    document.querySelector('#cardSilence .mc-unit').textContent = '%発話比率';
+    document.querySelector('#cardSilence .mc-ref').textContent = '自分の発話割合';
+
+    // レーダーチャート更新
+    updateRadar(
+      Math.min(100, avgCharsPerTurn / 1.5),
+      Math.min(100, userTurns.length * 12),
+      Math.min(100, totalChars / 4),
+      100 - fillerPct,
+      vocabScore,
+      100 - Math.abs(turnRatio - 50) * 2
+    );
+
+    const panel = document.getElementById('metricsRow');
+    panel.classList.add('visible');
+    setTimeout(() => panel.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
+  }
+
   const roundsText = ['', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'][roleplaysRoundCount] || String(roleplaysRoundCount);
   const q = t(
     `ロールプレイお疲れ様でした。${roundsText}往復の対話でした。\n\nまず、やってみてどうでしたか？どんな瞬間が難しかったですか、あるいは手応えを感じましたか？`,
@@ -919,8 +1008,18 @@ async function startRoleplaysReflect() {
   );
   addCoachMessage(q);
   document.getElementById('chatInput').placeholder = t('感じたことを教えてください…', 'Share what you noticed…');
+
   // Store for reflect
-  lastMetrics = { roleplaysHistory: roleplaysHistory, roleplaysRole: selectedRoleplay.role, roleplaysRounds: roleplaysRoundCount, isRoleplay: true };
+  lastMetrics = {
+    roleplaysHistory: roleplaysHistory,
+    roleplaysRole: selectedRoleplay.role,
+    roleplaysRounds: roleplaysRoundCount,
+    isRoleplay: true,
+    fillerCount, fillerList,
+    vocabScore,
+    userTurns: userTurns.length,
+    totalChars
+  };
 }
 
 // ── Speech Synthesis — ElevenLabs TTS (highest quality Japanese) ──────────────────────────────────────────
@@ -1247,12 +1346,19 @@ Approach:
 ロールプレイ概要：
 - 相手役：${lastMetrics.roleplaysRole}
 - 往復数：${lastMetrics.roleplaysRounds}回
+- フィラーワード：${lastMetrics.fillerCount || 0}回（${lastMetrics.fillerList?.join('・') || 'なし'}）
+- 語彙の多様性：${lastMetrics.vocabScore || 0}%
+- 発話ターン数：${lastMetrics.userTurns || 0}ターン
 - 対話抜粋：\n${summary}
 
-進め方：
+振り返りの進め方：
 1. ユーザーの感想をしっかり受け止める
-2. 対話の中で気づきを促す問いを1つ投げかける（例：「一番難しかった瞬間はどこでしたか？」「相手の反応で意外だったことはありましたか？」）
-3. 「次にやってみること」を1つ提案する`);
+2. 分析データから1つ選んで気づきを促す問いを投げかける
+   例：「フィラーが${lastMetrics.fillerCount || 0}回出ました。どんな瞬間に出やすかったと思いますか？」
+   例：「一番難しかった瞬間はどこでしたか？」
+   例：「相手の反応で意外だったことはありましたか？」
+3. 「次にやってみること」を1つ具体的に提案する`);
+
     } else {
       const m = lastMetrics;
       const speedRef = isEn ? `${m.speed} wpm (target 130–150)` : `${m.speed}字/分（目安350〜400）`;

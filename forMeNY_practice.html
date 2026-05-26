@@ -129,17 +129,36 @@
   .record-label { font-size: 10px; color: var(--text-dim); letter-spacing: 0.1em; text-align: center; }
 
   /* Metrics */
-  .metrics-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1px; background: var(--border); border: 1px solid var(--border); opacity: 0.7; }
-  .metric { background: var(--surface); padding: 10px 12px; }
-  .metric-label { font-size: 8px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-dim); }
-  .metric-value { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 300; color: var(--cream-dim); line-height: 1.2; margin-top: 2px; }
-  .metric-unit { font-size: 9px; color: var(--text-dim); }
-  .metric-bar-track { height: 2px; background: var(--border); margin-top: 5px; position: relative; }
-  .metric-bar-fill { position: absolute; top: 0; left: 0; height: 100%; background: var(--gold); transition: width 0.4s ease; }
-  .metric-bar-fill.ok { background: var(--green); }
-  .metric-bar-fill.warn { background: var(--gold); }
-  .metric-bar-fill.bad { background: var(--red); }
-  .metric-ref { font-size: 8px; color: var(--text-dim); margin-top: 3px; }
+  /* ── Metrics visualization ── */
+  .metrics-panel { display: none; flex-direction: column; gap: 12px; }
+  .metrics-panel.visible { display: flex; }
+
+  .metrics-top { display: flex; gap: 14px; align-items: flex-start; }
+  .radar-wrap { flex-shrink: 0; }
+
+  .metrics-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; flex: 1; }
+  .metric-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 8px 10px;
+    display: flex; flex-direction: column; gap: 3px;
+  }
+  .metric-card.ok  { border-left: 2px solid var(--green); }
+  .metric-card.warn { border-left: 2px solid var(--gold); }
+  .metric-card.bad  { border-left: 2px solid var(--red); }
+  .mc-label { font-size: 8px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-dim); }
+  .mc-value { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 300; color: var(--cream); line-height: 1.1; }
+  .mc-unit  { font-size: 8px; color: var(--text-dim); }
+  .mc-ref   { font-size: 8px; color: var(--text-dim); margin-top: 2px; }
+  .mc-bar-track { height: 2px; background: var(--border); margin-top: 4px; position: relative; }
+  .mc-bar-fill  { position: absolute; top:0; left:0; height:100%; transition: width 0.5s ease; }
+  .mc-bar-fill.ok   { background: var(--green); }
+  .mc-bar-fill.warn { background: var(--gold); }
+  .mc-bar-fill.bad  { background: var(--red); }
+
+  /* legacy — keep for compat */
+  .metrics-row { display: none; }
+  .metric { display: none; }
 
   /* Transcript */
   .transcript-box {
@@ -337,49 +356,81 @@
     </div>
 
     <!-- Metrics (speech mode only, compact) -->
-    <!-- Metrics -->
-    <div class="metrics-row" id="metricsRow" style="display:none">
-      <div class="metric">
-        <div class="metric-label">Speed</div>
-        <div class="metric-value" id="speedVal">—</div>
-        <div class="metric-unit" id="speedUnit">chars/min</div>
-        <div class="metric-bar-track"><div class="metric-bar-fill" id="speedBar" style="width:0%"></div></div>
-        <div class="metric-ref" id="speedHint">目安 350–400</div>
-      </div>
-      <div class="metric">
-        <div class="metric-label">Pauses</div>
-        <div class="metric-value" id="pauseVal">—</div>
-        <div class="metric-unit">回</div>
-        <div class="metric-bar-track"><div class="metric-bar-fill" id="pauseBar" style="width:0%"></div></div>
-        <div class="metric-ref">有意な間</div>
-      </div>
-      <div class="metric">
-        <div class="metric-label">Volume</div>
-        <div class="metric-value" id="volVal">—</div>
-        <div class="metric-unit">dB avg</div>
-        <div class="metric-bar-track"><div class="metric-bar-fill" id="volBar" style="width:0%"></div></div>
-        <div class="metric-ref">音量安定度</div>
-      </div>
-      <div class="metric">
-        <div class="metric-label">Fillers</div>
-        <div class="metric-value" id="fillerVal">—</div>
-        <div class="metric-unit">回</div>
-        <div class="metric-bar-track"><div class="metric-bar-fill" id="fillerBar" style="width:0%"></div></div>
-        <div class="metric-ref">あー・えー・なんか</div>
-      </div>
-      <div class="metric">
-        <div class="metric-label">Vocab</div>
-        <div class="metric-value" id="vocabVal">—</div>
-        <div class="metric-unit">%多様性</div>
-        <div class="metric-bar-track"><div class="metric-bar-fill" id="vocabBar" style="width:0%"></div></div>
-        <div class="metric-ref">語彙の豊かさ</div>
-      </div>
-      <div class="metric">
-        <div class="metric-label">Silence</div>
-        <div class="metric-value" id="silenceVal">—</div>
-        <div class="metric-unit">%</div>
-        <div class="metric-bar-track"><div class="metric-bar-fill" id="silenceBar" style="width:0%"></div></div>
-        <div class="metric-ref">沈黙率</div>
+    <!-- Metrics visualization -->
+    <div class="metrics-panel" id="metricsRow">
+      <div class="section-label" style="margin-bottom:0">Analysis</div>
+      <div class="metrics-top">
+        <!-- Radar chart -->
+        <div class="radar-wrap">
+          <svg id="radarSvg" width="140" height="140" viewBox="0 0 140 140">
+            <!-- Grid rings -->
+            <polygon points="70,20 112,45 112,95 70,120 28,95 28,45" fill="none" stroke="#2a2820" stroke-width="1"/>
+            <polygon points="70,35 99,52 99,88 70,105 41,88 41,52" fill="none" stroke="#2a2820" stroke-width="1"/>
+            <polygon points="70,50 86,59 86,81 70,90 54,81 54,59" fill="none" stroke="#2a2820" stroke-width="1"/>
+            <!-- Axis lines -->
+            <line x1="70" y1="70" x2="70" y2="20" stroke="#2a2820" stroke-width="1"/>
+            <line x1="70" y1="70" x2="112" y2="45" stroke="#2a2820" stroke-width="1"/>
+            <line x1="70" y1="70" x2="112" y2="95" stroke="#2a2820" stroke-width="1"/>
+            <line x1="70" y1="70" x2="70" y2="120" stroke="#2a2820" stroke-width="1"/>
+            <line x1="70" y1="70" x2="28" y2="95" stroke="#2a2820" stroke-width="1"/>
+            <line x1="70" y1="70" x2="28" y2="45" stroke="#2a2820" stroke-width="1"/>
+            <!-- Data polygon -->
+            <polygon id="radarPoly" points="70,70 70,70 70,70 70,70 70,70 70,70"
+              fill="rgba(201,168,76,0.15)" stroke="#c9a84c" stroke-width="1.5"/>
+            <!-- Axis labels -->
+            <text x="70" y="14" text-anchor="middle" fill="#6b6459" font-size="8" font-family="DM Mono,monospace">Speed</text>
+            <text x="118" y="44" text-anchor="start" fill="#6b6459" font-size="8" font-family="DM Mono,monospace">Pause</text>
+            <text x="118" y="100" text-anchor="start" fill="#6b6459" font-size="8" font-family="DM Mono,monospace">Volume</text>
+            <text x="70" y="132" text-anchor="middle" fill="#6b6459" font-size="8" font-family="DM Mono,monospace">Filler</text>
+            <text x="22" y="100" text-anchor="end" fill="#6b6459" font-size="8" font-family="DM Mono,monospace">Vocab</text>
+            <text x="22" y="44" text-anchor="end" fill="#6b6459" font-size="8" font-family="DM Mono,monospace">Silence</text>
+          </svg>
+        </div>
+        <!-- Metric cards -->
+        <div class="metrics-cards">
+          <div class="metric-card" id="cardSpeed">
+            <div class="mc-label">Speed</div>
+            <div class="mc-value" id="speedVal">—</div>
+            <div class="mc-unit" id="speedUnit">chars/min</div>
+            <div class="mc-bar-track"><div class="mc-bar-fill" id="speedBar" style="width:0%"></div></div>
+            <div class="mc-ref" id="speedHint">目安 300–400</div>
+          </div>
+          <div class="metric-card" id="cardPause">
+            <div class="mc-label">Pauses</div>
+            <div class="mc-value" id="pauseVal">—</div>
+            <div class="mc-unit">回</div>
+            <div class="mc-bar-track"><div class="mc-bar-fill" id="pauseBar" style="width:0%"></div></div>
+            <div class="mc-ref">有意な間</div>
+          </div>
+          <div class="metric-card" id="cardVol">
+            <div class="mc-label">Volume</div>
+            <div class="mc-value" id="volVal">—</div>
+            <div class="mc-unit">dB avg</div>
+            <div class="mc-bar-track"><div class="mc-bar-fill" id="volBar" style="width:0%"></div></div>
+            <div class="mc-ref">音量安定度</div>
+          </div>
+          <div class="metric-card" id="cardFiller">
+            <div class="mc-label">Fillers</div>
+            <div class="mc-value" id="fillerVal">—</div>
+            <div class="mc-unit">回</div>
+            <div class="mc-bar-track"><div class="mc-bar-fill" id="fillerBar" style="width:0%"></div></div>
+            <div class="mc-ref">あー・えー・なんか</div>
+          </div>
+          <div class="metric-card" id="cardVocab">
+            <div class="mc-label">Vocab</div>
+            <div class="mc-value" id="vocabVal">—</div>
+            <div class="mc-unit">% 多様性</div>
+            <div class="mc-bar-track"><div class="mc-bar-fill" id="vocabBar" style="width:0%"></div></div>
+            <div class="mc-ref">語彙の豊かさ</div>
+          </div>
+          <div class="metric-card" id="cardSilence">
+            <div class="mc-label">Silence</div>
+            <div class="mc-value" id="silenceVal">—</div>
+            <div class="mc-unit">%</div>
+            <div class="mc-bar-track"><div class="mc-bar-fill" id="silenceBar" style="width:0%"></div></div>
+            <div class="mc-ref">沈黙率 目安10–30%</div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1011,21 +1062,28 @@ function computeMetrics(snapStart, snapTranscript) {
   const silenceClass = silenceRate >= 10 && silenceRate <= 30 ? 'ok' : silenceRate < 5 ? 'warn' : silenceRate > 50 ? 'bad' : 'warn';
 
   // ── Update DOM ──
-  const set = (id, val, bar, pct, cls) => {
-    document.getElementById(id).textContent = val;
-    if (bar) {
-      document.getElementById(bar).style.width = pct + '%';
-      document.getElementById(bar).className = 'metric-bar-fill ' + cls;
-    }
+  const setCard = (cardId, valId, barId, val, pct, cls, unit) => {
+    document.getElementById(valId).textContent = val;
+    const bar = document.getElementById(barId);
+    bar.style.width = Math.min(100, pct) + '%';
+    bar.className = 'mc-bar-fill ' + cls;
+    const card = document.getElementById(cardId);
+    card.className = 'metric-card ' + cls;
   };
-  set('speedVal', speed, 'speedBar', speedPct, speedClass);
-  set('pauseVal', pauseCount, 'pauseBar', pausePct, pauseClass);
-  set('volVal', volDB, 'volBar', volNorm, volClass);
-  set('fillerVal', fillerCount, 'fillerBar', fillerPct, fillerClass);
-  set('vocabVal', vocabScore, 'vocabBar', vocabScore, vocabClass);
-  set('silenceVal', silenceRate, 'silenceBar', Math.min(100, silenceRate * 2), silenceClass);
 
-  document.getElementById('metricsRow').style.display = 'grid';
+  setCard('cardSpeed',  'speedVal',  'speedBar',  speed,       speedPct,               speedClass);
+  setCard('cardPause',  'pauseVal',  'pauseBar',  pauseCount,  pausePct,               pauseClass);
+  setCard('cardVol',    'volVal',    'volBar',    volDB,       volNorm,                volClass);
+  setCard('cardFiller', 'fillerVal', 'fillerBar', fillerCount, fillerPct,              fillerClass);
+  setCard('cardVocab',  'vocabVal',  'vocabBar',  vocabScore,  vocabScore,             vocabClass);
+  setCard('cardSilence','silenceVal','silenceBar',silenceRate, Math.min(100, silenceRate*2), silenceClass);
+
+  // ── Radar chart ──
+  updateRadar(speedPct, pausePct, volNorm, 100 - fillerPct, vocabScore, 100 - Math.abs(silenceRate - 20) * 2);
+
+  const panel = document.getElementById('metricsRow');
+  panel.classList.add('visible');
+
   updateTranscriptDisplay(usedTranscript);
 
   lastMetrics = {
@@ -1040,6 +1098,23 @@ function computeMetrics(snapStart, snapTranscript) {
     durationMin: elapsedMin, durationSec: Math.round(elapsedSec),
     lang, topic: selectedTopic
   };
+}
+
+function updateRadar(speed, pause, vol, fillerInv, vocab, silenceBalance) {
+  // 6 axes: top, top-right, bottom-right, bottom, bottom-left, top-left
+  // Center: (70,70), outer ring at distance 50
+  const cx = 70, cy = 70, maxR = 50;
+  const angles = [-90, -30, 30, 90, 150, 210]; // degrees
+  const values = [speed, pause, vol, fillerInv, vocab, silenceBalance].map(v => Math.max(0, Math.min(100, v)));
+
+  const points = values.map((v, i) => {
+    const angle = (angles[i] * Math.PI) / 180;
+    const r = (v / 100) * maxR;
+    return [(cx + r * Math.cos(angle)).toFixed(1), (cy + r * Math.sin(angle)).toFixed(1)];
+  });
+
+  const poly = document.getElementById('radarPoly');
+  if (poly) poly.setAttribute('points', points.map(p => p.join(',')).join(' '));
 }
 
 function updateTranscriptDisplay(text) {

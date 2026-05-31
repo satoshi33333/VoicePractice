@@ -411,6 +411,65 @@
   }
   .badge-item:hover .bdg-tip { opacity: 1; }
 
+  /* ── Analysis panel redesign ── */
+  .analysis-header {
+    display: flex; align-items: baseline; gap: 12px;
+    border-bottom: 2px solid var(--border); padding-bottom: 10px;
+  }
+  .analysis-title {
+    font-family: 'Bebas Neue', sans-serif; font-size: 22px;
+    color: var(--text); letter-spacing: 0.1em;
+  }
+  .analysis-sub { font-size: 11px; color: var(--text-3); font-weight: 500; }
+
+  .radar-center {
+    display: flex; justify-content: center;
+    background: linear-gradient(135deg, var(--surface), var(--bg2));
+    border: 1.5px solid var(--border); border-radius: 20px;
+    padding: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+  }
+
+  /* Override metrics-cards to 3-column full width */
+  .metrics-panel .metrics-cards {
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+  }
+  .metrics-panel .metric-card {
+    padding: 14px 16px;
+  }
+  .metrics-panel .mc-value { font-size: 32px; }
+
+  /* ── Badge shelf redesign ── */
+  .badge-shelf {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px; min-height: 60px;
+  }
+  .badge-item {
+    width: auto; height: auto;
+    border-radius: 14px;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 5px; padding: 12px 6px;
+    cursor: default; transition: all 0.25s;
+    position: relative;
+  }
+  .badge-item .bdg-emoji { font-size: 28px; line-height: 1; }
+  .badge-item .bdg-name { font-size: 9px; font-weight: 700; color: var(--text-2); text-align: center; line-height: 1.2; letter-spacing: 0.02em; }
+  .badge-item:hover { transform: scale(1.08) translateY(-2px); border-color: var(--gold); box-shadow: 0 8px 24px rgba(196,154,60,0.2); }
+  .badge-item.earned { border-color: var(--gold-dim); background: var(--gold-pale); }
+  .badge-item.earned .bdg-name { color: var(--gold); }
+  .badge-item.locked { opacity: 0.35; filter: grayscale(0.8); }
+  .badge-item .bdg-tip {
+    position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
+    background: var(--text); color: white; font-size: 10px; white-space: nowrap;
+    padding: 5px 10px; border-radius: 8px; opacity: 0; pointer-events: none;
+    transition: opacity 0.2s; font-family: 'Nunito', sans-serif; font-weight: 600; z-index: 10;
+  }
+  .badge-item:hover .bdg-tip { opacity: 1; }
+
   ::-webkit-scrollbar { width: 4px; }
   ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
 </style>
@@ -575,88 +634,115 @@
         </button>
       </div>
       <div class="record-label" id="recordLabel">クリックして録音開始</div>
-      <div id="aiSpeakingIndicator" style="display:none;align-items:center;gap:8px;font-size:10px;color:#7aaabb;">
-        <div class="typing-indicator"><div class="typing-dot" style="background:#4a7a9b"></div><div class="typing-dot" style="background:#4a7a9b"></div><div class="typing-dot" style="background:#4a7a9b"></div></div>
+      <!-- Countdown hint (roleplay only) -->
+      <div id="countdownHint" style="display:none;font-size:10px;color:var(--text-3);text-align:center;line-height:1.6;max-width:220px;background:var(--gold-pale);border:1px solid var(--gold-dim);border-radius:10px;padding:8px 12px;">
+        ⏱ AIが話し終えてから<strong style="color:var(--terracotta)">5秒以内</strong>に<br>ボタンを押して話し始めてください
+      </div>
+      <div id="aiSpeakingIndicator" style="display:none;align-items:center;gap:8px;font-size:10px;color:var(--sage);font-weight:600;">
+        <div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>
         <span id="aiSpeakingLabel">相手が話しています…</span>
       </div>
       <button class="end-roleplay-btn" id="endRoleplaysBtn" style="display:none" onclick="endRoleplay()">ロールプレイを終了する</button>
     </div>
 
-    <!-- Metrics (speech mode only, compact) -->
-    <!-- Metrics visualization -->
+    <!-- Analysis panel -->
     <div class="metrics-panel" id="metricsRow">
-      <div class="section-label" style="margin-bottom:0">Analysis</div>
-      <div class="metrics-top">
-        <!-- Radar chart -->
-        <div class="radar-wrap">
-          <svg id="radarSvg" width="140" height="140" viewBox="0 0 140 140"><defs><linearGradient id="radarGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#b06cf0"/><stop offset="100%" stop-color="#00e5ff"/></linearGradient></defs>
-            <!-- Grid rings -->
-            <polygon points="70,20 112,45 112,95 70,120 28,95 28,45" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
-            <polygon points="70,35 99,52 99,88 70,105 41,88 41,52" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
-            <polygon points="70,50 86,59 86,81 70,90 54,81 54,59" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
-            <!-- Axis lines -->
-            <line x1="70" y1="70" x2="70" y2="20" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
-            <line x1="70" y1="70" x2="112" y2="45" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
-            <line x1="70" y1="70" x2="112" y2="95" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
-            <line x1="70" y1="70" x2="70" y2="120" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
-            <line x1="70" y1="70" x2="28" y2="95" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
-            <line x1="70" y1="70" x2="28" y2="45" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
-            <!-- Data polygon -->
-            <polygon id="radarPoly" points="70,70 70,70 70,70 70,70 70,70 70,70"
-              fill="rgba(176,108,240,0.15)" stroke="url(#radarGrad)" stroke-width="2"/>
-            <!-- Axis labels -->
-            <text x="70" y="14" text-anchor="middle" fill="rgba(160,154,184,0.8)" font-size="8" font-family="DM Mono,monospace">Speed</text>
-            <text x="118" y="44" text-anchor="start" fill="rgba(160,154,184,0.8)" font-size="8" font-family="DM Mono,monospace">Pause</text>
-            <text x="118" y="100" text-anchor="start" fill="rgba(160,154,184,0.8)" font-size="8" font-family="DM Mono,monospace">Volume</text>
-            <text x="70" y="132" text-anchor="middle" fill="rgba(160,154,184,0.8)" font-size="8" font-family="DM Mono,monospace">Filler</text>
-            <text x="22" y="100" text-anchor="end" fill="rgba(160,154,184,0.8)" font-size="8" font-family="DM Mono,monospace">Vocab</text>
-            <text x="22" y="44" text-anchor="end" fill="rgba(160,154,184,0.8)" font-size="8" font-family="DM Mono,monospace">Silence</text>
-          </svg>
+
+      <!-- Header -->
+      <div class="analysis-header">
+        <span class="analysis-title">📊 Analysis</span>
+        <span class="analysis-sub" id="analysisSub">Session Results</span>
+      </div>
+
+      <!-- Radar chart — centered, large -->
+      <div class="radar-center">
+        <svg id="radarSvg" width="220" height="220" viewBox="0 0 220 220">
+          <defs>
+            <linearGradient id="radarGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="var(--terracotta)" stop-opacity="0.9"/>
+              <stop offset="100%" stop-color="var(--sage)" stop-opacity="0.9"/>
+            </linearGradient>
+            <filter id="radarGlow">
+              <feGaussianBlur stdDeviation="3" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+          <!-- Grid rings -->
+          <polygon points="110,26 168,59 168,125 110,158 52,125 52,59" fill="none" stroke="var(--border)" stroke-width="1.5"/>
+          <polygon points="110,51 147,72 147,114 110,135 73,114 73,72"  fill="none" stroke="var(--border)" stroke-width="1"/>
+          <polygon points="110,76 126,85 126,103 110,112 94,103 94,85"  fill="none" stroke="var(--border)" stroke-width="1" stroke-dasharray="3,2"/>
+          <!-- Axis lines -->
+          <line x1="110" y1="110" x2="110" y2="26"  stroke="var(--border2)" stroke-width="1"/>
+          <line x1="110" y1="110" x2="168" y2="59"  stroke="var(--border2)" stroke-width="1"/>
+          <line x1="110" y1="110" x2="168" y2="125" stroke="var(--border2)" stroke-width="1"/>
+          <line x1="110" y1="110" x2="110" y2="158" stroke="var(--border2)" stroke-width="1"/>
+          <line x1="110" y1="110" x2="52"  y2="125" stroke="var(--border2)" stroke-width="1"/>
+          <line x1="110" y1="110" x2="52"  y2="59"  stroke="var(--border2)" stroke-width="1"/>
+          <!-- Data polygon -->
+          <polygon id="radarPoly" points="110,110 110,110 110,110 110,110 110,110 110,110"
+            fill="url(#radarGrad)" fill-opacity="0.2"
+            stroke="url(#radarGrad)" stroke-width="2.5"
+            filter="url(#radarGlow)"/>
+          <!-- Data dots -->
+          <circle id="rd0" cx="110" cy="110" r="4" fill="var(--terracotta)" opacity="0.9"/>
+          <circle id="rd1" cx="110" cy="110" r="4" fill="var(--terracotta)" opacity="0.9"/>
+          <circle id="rd2" cx="110" cy="110" r="4" fill="var(--sage)"       opacity="0.9"/>
+          <circle id="rd3" cx="110" cy="110" r="4" fill="var(--sage)"       opacity="0.9"/>
+          <circle id="rd4" cx="110" cy="110" r="4" fill="var(--gold)"       opacity="0.9"/>
+          <circle id="rd5" cx="110" cy="110" r="4" fill="var(--gold)"       opacity="0.9"/>
+          <!-- Axis labels -->
+          <text x="110" y="18"  text-anchor="middle" fill="var(--text-2)" font-size="11" font-family="Bebas Neue,sans-serif" letter-spacing="1">SPEED</text>
+          <text x="178" y="57"  text-anchor="start"  fill="var(--text-2)" font-size="11" font-family="Bebas Neue,sans-serif" letter-spacing="1">PAUSE</text>
+          <text x="178" y="130" text-anchor="start"  fill="var(--text-2)" font-size="11" font-family="Bebas Neue,sans-serif" letter-spacing="1">VOL</text>
+          <text x="110" y="176" text-anchor="middle" fill="var(--text-2)" font-size="11" font-family="Bebas Neue,sans-serif" letter-spacing="1">FILLER</text>
+          <text x="42"  y="130" text-anchor="end"    fill="var(--text-2)" font-size="11" font-family="Bebas Neue,sans-serif" letter-spacing="1">VOCAB</text>
+          <text x="42"  y="57"  text-anchor="end"    fill="var(--text-2)" font-size="11" font-family="Bebas Neue,sans-serif" letter-spacing="1">SILENCE</text>
+        </svg>
+      </div>
+
+      <!-- 6 metric cards full width -->
+      <div class="metrics-cards">
+        <div class="metric-card" id="cardSpeed">
+          <div class="mc-label">Speed</div>
+          <div class="mc-value" id="speedVal">—</div>
+          <div class="mc-unit" id="speedUnit">chars/min</div>
+          <div class="mc-bar-track"><div class="mc-bar-fill" id="speedBar" style="width:0%"></div></div>
+          <div class="mc-ref" id="speedHint">目安 300–400</div>
         </div>
-        <!-- Metric cards -->
-        <div class="metrics-cards">
-          <div class="metric-card" id="cardSpeed">
-            <div class="mc-label">Speed</div>
-            <div class="mc-value" id="speedVal">—</div>
-            <div class="mc-unit" id="speedUnit">chars/min</div>
-            <div class="mc-bar-track"><div class="mc-bar-fill" id="speedBar" style="width:0%"></div></div>
-            <div class="mc-ref" id="speedHint">目安 300–400</div>
-          </div>
-          <div class="metric-card" id="cardPause">
-            <div class="mc-label">Pauses</div>
-            <div class="mc-value" id="pauseVal">—</div>
-            <div class="mc-unit">回</div>
-            <div class="mc-bar-track"><div class="mc-bar-fill" id="pauseBar" style="width:0%"></div></div>
-            <div class="mc-ref">有意な間</div>
-          </div>
-          <div class="metric-card" id="cardVol">
-            <div class="mc-label">Volume</div>
-            <div class="mc-value" id="volVal">—</div>
-            <div class="mc-unit">dB avg</div>
-            <div class="mc-bar-track"><div class="mc-bar-fill" id="volBar" style="width:0%"></div></div>
-            <div class="mc-ref">音量安定度</div>
-          </div>
-          <div class="metric-card" id="cardFiller">
-            <div class="mc-label">Fillers</div>
-            <div class="mc-value" id="fillerVal">—</div>
-            <div class="mc-unit">回</div>
-            <div class="mc-bar-track"><div class="mc-bar-fill" id="fillerBar" style="width:0%"></div></div>
-            <div class="mc-ref">あー・えー・なんか</div>
-          </div>
-          <div class="metric-card" id="cardVocab">
-            <div class="mc-label">Vocab</div>
-            <div class="mc-value" id="vocabVal">—</div>
-            <div class="mc-unit">% 多様性</div>
-            <div class="mc-bar-track"><div class="mc-bar-fill" id="vocabBar" style="width:0%"></div></div>
-            <div class="mc-ref">語彙の豊かさ</div>
-          </div>
-          <div class="metric-card" id="cardSilence">
-            <div class="mc-label">Silence</div>
-            <div class="mc-value" id="silenceVal">—</div>
-            <div class="mc-unit">%</div>
-            <div class="mc-bar-track"><div class="mc-bar-fill" id="silenceBar" style="width:0%"></div></div>
-            <div class="mc-ref">沈黙率 目安10–30%</div>
-          </div>
+        <div class="metric-card" id="cardPause">
+          <div class="mc-label">Pauses</div>
+          <div class="mc-value" id="pauseVal">—</div>
+          <div class="mc-unit">回</div>
+          <div class="mc-bar-track"><div class="mc-bar-fill" id="pauseBar" style="width:0%"></div></div>
+          <div class="mc-ref">有意な間</div>
+        </div>
+        <div class="metric-card" id="cardVol">
+          <div class="mc-label">Volume</div>
+          <div class="mc-value" id="volVal">—</div>
+          <div class="mc-unit">dB avg</div>
+          <div class="mc-bar-track"><div class="mc-bar-fill" id="volBar" style="width:0%"></div></div>
+          <div class="mc-ref">音量安定度</div>
+        </div>
+        <div class="metric-card" id="cardFiller">
+          <div class="mc-label">Fillers</div>
+          <div class="mc-value" id="fillerVal">—</div>
+          <div class="mc-unit">回</div>
+          <div class="mc-bar-track"><div class="mc-bar-fill" id="fillerBar" style="width:0%"></div></div>
+          <div class="mc-ref">あー・えー・なんか</div>
+        </div>
+        <div class="metric-card" id="cardVocab">
+          <div class="mc-label">Vocab</div>
+          <div class="mc-value" id="vocabVal">—</div>
+          <div class="mc-unit">% 多様性</div>
+          <div class="mc-bar-track"><div class="mc-bar-fill" id="vocabBar" style="width:0%"></div></div>
+          <div class="mc-ref">語彙の豊かさ</div>
+        </div>
+        <div class="metric-card" id="cardSilence">
+          <div class="mc-label">Silence</div>
+          <div class="mc-value" id="silenceVal">—</div>
+          <div class="mc-unit">%</div>
+          <div class="mc-bar-track"><div class="mc-bar-fill" id="silenceBar" style="width:0%"></div></div>
+          <div class="mc-ref">沈黙率 目安10–30%</div>
         </div>
       </div>
     </div>
@@ -814,8 +900,8 @@ function renderBadgeShelf(s) {
   BADGES.forEach(b => {
     const earned = s.earnedBadges.includes(b.id);
     const item = document.createElement('div');
-    item.className = 'badge-item' + (earned ? '' : ' locked');
-    item.innerHTML = `${b.icon}<span class="bdg-tip">${b.name}</span>`;
+    item.className = 'badge-item' + (earned ? ' earned' : ' locked');
+    item.innerHTML = `<div class="bdg-emoji">${b.icon}</div><div class="bdg-name">${b.name}</div><span class="bdg-tip">${b.desc}</span>`;
     shelf.appendChild(item);
   });
 }
@@ -857,6 +943,10 @@ function setMode(m) {
   document.getElementById('roleplaysInfo').classList.remove('visible');
   // Show voice selector only in roleplay mode
   document.getElementById('voiceSelectorSection').style.display = m === 'roleplay' ? 'block' : 'none';
+  // Show countdown hint in roleplay mode
+  // Hint shown after AI speaks, not on mode switch
+  const hint = document.getElementById('countdownHint');
+  if (hint) hint.style.display = 'none';
 
   document.getElementById('modeHint').textContent = m === 'speech'
     ? t('一人で話して計測・フィードバックを受ける', 'Speak alone — get metrics & feedback')
@@ -1056,6 +1146,9 @@ async function startRecording() {
   recognition.start();
 
   isRecording = true;
+  // Hide countdown hint once user starts recording
+  const hint = document.getElementById('countdownHint');
+  if (hint) hint.style.display = 'none';
   // Start countdown for roleplay mode
   if (mode === 'roleplay') startResponseCountdown();
   pendingComputeTimer = null;
@@ -1216,6 +1309,7 @@ async function startRoleplaysScene() {
     // Speak opener — after speech ends, user can record
     speakAsRole(opener, () => {
       document.getElementById('recordLabel').textContent = t('クリックして返答（録音）', 'Click to respond (record)');
+      document.getElementById('countdownHint').style.display = 'block';
     });
   } catch(e) {
     hideTyping();
@@ -1224,6 +1318,7 @@ async function startRoleplaysScene() {
     roleplaysRoundCount++;
     speakAsRole(selectedRoleplay.opener, () => {
       document.getElementById('recordLabel').textContent = t('クリックして返答（録音）', 'Click to respond (record)');
+      document.getElementById('countdownHint').style.display = 'block';
     });
   }
 }
@@ -1242,6 +1337,7 @@ async function handleRoleplaysUserTurn(userSpeech) {
     // Speak reply — after speech ends, enable recording again
     speakAsRole(reply, () => {
       document.getElementById('recordLabel').textContent = t('クリックして返答（録音）', 'Click to respond (record)');
+      document.getElementById('countdownHint').style.display = 'block';
     });
   } catch(e) {
     hideTyping();
@@ -1675,20 +1771,20 @@ function computeMetrics(snapStart, snapTranscript) {
 }
 
 function updateRadar(speed, pause, vol, fillerInv, vocab, silenceBalance) {
-  // 6 axes: top, top-right, bottom-right, bottom, bottom-left, top-left
-  // Center: (70,70), outer ring at distance 50
-  const cx = 70, cy = 70, maxR = 50;
-  const angles = [-90, -30, 30, 90, 150, 210]; // degrees
+  const cx = 110, cy = 110, maxR = 84;
+  const angles = [-90, -30, 30, 90, 150, 210];
   const values = [speed, pause, vol, fillerInv, vocab, silenceBalance].map(v => Math.max(0, Math.min(100, v)));
-
   const points = values.map((v, i) => {
     const angle = (angles[i] * Math.PI) / 180;
     const r = (v / 100) * maxR;
     return [(cx + r * Math.cos(angle)).toFixed(1), (cy + r * Math.sin(angle)).toFixed(1)];
   });
-
   const poly = document.getElementById('radarPoly');
   if (poly) poly.setAttribute('points', points.map(p => p.join(',')).join(' '));
+  points.forEach((p, i) => {
+    const dot = document.getElementById('rd' + i);
+    if (dot) { dot.setAttribute('cx', p[0]); dot.setAttribute('cy', p[1]); }
+  });
 }
 
 function updateTranscriptDisplay(text) {

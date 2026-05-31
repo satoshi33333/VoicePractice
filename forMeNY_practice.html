@@ -470,6 +470,35 @@
   }
   .badge-item:hover .bdg-tip { opacity: 1; }
 
+  /* ── Large countdown overlay ── */
+  .countdown-overlay {
+    position: fixed; inset: 0; z-index: 9990;
+    display: flex; align-items: center; justify-content: center;
+    pointer-events: none; opacity: 0; transition: opacity 0.2s;
+    background: rgba(250,248,244,0.6); backdrop-filter: blur(2px);
+  }
+  .countdown-overlay.visible { opacity: 1; }
+  .countdown-big-wrap {
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    animation: coBounceIn 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  @keyframes coBounceIn { from { transform: scale(0.5); opacity:0; } to { transform: scale(1); opacity:1; } }
+  .countdown-big-ring { position: relative; width: 200px; height: 200px; }
+  .countdown-big-ring svg { position: absolute; top:0; left:0; transform: rotate(-90deg); }
+  .countdown-big-num {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-family: 'Bebas Neue', sans-serif; font-size: 110px; line-height: 1;
+    color: var(--terracotta); transition: color 0.2s;
+  }
+  .countdown-big-num.tick { animation: numTick 0.12s ease; }
+  @keyframes numTick { 0% { transform: scale(1.25); } 100% { transform: scale(1); } }
+  .countdown-big-label {
+    font-family: 'Bebas Neue', sans-serif; font-size: 13px;
+    letter-spacing: 0.2em; color: var(--text-3);
+  }
+  .countdown-big-num.urgent { animation: urgentShake 0.25s ease-in-out infinite; }
+  @keyframes urgentShake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+
   ::-webkit-scrollbar { width: 4px; }
   ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
 </style>
@@ -477,6 +506,23 @@
 
 </head>
 <body>
+
+<!-- Large countdown overlay -->
+<div class="countdown-overlay" id="countdownOverlay">
+  <div class="countdown-big-wrap">
+    <div class="countdown-big-ring">
+      <svg width="200" height="200" viewBox="0 0 200 200">
+        <circle cx="100" cy="100" r="88" fill="none" stroke="var(--border)" stroke-width="6"/>
+        <circle id="countdownBigRing" cx="100" cy="100" r="88" fill="none"
+          stroke="var(--terracotta)" stroke-width="6" stroke-linecap="round"
+          stroke-dasharray="553" stroke-dashoffset="553"
+          style="transition: stroke-dashoffset 0.9s linear, stroke 0.3s; filter: drop-shadow(0 0 8px rgba(196,112,90,0.5))"/>
+      </svg>
+      <div class="countdown-big-num" id="countdownBigNum">5</div>
+    </div>
+    <div class="countdown-big-label">秒以内にボタンを押してください</div>
+  </div>
+</div>
 
 <header>
   <div class="logo">FOR ME <span>NY</span></div>
@@ -1529,21 +1575,48 @@ function startResponseCountdown() {
   speechDetectedInTurn = false;
   countdownRemaining = RESPONSE_LIMIT_SEC;
 
+  // Small ring (on record button)
   const ring = document.getElementById('countdownRing');
-  const num = document.getElementById('countdownNum');
-  const circumference = 2 * Math.PI * 45; // 283
-
+  const num  = document.getElementById('countdownNum');
+  const smallCirc = 2 * Math.PI * 45; // 283
   ring.classList.remove('hidden', 'urgent');
   num.classList.remove('hidden', 'urgent');
 
-  function updateRing() {
-    const pct = countdownRemaining / RESPONSE_LIMIT_SEC;
-    ring.style.strokeDashoffset = circumference * (1 - pct);
-    num.textContent = Math.ceil(countdownRemaining);
+  // Large overlay
+  const overlay   = document.getElementById('countdownOverlay');
+  const bigRing   = document.getElementById('countdownBigRing');
+  const bigNum    = document.getElementById('countdownBigNum');
+  const bigCirc   = 2 * Math.PI * 88; // 553
+  let lastCeil    = RESPONSE_LIMIT_SEC + 1;
+  overlay.classList.add('visible');
 
+  function updateRing() {
+    const pct    = countdownRemaining / RESPONSE_LIMIT_SEC;
     const urgent = countdownRemaining <= 2;
+
+    // Small ring
+    ring.style.strokeDashoffset = smallCirc * (1 - pct);
+    num.textContent = Math.ceil(countdownRemaining);
     ring.classList.toggle('urgent', urgent);
     num.classList.toggle('urgent', urgent);
+
+    // Large overlay
+    bigRing.style.strokeDashoffset = bigCirc * (1 - pct);
+    bigRing.style.stroke = urgent ? 'var(--terracotta)' : 'var(--sage)';
+    bigRing.style.filter = urgent
+      ? 'drop-shadow(0 0 12px rgba(196,112,90,0.8))'
+      : 'drop-shadow(0 0 8px rgba(106,155,126,0.5))';
+    const ceil = Math.ceil(countdownRemaining);
+    bigNum.textContent = ceil;
+    bigNum.style.color = urgent ? 'var(--terracotta)' : 'var(--sage)';
+    // Tick animation on each second
+    if (ceil !== lastCeil) {
+      lastCeil = ceil;
+      bigNum.classList.remove('tick');
+      void bigNum.offsetWidth; // reflow
+      bigNum.classList.add('tick');
+    }
+    bigNum.classList.toggle('urgent', urgent);
   }
 
   updateRing();
@@ -1552,9 +1625,8 @@ function startResponseCountdown() {
     countdownRemaining -= 0.1;
     if (countdownRemaining <= 0) {
       stopResponseCountdown();
-      // Time's up — auto-stop recording and send （沈黙）
       if (isRecording) {
-        addCoachMessage(t('⏱ 時間切れ！', '⏱ Time\'s up!'));
+        addCoachMessage(t('⏱ 時間切れ！次はもっと素早く！', '⏱ Time\'s up! Be quicker next time!'));
         stopRecording();
       }
     } else {
@@ -1565,10 +1637,17 @@ function startResponseCountdown() {
 
 function stopResponseCountdown() {
   if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
+  // Small ring
   const ring = document.getElementById('countdownRing');
-  const num = document.getElementById('countdownNum');
+  const num  = document.getElementById('countdownNum');
   if (ring) { ring.classList.add('hidden'); ring.classList.remove('urgent'); ring.style.strokeDashoffset = 283; }
   if (num)  { num.classList.add('hidden'); num.classList.remove('urgent'); }
+  // Large overlay — fade out
+  const overlay = document.getElementById('countdownOverlay');
+  if (overlay) overlay.classList.remove('visible');
+  // Reset big ring
+  const bigRing = document.getElementById('countdownBigRing');
+  if (bigRing) { bigRing.style.strokeDashoffset = 553; }
 }
 
 let selectedVoice = 'nova'; // default: 日本語に最適

@@ -4,36 +4,40 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FOR ME NY — Voice Practice</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Nunito:wght@300;400;500;600&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
 <style>
+  /* ═══════════════════════════════════════════════
+     FOR ME NY — GAME EDITION
+     Aesthetic: Neon Stage / Dark Arena
+     Fonts: Bebas Neue (display) + Nunito (UI)
+  ═══════════════════════════════════════════════ */
+
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@300;400;500;600;700&family=DM+Mono:wght@300;400&display=swap');
+
   :root {
-    --bg:        #faf8f4;
-    --bg2:       #f5f1eb;
-    --surface:   #ffffff;
-    --surface2:  #fef9f3;
-    --border:    #e8dfd0;
-    --border2:   #d4c9b8;
+    --bg:        #0a0a12;
+    --bg2:       #0f0f1a;
+    --surface:   rgba(255,255,255,0.04);
+    --surface2:  rgba(255,255,255,0.07);
+    --surface3:  rgba(255,255,255,0.10);
+    --border:    rgba(255,255,255,0.08);
+    --border2:   rgba(255,255,255,0.14);
 
-    --terracotta: #c4705a;
-    --terra-dim:  #e8a896;
-    --terra-pale: #fdf0ec;
+    --neon-purple: #b06cf0;
+    --neon-cyan:   #00e5ff;
+    --neon-gold:   #ffd54f;
+    --neon-green:  #69f0ae;
+    --neon-red:    #ff5252;
 
-    --sage:      #6a9b7e;
-    --sage-dim:  #a8c9b4;
-    --sage-pale: #edf5f0;
+    --text:   #f0eeff;
+    --text-2: #a09ab8;
+    --text-3: #5e5878;
+    --white:  #ffffff;
 
-    --gold:      #c49a3c;
-    --gold-dim:  #e8c97a;
-    --gold-pale: #fdf8ec;
-
-    --lavender:  #8b7aaa;
-    --lav-pale:  #f2f0f7;
-
-    --text:      #3d3530;
-    --text-2:    #7a6e65;
-    --text-3:    #a89d95;
-    --white:     #ffffff;
+    --glow-purple: 0 0 20px rgba(176,108,240,0.4);
+    --glow-cyan:   0 0 20px rgba(0,229,255,0.4);
+    --glow-gold:   0 0 20px rgba(255,213,79,0.4);
+    --glow-green:  0 0 16px rgba(105,240,174,0.4);
+    --glow-red:    0 0 16px rgba(255,82,82,0.5);
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -42,407 +46,511 @@
     background: var(--bg);
     color: var(--text);
     font-family: 'Nunito', sans-serif;
-    font-size: 14px;
+    font-size: 13px;
     min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+    display: flex; flex-direction: column;
+    overflow-x: hidden;
   }
 
-  /* ── Subtle background texture ── */
+  /* ── Animated background ── */
   body::before {
     content: '';
-    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
     background:
-      radial-gradient(ellipse at 20% 20%, rgba(196,112,90,0.06) 0%, transparent 55%),
-      radial-gradient(ellipse at 80% 80%, rgba(106,155,126,0.06) 0%, transparent 55%),
-      radial-gradient(ellipse at 60% 10%, rgba(196,154,60,0.05) 0%, transparent 45%);
+      radial-gradient(ellipse at 15% 20%, rgba(176,108,240,0.12) 0%, transparent 50%),
+      radial-gradient(ellipse at 85% 80%, rgba(0,229,255,0.10) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 50%, rgba(255,213,79,0.04) 0%, transparent 60%);
+    animation: bgPulse 8s ease-in-out infinite alternate;
+  }
+  @keyframes bgPulse {
+    from { opacity: 0.7; }
+    to   { opacity: 1.0; }
+  }
+
+  /* Scanline overlay for retro feel */
+  body::after {
+    content: '';
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background: repeating-linear-gradient(
+      0deg, transparent, transparent 2px,
+      rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px
+    );
   }
 
   /* ── Header ── */
   header {
     border-bottom: 1px solid var(--border);
-    padding: 14px 28px;
+    padding: 12px 28px;
     display: flex; justify-content: space-between; align-items: center;
     flex-shrink: 0;
-    background: rgba(255,255,255,0.85);
-    backdrop-filter: blur(8px);
+    background: rgba(10,10,18,0.85);
+    backdrop-filter: blur(16px);
     position: relative; z-index: 10;
   }
   .logo {
-    font-family: 'Playfair Display', serif;
-    font-size: 22px; font-weight: 600;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 26px; letter-spacing: 0.1em;
     color: var(--text);
-    letter-spacing: 0.04em;
   }
-  .logo span { color: var(--terracotta); }
+  .logo span {
+    color: var(--neon-purple);
+    text-shadow: var(--glow-purple);
+  }
   .tagline {
-    font-size: 11px; color: var(--text-3);
-    letter-spacing: 0.06em;
-    font-weight: 300;
+    font-size: 10px; color: var(--text-3);
+    letter-spacing: 0.12em; text-transform: uppercase;
   }
 
   /* ── Layout ── */
   .app {
     flex: 1; display: grid;
     grid-template-columns: 1fr 420px;
-    height: calc(100vh - 53px); overflow: hidden;
+    height: calc(100vh - 51px); overflow: hidden;
     position: relative; z-index: 1;
   }
 
   /* ── Left panel ── */
   .left {
-    padding: 24px 28px; display: flex; flex-direction: column; gap: 20px;
+    padding: 20px 24px; display: flex; flex-direction: column; gap: 18px;
     overflow-y: auto; border-right: 1px solid var(--border);
-    scroll-behavior: smooth; background: var(--bg);
+    scroll-behavior: smooth;
+    background: rgba(10,10,18,0.6);
+    backdrop-filter: blur(8px);
   }
-  .left::-webkit-scrollbar { width: 4px; }
-  .left::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+  .left::-webkit-scrollbar { width: 3px; }
+  .left::-webkit-scrollbar-thumb { background: var(--neon-purple); border-radius: 2px; opacity: 0.4; }
 
   .section-label {
-    font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
-    color: var(--terracotta); font-weight: 600; margin-bottom: 8px;
+    font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--neon-cyan); font-weight: 700; margin-bottom: 6px;
+    text-shadow: 0 0 8px rgba(0,229,255,0.6);
   }
 
   /* ── API Key ── */
   .key-row { display: flex; gap: 8px; }
   .key-input {
-    flex: 1; background: var(--surface); border: 1.5px solid var(--border);
-    color: var(--text); padding: 9px 12px; font-family: 'DM Mono', monospace;
-    font-size: 11px; outline: none; border-radius: 10px; transition: border-color 0.2s;
+    flex: 1; background: var(--surface2); border: 1px solid var(--border2);
+    color: var(--text); padding: 9px 12px;
+    font-family: 'DM Mono', monospace; font-size: 11px;
+    outline: none; border-radius: 8px; transition: border-color 0.2s, box-shadow 0.2s;
   }
-  .key-input:focus { border-color: var(--terracotta); }
+  .key-input:focus { border-color: var(--neon-purple); box-shadow: 0 0 12px rgba(176,108,240,0.3); }
   .key-save-btn {
-    background: var(--terracotta); color: white; border: none; padding: 9px 16px;
-    cursor: pointer; font-family: 'Nunito', sans-serif; font-size: 12px;
-    font-weight: 600; border-radius: 10px; transition: opacity 0.2s;
+    background: linear-gradient(135deg, var(--neon-purple), #8044c8);
+    color: white; border: none; padding: 9px 16px;
+    cursor: pointer; font-family: 'Nunito', sans-serif;
+    font-size: 12px; font-weight: 700; border-radius: 8px;
+    transition: all 0.2s; box-shadow: var(--glow-purple);
   }
-  .key-save-btn:hover { opacity: 0.85; }
-  .key-status { font-size: 11px; margin-top: 4px; color: var(--text-3); }
-  .key-status.ok { color: var(--sage); font-weight: 600; }
+  .key-save-btn:hover { transform: scale(1.03); opacity: 0.9; }
+  .key-status { font-size: 10px; margin-top: 4px; color: var(--text-3); }
+  .key-status.ok { color: var(--neon-green); text-shadow: 0 0 6px rgba(105,240,174,0.5); }
 
   /* ── Language toggle ── */
-  .lang-toggle { display: flex; border: 1.5px solid var(--border); border-radius: 10px; overflow: hidden; width: fit-content; }
+  .lang-toggle {
+    display: flex; border: 1px solid var(--border2);
+    border-radius: 8px; overflow: hidden; width: fit-content;
+  }
   .lang-btn {
     background: transparent; border: none; color: var(--text-3);
     padding: 6px 16px; cursor: pointer;
     font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 600;
     transition: all 0.2s;
   }
-  .lang-btn.active { background: var(--terracotta); color: white; }
+  .lang-btn.active {
+    background: linear-gradient(135deg, var(--neon-purple), #6a22b8);
+    color: white; text-shadow: none;
+  }
 
   /* ── Mode tabs ── */
   .mode-tabs { display: flex; gap: 6px; }
   .mode-tab {
-    flex: 1; background: var(--surface); border: 1.5px solid var(--border);
+    flex: 1; background: var(--surface); border: 1px solid var(--border2);
     color: var(--text-2); padding: 10px 12px; cursor: pointer;
-    font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 600;
-    text-align: center; border-radius: 12px; transition: all 0.2s;
+    font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 700;
+    text-align: center; border-radius: 10px; transition: all 0.2s;
+    text-transform: uppercase; letter-spacing: 0.05em;
   }
-  .mode-tab:hover { border-color: var(--terra-dim); color: var(--terracotta); }
-  .mode-tab.active.speech { background: var(--terra-pale); border-color: var(--terracotta); color: var(--terracotta); }
-  .mode-tab.active.roleplay { background: var(--sage-pale); border-color: var(--sage); color: var(--sage); }
-  .mode-hint { font-size: 11px; color: var(--text-3); margin-top: 6px; }
+  .mode-tab:hover { border-color: var(--neon-purple); color: var(--neon-purple); }
+  .mode-tab.active.speech {
+    background: rgba(176,108,240,0.15);
+    border-color: var(--neon-purple); color: var(--neon-purple);
+    box-shadow: inset 0 0 20px rgba(176,108,240,0.1), var(--glow-purple);
+  }
+  .mode-tab.active.roleplay {
+    background: rgba(0,229,255,0.1);
+    border-color: var(--neon-cyan); color: var(--neon-cyan);
+    box-shadow: inset 0 0 20px rgba(0,229,255,0.1), var(--glow-cyan);
+  }
+  .mode-hint { font-size: 10px; color: var(--text-3); margin-top: 5px; }
 
   /* ── Topic grid ── */
-  .topic-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .topic-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
   .topic-btn {
-    background: var(--surface); border: 1.5px solid var(--border);
+    background: var(--surface); border: 1px solid var(--border2);
     color: var(--text-2); padding: 11px 12px; cursor: pointer;
     font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 500;
-    text-align: left; line-height: 1.4; border-radius: 12px; transition: all 0.2s;
+    text-align: left; border-radius: 10px; transition: all 0.2s; line-height: 1.4;
   }
-  .topic-btn:hover { border-color: var(--terra-dim); background: var(--terra-pale); }
-  .topic-btn.active { border-color: var(--terracotta); background: var(--terra-pale); color: var(--terracotta); font-weight: 600; }
-  .topic-btn.roleplay-btn.active { border-color: var(--sage); background: var(--sage-pale); color: var(--sage); }
+  .topic-btn:hover { border-color: var(--neon-purple); color: var(--neon-purple); background: rgba(176,108,240,0.08); }
+  .topic-btn.active {
+    border-color: var(--neon-purple); color: var(--neon-purple);
+    background: rgba(176,108,240,0.12); font-weight: 700;
+    box-shadow: inset 0 0 16px rgba(176,108,240,0.1);
+  }
+  .topic-btn.roleplay-btn.active {
+    border-color: var(--neon-cyan); color: var(--neon-cyan);
+    background: rgba(0,229,255,0.08);
+    box-shadow: inset 0 0 16px rgba(0,229,255,0.08);
+  }
   .topic-tag { font-size: 10px; color: var(--text-3); display: block; margin-top: 2px; font-weight: 400; }
 
   .custom-input {
-    width: 100%; background: var(--surface); border: 1.5px solid var(--border);
-    color: var(--text); padding: 10px 12px; font-family: 'Nunito', sans-serif;
-    font-size: 12px; outline: none; resize: vertical; min-height: 56px;
-    margin-top: 6px; border-radius: 12px; transition: border-color 0.2s;
+    width: 100%; background: var(--surface2); border: 1px solid var(--border2);
+    color: var(--text); padding: 10px 12px;
+    font-family: 'Nunito', sans-serif; font-size: 12px;
+    outline: none; resize: vertical; min-height: 56px;
+    margin-top: 6px; border-radius: 10px; transition: border-color 0.2s;
   }
-  .custom-input:focus { border-color: var(--terracotta); }
+  .custom-input:focus { border-color: var(--neon-purple); }
 
-  /* ── Roleplay info ── */
   .roleplay-info {
-    background: var(--sage-pale); border: 1.5px solid var(--sage-dim);
-    padding: 10px 14px; font-size: 11px; color: var(--sage);
-    line-height: 1.6; display: none; border-radius: 12px;
+    background: rgba(0,229,255,0.06); border: 1px solid rgba(0,229,255,0.25);
+    padding: 10px 14px; font-size: 11px; color: var(--neon-cyan);
+    line-height: 1.6; display: none; border-radius: 10px;
   }
   .roleplay-info.visible { display: block; }
 
   /* ── Record area ── */
-  .record-area { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 20px 0; }
-
-  .timer {
-    font-family: 'Playfair Display', serif;
-    font-size: 42px; font-weight: 400;
-    color: var(--text-3); letter-spacing: 0.02em;
-    transition: color 0.3s;
+  .record-area {
+    display: flex; flex-direction: column; align-items: center; gap: 14px;
+    padding: 24px 0;
   }
-  .timer.active { color: var(--terracotta); }
+  .timer {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 52px; letter-spacing: 0.06em;
+    color: var(--text-3); transition: color 0.3s;
+  }
+  .timer.active { color: var(--neon-purple); text-shadow: var(--glow-purple); }
 
   .waveform { display: flex; align-items: center; gap: 4px; height: 32px; opacity: 0; transition: opacity 0.3s; }
   .waveform.visible { opacity: 1; }
-  .wave-bar { width: 4px; background: var(--terracotta); border-radius: 4px; height: 4px; transition: height 0.1s; }
+  .wave-bar { width: 4px; background: var(--neon-purple); border-radius: 4px; height: 4px; box-shadow: 0 0 6px rgba(176,108,240,0.8); }
+
+  /* ── Record wrap + countdown ring ── */
+  .record-wrap {
+    position: relative; display: flex;
+    align-items: center; justify-content: center;
+    width: 100px; height: 100px;
+  }
+  .countdown-svg {
+    position: absolute; top: 0; left: 0;
+    width: 100px; height: 100px;
+    transform: rotate(-90deg); pointer-events: none;
+  }
+  .countdown-ring-bg { fill: none; stroke: rgba(255,255,255,0.05); stroke-width: 3; }
+  .countdown-ring {
+    fill: none; stroke: var(--neon-green);
+    stroke-width: 3; stroke-linecap: round;
+    stroke-dasharray: 283; stroke-dashoffset: 283;
+    transition: stroke-dashoffset 0.9s linear, stroke 0.3s;
+    filter: drop-shadow(0 0 6px rgba(105,240,174,0.8));
+  }
+  .countdown-ring.urgent { stroke: var(--neon-red); filter: drop-shadow(0 0 8px rgba(255,82,82,0.9)); }
+  .countdown-num {
+    position: absolute;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px; color: var(--neon-green);
+    pointer-events: none; transition: color 0.3s;
+    text-shadow: 0 0 12px rgba(105,240,174,0.8);
+  }
+  .countdown-num.urgent { color: var(--neon-red); text-shadow: 0 0 12px rgba(255,82,82,0.9); }
+  .countdown-num.hidden { display: none; }
 
   .record-btn {
     width: 80px; height: 80px; border-radius: 50%;
-    border: 2.5px solid var(--border2); background: var(--surface);
+    border: 2px solid rgba(255,255,255,0.15);
+    background: var(--surface2);
     cursor: pointer; display: flex; align-items: center; justify-content: center;
-    transition: all 0.25s; box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    transition: all 0.25s;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
   }
-  .record-btn:hover { border-color: var(--terracotta); box-shadow: 0 6px 24px rgba(196,112,90,0.2); transform: scale(1.03); }
-  .record-btn.recording { border-color: var(--terracotta); animation: pulse 1.4s ease-in-out infinite; }
-  .record-btn.recording .dot { background: var(--terracotta); border-radius: 5px; }
-  .record-btn.roleplay-mode { border-color: var(--sage-dim); }
-  .record-btn.roleplay-mode:hover { border-color: var(--sage); box-shadow: 0 6px 24px rgba(106,155,126,0.2); }
-  .record-btn.roleplay-mode .dot { background: var(--sage); }
-
-  @keyframes pulse {
-    0%,100% { box-shadow: 0 0 0 0 rgba(196,112,90,0.3); }
-    50% { box-shadow: 0 0 0 16px rgba(196,112,90,0); }
+  .record-btn:hover {
+    border-color: var(--neon-purple);
+    box-shadow: 0 0 30px rgba(176,108,240,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+    transform: scale(1.05);
   }
-  .dot { width: 20px; height: 20px; border-radius: 50%; background: var(--gold); transition: all 0.2s; }
-  .record-label { font-size: 11px; color: var(--text-3); letter-spacing: 0.05em; text-align: center; font-weight: 500; }
+  .record-btn.recording {
+    border-color: var(--neon-red);
+    animation: recordPulse 1.2s ease-in-out infinite;
+  }
+  .record-btn.recording .dot {
+    background: var(--neon-red);
+    border-radius: 4px;
+    box-shadow: 0 0 16px rgba(255,82,82,0.8);
+  }
+  .record-btn.roleplay-mode { border-color: rgba(0,229,255,0.3); }
+  .record-btn.roleplay-mode:hover {
+    border-color: var(--neon-cyan);
+    box-shadow: 0 0 30px rgba(0,229,255,0.4);
+  }
+  .record-btn.roleplay-mode .dot { background: var(--neon-cyan); box-shadow: 0 0 12px rgba(0,229,255,0.6); }
+  @keyframes recordPulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(255,82,82,0.4); }
+    50% { box-shadow: 0 0 0 18px rgba(255,82,82,0); }
+  }
+  .dot { width: 22px; height: 22px; border-radius: 50%; background: var(--neon-purple); transition: all 0.2s; box-shadow: 0 0 12px rgba(176,108,240,0.6); }
+  .record-label { font-size: 11px; color: var(--text-3); letter-spacing: 0.08em; text-align: center; font-weight: 600; text-transform: uppercase; }
 
-  /* ── AI Speaking indicator ── */
+  /* AI Speaking indicator */
   #aiSpeakingIndicator {
-    align-items: center; gap: 8px; font-size: 12px;
-    color: var(--sage); font-weight: 500; display: none;
+    align-items: center; gap: 8px; font-size: 11px;
+    color: var(--neon-cyan); font-weight: 600; display: none;
+    letter-spacing: 0.05em;
   }
 
-  /* ── End roleplay button ── */
+  /* End roleplay button */
   .end-roleplay-btn {
-    background: transparent; border: 1.5px solid rgba(196,112,90,0.4);
-    color: var(--terracotta); padding: 8px 22px; cursor: pointer;
-    font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 600;
-    border-radius: 20px; transition: all 0.2s;
+    background: transparent; border: 1px solid rgba(255,82,82,0.4);
+    color: var(--neon-red); padding: 8px 22px; cursor: pointer;
+    font-family: 'Nunito', sans-serif; font-size: 11px; font-weight: 700;
+    border-radius: 20px; transition: all 0.2s; letter-spacing: 0.08em; text-transform: uppercase;
   }
-  .end-roleplay-btn:hover { background: var(--terra-pale); border-color: var(--terracotta); }
+  .end-roleplay-btn:hover { background: rgba(255,82,82,0.1); border-color: var(--neon-red); box-shadow: var(--glow-red); }
 
-  /* ── Voice selector ── */
-  .voice-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+  /* Voice selector */
+  .voice-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; }
   .voice-btn {
-    background: var(--surface); border: 1.5px solid var(--border);
+    background: var(--surface); border: 1px solid var(--border2);
     color: var(--text-2); padding: 8px 6px; cursor: pointer;
-    font-family: 'Nunito', sans-serif; font-size: 11px; font-weight: 500;
-    text-align: center; border-radius: 10px; transition: all 0.2s;
+    font-family: 'Nunito', sans-serif; font-size: 11px; font-weight: 600;
+    text-align: center; border-radius: 8px; transition: all 0.2s;
     display: flex; flex-direction: column; align-items: center; gap: 2px;
   }
-  .voice-btn:hover { border-color: var(--sage-dim); color: var(--sage); }
-  .voice-btn.active { border-color: var(--sage); color: var(--sage); background: var(--sage-pale); font-weight: 600; }
-  .voice-tag { font-size: 9px; color: var(--text-3); }
+  .voice-btn:hover { border-color: var(--neon-cyan); color: var(--neon-cyan); }
+  .voice-btn.active {
+    border-color: var(--neon-cyan); color: var(--neon-cyan);
+    background: rgba(0,229,255,0.08); box-shadow: 0 0 12px rgba(0,229,255,0.2);
+  }
+  .voice-tag { font-size: 9px; color: var(--text-3); font-weight: 400; }
 
   /* ── Metrics visualization ── */
-  .metrics-panel { display: none; flex-direction: column; gap: 16px; }
+  .metrics-panel { display: none; flex-direction: column; gap: 14px; }
   .metrics-panel.visible { display: flex; animation: fadeSlideUp 0.5s ease; }
-
   @keyframes fadeSlideUp {
-    from { opacity: 0; transform: translateY(12px); }
+    from { opacity: 0; transform: translateY(14px); }
     to   { opacity: 1; transform: translateY(0); }
   }
 
   .metrics-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 18px; color: var(--text);
-    display: flex; align-items: center; gap: 8px;
+    font-family: 'Bebas Neue', sans-serif; font-size: 20px;
+    color: var(--text); letter-spacing: 0.1em;
+    display: flex; align-items: center; gap: 10px;
   }
-  .metrics-title::after {
-    content: ''; flex: 1; height: 1px; background: var(--border);
-  }
+  .metrics-title::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--neon-purple), transparent); }
 
-  .metrics-top { display: flex; gap: 16px; align-items: flex-start; }
+  .metrics-top { display: flex; gap: 14px; align-items: flex-start; }
   .radar-wrap {
     flex-shrink: 0;
-    background: var(--surface);
-    border: 1.5px solid var(--border);
-    border-radius: 16px;
-    padding: 8px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: 14px; padding: 8px;
+    box-shadow: 0 0 20px rgba(176,108,240,0.15);
   }
 
-  .metrics-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; flex: 1; }
+  .metrics-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; flex: 1; }
   .metric-card {
-    background: var(--surface);
-    border: 1.5px solid var(--border);
-    padding: 12px 14px;
-    border-radius: 14px;
-    display: flex; flex-direction: column; gap: 4px;
+    background: var(--surface2); border: 1px solid var(--border2);
+    padding: 11px 13px; border-radius: 12px;
+    display: flex; flex-direction: column; gap: 3px;
     transition: all 0.2s;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    position: relative; overflow: hidden;
   }
-  .metric-card:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,0.07); }
-  .metric-card.ok   { border-left: 3px solid var(--sage); background: linear-gradient(135deg, var(--surface) 0%, var(--sage-pale) 100%); }
-  .metric-card.warn { border-left: 3px solid var(--gold); background: linear-gradient(135deg, var(--surface) 0%, var(--gold-pale) 100%); }
-  .metric-card.bad  { border-left: 3px solid var(--terracotta); background: linear-gradient(135deg, var(--surface) 0%, var(--terra-pale) 100%); }
-  .mc-label { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-3); font-weight: 600; }
-  .mc-value {
-    font-family: 'Playfair Display', serif;
-    font-size: 26px; font-weight: 400; color: var(--text);
-    line-height: 1.1;
+  .metric-card::before {
+    content: ''; position: absolute; top:0; left:0; right:0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
   }
+  .metric-card:hover { transform: translateY(-2px); }
+  .metric-card.ok   { border-left: 2px solid var(--neon-green); box-shadow: -4px 0 12px rgba(105,240,174,0.15); }
+  .metric-card.warn { border-left: 2px solid var(--neon-gold);  box-shadow: -4px 0 12px rgba(255,213,79,0.15); }
+  .metric-card.bad  { border-left: 2px solid var(--neon-red);   box-shadow: -4px 0 12px rgba(255,82,82,0.15); }
+  .mc-label { font-size: 8px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-3); font-weight: 700; }
+  .mc-value { font-family: 'Bebas Neue', sans-serif; font-size: 28px; color: var(--text); line-height: 1.1; letter-spacing: 0.04em; }
   .mc-unit  { font-size: 10px; color: var(--text-3); font-weight: 500; }
-  .mc-ref   { font-size: 10px; color: var(--text-3); margin-top: 2px; }
-  .mc-bar-track { height: 3px; background: var(--border); margin-top: 6px; border-radius: 2px; position: relative; }
-  .mc-bar-fill  { position: absolute; top:0; left:0; height:100%; border-radius: 2px; transition: width 0.8s cubic-bezier(0.34,1.56,0.64,1); }
-  .mc-bar-fill.ok   { background: linear-gradient(90deg, var(--sage-dim), var(--sage)); }
-  .mc-bar-fill.warn { background: linear-gradient(90deg, var(--gold-dim), var(--gold)); }
-  .mc-bar-fill.bad  { background: linear-gradient(90deg, var(--terra-dim), var(--terracotta)); }
+  .mc-ref   { font-size: 10px; color: var(--text-3); margin-top: 1px; }
+  .mc-bar-track { height: 2px; background: rgba(255,255,255,0.05); margin-top: 5px; border-radius: 2px; position: relative; }
+  .mc-bar-fill  { position: absolute; top:0; left:0; height:100%; border-radius: 2px; transition: width 1s cubic-bezier(0.34,1.56,0.64,1); }
+  .mc-bar-fill.ok   { background: linear-gradient(90deg, rgba(105,240,174,0.4), var(--neon-green)); box-shadow: 0 0 6px rgba(105,240,174,0.5); }
+  .mc-bar-fill.warn { background: linear-gradient(90deg, rgba(255,213,79,0.4), var(--neon-gold));  box-shadow: 0 0 6px rgba(255,213,79,0.5); }
+  .mc-bar-fill.bad  { background: linear-gradient(90deg, rgba(255,82,82,0.4), var(--neon-red));    box-shadow: 0 0 6px rgba(255,82,82,0.5); }
 
-  /* legacy */
   .metrics-row { display: none; }
   .metric { display: none; }
 
   /* ── Transcript ── */
   .transcript-box {
-    background: var(--surface); border: 1.5px solid var(--border);
+    background: var(--surface2); border: 1px solid var(--border2);
     padding: 14px 16px; min-height: 70px; line-height: 1.8;
-    color: var(--text-2); font-family: 'Playfair Display', serif;
-    font-size: 15px; font-style: italic; border-radius: 14px;
+    color: var(--text-2); font-family: 'DM Mono', monospace;
+    font-size: 12px; border-radius: 12px;
   }
-  .transcript-box.placeholder {
-    color: var(--text-3); font-style: normal;
-    font-family: 'Nunito', sans-serif; font-size: 12px;
-  }
+  .transcript-box.placeholder { color: var(--text-3); font-style: italic; }
 
   /* ── Right panel ── */
   .right {
     display: flex; flex-direction: column;
-    background: linear-gradient(180deg, var(--surface2) 0%, #fdfbf7 100%);
+    background: rgba(10,10,18,0.8);
+    backdrop-filter: blur(12px);
     border-left: 1px solid var(--border);
   }
   .chat-header {
-    padding: 16px 20px; border-bottom: 1px solid var(--border);
+    padding: 14px 18px; border-bottom: 1px solid var(--border);
     display: flex; align-items: center; gap: 12px; flex-shrink: 0;
-    background: rgba(255,255,255,0.7); backdrop-filter: blur(8px);
+    background: rgba(15,15,26,0.9);
   }
   .ai-avatar {
-    width: 36px; height: 36px; border-radius: 50%;
-    background: linear-gradient(135deg, var(--terra-pale), var(--gold-pale));
-    border: 2px solid var(--terra-dim);
+    width: 34px; height: 34px; border-radius: 50%;
+    background: linear-gradient(135deg, rgba(176,108,240,0.3), rgba(0,229,255,0.2));
+    border: 1.5px solid var(--neon-purple);
     display: flex; align-items: center; justify-content: center;
-    font-family: 'Playfair Display', serif; font-size: 16px; color: var(--terracotta);
-    font-weight: 600;
+    font-family: 'Bebas Neue', sans-serif; font-size: 16px; color: var(--neon-purple);
+    box-shadow: 0 0 12px rgba(176,108,240,0.3);
   }
   .ai-avatar.roleplay {
-    background: linear-gradient(135deg, var(--sage-pale), var(--lav-pale));
-    border-color: var(--sage-dim); color: var(--sage);
+    background: linear-gradient(135deg, rgba(0,229,255,0.2), rgba(105,240,174,0.15));
+    border-color: var(--neon-cyan); color: var(--neon-cyan);
+    box-shadow: 0 0 12px rgba(0,229,255,0.3);
   }
-  .chat-header-text { font-size: 13px; color: var(--text); font-weight: 600; }
+  .chat-header-text { font-size: 12px; color: var(--text); font-weight: 700; letter-spacing: 0.04em; }
   .phase-badge {
-    margin-left: auto; font-size: 10px; letter-spacing: 0.08em;
-    padding: 4px 12px; border-radius: 20px; font-weight: 600;
-    border: 1.5px solid var(--border); color: var(--text-3);
+    margin-left: auto; font-size: 9px; letter-spacing: 0.1em;
+    padding: 4px 12px; border-radius: 20px; font-weight: 700;
+    border: 1px solid var(--border2); color: var(--text-3);
+    text-transform: uppercase;
   }
-  .phase-badge.prepare  { background: var(--gold-pale);  border-color: var(--gold-dim);  color: var(--gold);  }
-  .phase-badge.rehearse { background: var(--lav-pale);   border-color: #c4b4d4;          color: var(--lavender); }
-  .phase-badge.roleplay { background: var(--sage-pale);  border-color: var(--sage-dim);  color: var(--sage);  }
-  .phase-badge.reflect  { background: var(--terra-pale); border-color: var(--terra-dim); color: var(--terracotta); }
+  .phase-badge.prepare  { border-color: var(--neon-gold); color: var(--neon-gold); background: rgba(255,213,79,0.08); box-shadow: 0 0 8px rgba(255,213,79,0.2); }
+  .phase-badge.rehearse { border-color: var(--neon-purple); color: var(--neon-purple); background: rgba(176,108,240,0.08); }
+  .phase-badge.roleplay { border-color: var(--neon-cyan); color: var(--neon-cyan); background: rgba(0,229,255,0.08); }
+  .phase-badge.reflect  { border-color: var(--neon-green); color: var(--neon-green); background: rgba(105,240,174,0.08); box-shadow: 0 0 8px rgba(105,240,174,0.2); }
 
   /* ── Chat messages ── */
-  .chat-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
-  .chat-messages::-webkit-scrollbar { width: 4px; }
-  .chat-messages::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+  .chat-messages { flex: 1; overflow-y: auto; padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+  .chat-messages::-webkit-scrollbar { width: 3px; }
+  .chat-messages::-webkit-scrollbar-thumb { background: var(--neon-purple); opacity: 0.3; border-radius: 2px; }
 
-  .msg { max-width: 100%; animation: msgIn 0.3s ease; }
-  @keyframes msgIn {
-    from { opacity: 0; transform: translateY(6px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
+  .msg { animation: msgIn 0.3s ease; }
+  @keyframes msgIn { from { opacity:0; transform: translateY(6px); } to { opacity:1; transform: translateY(0); } }
 
   .msg-role {
-    font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
-    color: var(--text-3); margin-bottom: 6px; font-weight: 600;
-    display: flex; align-items: center; gap: 6px;
+    font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--text-3); margin-bottom: 5px; font-weight: 700;
+    display: flex; align-items: center; gap: 5px;
   }
-  .msg-role::before {
-    content: ''; width: 4px; height: 4px; border-radius: 50%;
-    background: var(--text-3); display: inline-block;
-  }
+  .msg-role::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--text-3); display: inline-block; }
+  .msg.ai .msg-role::before { background: var(--neon-gold); box-shadow: 0 0 6px rgba(255,213,79,0.6); }
+  .msg.role-player .msg-role::before { background: var(--neon-cyan); box-shadow: 0 0 6px rgba(0,229,255,0.6); }
+  .msg.user .msg-role::before { background: var(--neon-purple); box-shadow: 0 0 6px rgba(176,108,240,0.6); }
 
-  /* AI Coach message */
   .msg.ai .msg-bubble {
-    background: var(--surface);
-    border: 1.5px solid var(--border);
-    border-radius: 4px 18px 18px 18px;
-    padding: 14px 16px; line-height: 1.75;
-    color: var(--text);
-    font-family: 'Playfair Display', serif; font-size: 15px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    background: var(--surface2); border: 1px solid rgba(255,213,79,0.15);
+    border-radius: 4px 16px 16px 16px; padding: 13px 15px; line-height: 1.75;
+    color: var(--text); font-size: 14px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.3);
   }
-  .msg.ai .msg-role::before { background: var(--gold); }
-
-  /* Role-player (character) message */
   .msg.role-player .msg-bubble {
-    background: linear-gradient(135deg, var(--sage-pale), #f0f7f3);
-    border: 1.5px solid var(--sage-dim);
-    border-radius: 4px 18px 18px 18px;
-    padding: 14px 16px; line-height: 1.75;
-    color: var(--text);
-    font-family: 'Playfair Display', serif; font-size: 15px; font-style: italic;
-    box-shadow: 0 2px 12px rgba(106,155,126,0.08);
+    background: rgba(0,229,255,0.05); border: 1px solid rgba(0,229,255,0.2);
+    border-radius: 4px 16px 16px 16px; padding: 13px 15px; line-height: 1.75;
+    color: var(--text); font-size: 14px; font-style: italic;
+    box-shadow: 0 2px 16px rgba(0,229,255,0.08);
   }
-  .msg.role-player .msg-role::before { background: var(--sage); }
-
-  /* User message */
   .msg.user .msg-bubble {
-    background: linear-gradient(135deg, var(--terra-pale), #fef5f2);
-    border: 1.5px solid var(--terra-dim);
-    border-radius: 18px 4px 18px 18px;
-    padding: 12px 14px; line-height: 1.65;
+    background: rgba(176,108,240,0.08); border: 1px solid rgba(176,108,240,0.2);
+    border-radius: 16px 4px 16px 16px; padding: 11px 14px; line-height: 1.65;
     color: var(--text); font-size: 13px;
-    box-shadow: 0 2px 8px rgba(196,112,90,0.06);
+    box-shadow: 0 2px 12px rgba(176,108,240,0.1);
   }
-  .msg.user .msg-role::before { background: var(--terracotta); }
 
-  /* ── Typing indicator ── */
+  /* Typing indicator */
   .typing-indicator { display: flex; gap: 5px; align-items: center; padding: 4px 0; }
-  .typing-dot {
-    width: 7px; height: 7px; border-radius: 50%;
-    background: var(--terra-dim);
-    animation: typingBounce 1.1s ease-in-out infinite;
-  }
+  .typing-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--neon-purple); animation: typingBounce 1.1s ease-in-out infinite; box-shadow: 0 0 6px rgba(176,108,240,0.6); }
   .typing-dot:nth-child(2) { animation-delay: 0.18s; }
   .typing-dot:nth-child(3) { animation-delay: 0.36s; }
-  @keyframes typingBounce {
-    0%,80%,100% { transform: translateY(0); opacity: 0.4; }
-    40% { transform: translateY(-6px); opacity: 1; }
-  }
+  @keyframes typingBounce { 0%,80%,100% { transform: translateY(0); opacity: 0.4; } 40% { transform: translateY(-6px); opacity: 1; } }
 
-  /* ── Chat input area ── */
-  .chat-input-area {
-    border-top: 1px solid var(--border); padding: 12px 16px;
-    display: flex; gap: 8px; flex-shrink: 0;
-    background: rgba(255,255,255,0.7);
-  }
+  /* Chat input */
+  .chat-input-area { border-top: 1px solid var(--border); padding: 12px 14px; display: flex; gap: 8px; flex-shrink: 0; background: rgba(10,10,18,0.9); }
   .chat-input {
-    flex: 1; background: var(--surface); border: 1.5px solid var(--border);
+    flex: 1; background: var(--surface2); border: 1px solid var(--border2);
     color: var(--text); padding: 10px 14px;
     font-family: 'Nunito', sans-serif; font-size: 13px;
     outline: none; border-radius: 20px; transition: border-color 0.2s;
   }
-  .chat-input:focus { border-color: var(--terracotta); }
+  .chat-input:focus { border-color: var(--neon-purple); box-shadow: 0 0 10px rgba(176,108,240,0.2); }
   .chat-input::placeholder { color: var(--text-3); }
   .send-btn {
-    background: var(--terracotta); color: white; border: none;
-    padding: 10px 18px; cursor: pointer;
+    background: linear-gradient(135deg, var(--neon-purple), #6a22b8);
+    color: white; border: none; padding: 10px 18px; cursor: pointer;
     font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 700;
-    border-radius: 20px; transition: all 0.2s;
+    border-radius: 20px; transition: all 0.2s; box-shadow: 0 0 12px rgba(176,108,240,0.3);
   }
-  .send-btn:hover { opacity: 0.85; transform: scale(1.02); }
+  .send-btn:hover { transform: scale(1.04); box-shadow: 0 0 20px rgba(176,108,240,0.5); }
 
-  /* ── Scrollbar global ── */
-  ::-webkit-scrollbar { width: 4px; }
-  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+  /* ── Badge popup ── */
+  .badge-popup {
+    position: fixed; top: 72px; right: 20px; z-index: 9999;
+    background: linear-gradient(135deg, #1a1030, #0f1a28);
+    border: 1.5px solid var(--neon-gold);
+    border-radius: 16px; padding: 14px 18px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.6), 0 0 30px rgba(255,213,79,0.2);
+    display: flex; align-items: center; gap: 14px; min-width: 240px;
+    animation: badgeIn 0.5s cubic-bezier(0.34,1.56,0.64,1);
+    font-family: 'Nunito', sans-serif;
+  }
+  @keyframes badgeIn { from { opacity:0; transform: translateX(80px) scale(0.8); } to { opacity:1; transform: translateX(0) scale(1); } }
+  .badge-popup.out { animation: badgeOut 0.4s ease forwards; }
+  @keyframes badgeOut { to { opacity:0; transform: translateX(80px); } }
+  .badge-icon { font-size: 34px; line-height: 1; filter: drop-shadow(0 0 8px rgba(255,213,79,0.6)); }
+  .badge-text { display: flex; flex-direction: column; gap: 2px; }
+  .badge-got  { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--neon-gold); font-weight: 700; }
+  .badge-name { font-size: 14px; font-weight: 700; color: var(--text); }
+  .badge-desc { font-size: 10px; color: var(--text-3); }
+
+  /* ── Badge shelf ── */
+  .badge-shelf { display: flex; flex-wrap: wrap; gap: 7px; min-height: 44px; }
+  .badge-item {
+    width: 42px; height: 42px; border-radius: 10px;
+    background: var(--surface2); border: 1px solid var(--border2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; cursor: default; transition: all 0.2s;
+    position: relative;
+  }
+  .badge-item:hover { transform: scale(1.2); border-color: var(--neon-gold); box-shadow: 0 0 12px rgba(255,213,79,0.3); }
+  .badge-item.locked { filter: grayscale(1) brightness(0.3); }
+  .badge-item .bdg-tip {
+    position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%);
+    background: rgba(10,10,18,0.95); border: 1px solid var(--border2);
+    color: var(--text); font-size: 10px; white-space: nowrap;
+    padding: 4px 8px; border-radius: 6px; opacity: 0; pointer-events: none;
+    transition: opacity 0.2s; font-family: 'Nunito', sans-serif; font-weight: 600;
+    z-index: 10;
+  }
+  .badge-item:hover .bdg-tip { opacity: 1; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 3px; }
+  ::-webkit-scrollbar-thumb { background: rgba(176,108,240,0.3); border-radius: 2px; }
 </style>
+
 </head>
 <body>
 
 <header>
   <div class="logo">FOR ME <span>NY</span></div>
-  <div class="tagline">Voice Practice Studio</div>
+  <div style="display:flex;align-items:center;gap:16px">
+    <div id="streakDisplay" style="display:none;align-items:center;gap:6px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:600;color:var(--terracotta)">
+      🔥 <span id="streakCount">0</span>日連続
+    </div>
+    <div class="tagline">Voice Practice Studio</div>
+  </div>
 </header>
 
 <div class="app">
@@ -564,6 +672,12 @@
       <div class="roleplay-info" id="roleplaysInfo"></div>
     </div>
 
+    <!-- Badges -->
+    <div id="badgeSection">
+      <div class="section-label">Badges</div>
+      <div class="badge-shelf" id="badgeShelf"></div>
+    </div>
+
     <!-- Record -->
     <div class="record-area">
       <div class="timer" id="timer">0:00</div>
@@ -573,9 +687,17 @@
         <div class="wave-bar" id="wb4"></div><div class="wave-bar" id="wb5"></div>
         <div class="wave-bar" id="wb6"></div><div class="wave-bar" id="wb7"></div>
       </div>
-      <button class="record-btn" id="recordBtn" onclick="toggleRecord()">
-        <div class="dot" id="dot"></div>
-      </button>
+      <!-- Record button with countdown ring -->
+      <div class="record-wrap">
+        <svg class="countdown-svg" viewBox="0 0 100 100">
+          <circle class="countdown-ring-bg" cx="50" cy="50" r="45"/>
+          <circle class="countdown-ring hidden" id="countdownRing" cx="50" cy="50" r="45"/>
+        </svg>
+        <span class="countdown-num hidden" id="countdownNum"></span>
+        <button class="record-btn" id="recordBtn" onclick="toggleRecord()">
+          <div class="dot" id="dot"></div>
+        </button>
+      </div>
       <div class="record-label" id="recordLabel">クリックして録音開始</div>
       <div id="aiSpeakingIndicator" style="display:none;align-items:center;gap:8px;font-size:10px;color:#7aaabb;">
         <div class="typing-indicator"><div class="typing-dot" style="background:#4a7a9b"></div><div class="typing-dot" style="background:#4a7a9b"></div><div class="typing-dot" style="background:#4a7a9b"></div></div>
@@ -591,28 +713,28 @@
       <div class="metrics-top">
         <!-- Radar chart -->
         <div class="radar-wrap">
-          <svg id="radarSvg" width="140" height="140" viewBox="0 0 140 140">
+          <svg id="radarSvg" width="140" height="140" viewBox="0 0 140 140"><defs><linearGradient id="radarGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#b06cf0"/><stop offset="100%" stop-color="#00e5ff"/></linearGradient></defs>
             <!-- Grid rings -->
-            <polygon points="70,20 112,45 112,95 70,120 28,95 28,45" fill="none" stroke="#2a2820" stroke-width="1"/>
-            <polygon points="70,35 99,52 99,88 70,105 41,88 41,52" fill="none" stroke="#2a2820" stroke-width="1"/>
-            <polygon points="70,50 86,59 86,81 70,90 54,81 54,59" fill="none" stroke="#2a2820" stroke-width="1"/>
+            <polygon points="70,20 112,45 112,95 70,120 28,95 28,45" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+            <polygon points="70,35 99,52 99,88 70,105 41,88 41,52" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+            <polygon points="70,50 86,59 86,81 70,90 54,81 54,59" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
             <!-- Axis lines -->
-            <line x1="70" y1="70" x2="70" y2="20" stroke="#2a2820" stroke-width="1"/>
-            <line x1="70" y1="70" x2="112" y2="45" stroke="#2a2820" stroke-width="1"/>
-            <line x1="70" y1="70" x2="112" y2="95" stroke="#2a2820" stroke-width="1"/>
-            <line x1="70" y1="70" x2="70" y2="120" stroke="#2a2820" stroke-width="1"/>
-            <line x1="70" y1="70" x2="28" y2="95" stroke="#2a2820" stroke-width="1"/>
-            <line x1="70" y1="70" x2="28" y2="45" stroke="#2a2820" stroke-width="1"/>
+            <line x1="70" y1="70" x2="70" y2="20" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+            <line x1="70" y1="70" x2="112" y2="45" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+            <line x1="70" y1="70" x2="112" y2="95" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+            <line x1="70" y1="70" x2="70" y2="120" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+            <line x1="70" y1="70" x2="28" y2="95" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+            <line x1="70" y1="70" x2="28" y2="45" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
             <!-- Data polygon -->
             <polygon id="radarPoly" points="70,70 70,70 70,70 70,70 70,70 70,70"
-              fill="rgba(201,168,76,0.15)" stroke="#c9a84c" stroke-width="1.5"/>
+              fill="rgba(176,108,240,0.15)" stroke="url(#radarGrad)" stroke-width="2"/>
             <!-- Axis labels -->
-            <text x="70" y="14" text-anchor="middle" fill="#6b6459" font-size="8" font-family="DM Mono,monospace">Speed</text>
-            <text x="118" y="44" text-anchor="start" fill="#6b6459" font-size="8" font-family="DM Mono,monospace">Pause</text>
-            <text x="118" y="100" text-anchor="start" fill="#6b6459" font-size="8" font-family="DM Mono,monospace">Volume</text>
-            <text x="70" y="132" text-anchor="middle" fill="#6b6459" font-size="8" font-family="DM Mono,monospace">Filler</text>
-            <text x="22" y="100" text-anchor="end" fill="#6b6459" font-size="8" font-family="DM Mono,monospace">Vocab</text>
-            <text x="22" y="44" text-anchor="end" fill="#6b6459" font-size="8" font-family="DM Mono,monospace">Silence</text>
+            <text x="70" y="14" text-anchor="middle" fill="rgba(160,154,184,0.8)" font-size="8" font-family="DM Mono,monospace">Speed</text>
+            <text x="118" y="44" text-anchor="start" fill="rgba(160,154,184,0.8)" font-size="8" font-family="DM Mono,monospace">Pause</text>
+            <text x="118" y="100" text-anchor="start" fill="rgba(160,154,184,0.8)" font-size="8" font-family="DM Mono,monospace">Volume</text>
+            <text x="70" y="132" text-anchor="middle" fill="rgba(160,154,184,0.8)" font-size="8" font-family="DM Mono,monospace">Filler</text>
+            <text x="22" y="100" text-anchor="end" fill="rgba(160,154,184,0.8)" font-size="8" font-family="DM Mono,monospace">Vocab</text>
+            <text x="22" y="44" text-anchor="end" fill="rgba(160,154,184,0.8)" font-size="8" font-family="DM Mono,monospace">Silence</text>
           </svg>
         </div>
         <!-- Metric cards -->
@@ -696,6 +818,8 @@ let selectedRoleplay = null; // { role, situation, opener }
 
 let isRecording = false;
 let isStarting = false;
+let mediaRecorder = null;   // for Whisper audio capture
+let audioChunks = [];       // recorded audio chunks
 let recognition = null;
 let timerInterval = null;
 let startTime = null;
@@ -716,7 +840,125 @@ let phase = 'prepare'; // 'prepare' | 'rehearse' | 'roleplay' | 'reflect'
 let prepareAnswered = false;
 let roleplaysRoundCount = 0;
 
+// ── Game System ──────────────────────────────────────────
+const BADGES = [
+  { id: 'first_rec',    icon: '🎙', name: '初めての録音',       desc: '最初の録音を完了',         check: (s) => s.totalSessions >= 1 },
+  { id: 'first_role',   icon: '🎭', name: 'ロールプレイ初挑戦', desc: 'ロールプレイを初めて完了',  check: (s) => s.roleplaySessions >= 1 },
+  { id: 'five_role',    icon: '🌟', name: 'ロールプレイ5回',    desc: 'ロールプレイを5回完了',    check: (s) => s.roleplaySessions >= 5 },
+  { id: 'no_filler',    icon: '⚡', name: 'フィラーゼロ',       desc: '1回の練習でフィラーなし',   check: (s) => s.bestFillerCount === 0 && s.totalSessions >= 1 },
+  { id: 'streak3',      icon: '🔥', name: '3日連続',            desc: '3日連続で練習',             check: (s) => s.streak >= 3 },
+  { id: 'streak7',      icon: '💎', name: '1週間連続',          desc: '7日連続で練習',             check: (s) => s.streak >= 7 },
+  { id: 'ten_sessions', icon: '🏆', name: '練習10回',           desc: '合計10回練習を完了',        check: (s) => s.totalSessions >= 10 },
+  { id: 'long_talk',    icon: '💬', name: '10往復達成',         desc: 'ロールプレイで10往復',      check: (s) => s.maxRoleplaysRounds >= 10 },
+];
+
+const GS = {
+  key: 'formeny_game',
+  load() {
+    try { return JSON.parse(localStorage.getItem(this.key)) || this.defaults(); }
+    catch(e) { return this.defaults(); }
+  },
+  defaults() {
+    return { streak:0, lastDate:'', totalSessions:0, roleplaySessions:0,
+             bestFillerCount:999, maxRoleplaysRounds:0, earnedBadges:[] };
+  },
+  save(s) { localStorage.setItem(this.key, JSON.stringify(s)); },
+
+  // Check and update streak on app load
+  checkStreak() {
+    const s = this.load();
+    const today = new Date().toDateString();
+    const yesterday = new Date(Date.now() - 86400000).toDateString();
+    if (s.lastDate === today) {
+      // already checked today
+    } else if (s.lastDate === yesterday) {
+      s.streak += 1;
+      s.lastDate = today;
+    } else if (s.lastDate !== today) {
+      s.streak = 1;
+      s.lastDate = today;
+    }
+    this.save(s);
+    return s;
+  },
+
+  // Called after each speech session
+  recordSpeech(fillerCount) {
+    const s = this.load();
+    s.totalSessions += 1;
+    if (fillerCount < s.bestFillerCount) s.bestFillerCount = fillerCount;
+    this.save(s);
+    this.checkNewBadges(s);
+  },
+
+  // Called after each roleplay session
+  recordRoleplay(rounds) {
+    const s = this.load();
+    s.totalSessions += 1;
+    s.roleplaySessions += 1;
+    if (rounds > s.maxRoleplaysRounds) s.maxRoleplaysRounds = rounds;
+    this.save(s);
+    this.checkNewBadges(s);
+  },
+
+  checkNewBadges(s) {
+    const newBadges = BADGES.filter(b => !s.earnedBadges.includes(b.id) && b.check(s));
+    newBadges.forEach(b => {
+      s.earnedBadges.push(b.id);
+      showBadgePopup(b);
+    });
+    if (newBadges.length > 0) this.save(s);
+    renderBadgeShelf(s);
+  },
+
+  getState() { return this.load(); }
+};
+
+function showBadgePopup(badge) {
+  const el = document.createElement('div');
+  el.className = 'badge-popup';
+  el.innerHTML = `
+    <div class="badge-icon">${badge.icon}</div>
+    <div class="badge-text">
+      <div class="badge-got">🏅 バッジ獲得！</div>
+      <div class="badge-name">${badge.name}</div>
+      <div class="badge-desc">${badge.desc}</div>
+    </div>`;
+  document.body.appendChild(el);
+  setTimeout(() => {
+    el.classList.add('out');
+    setTimeout(() => el.remove(), 450);
+  }, 3500);
+}
+
+function renderBadgeShelf(s) {
+  const shelf = document.getElementById('badgeShelf');
+  if (!shelf) return;
+  shelf.innerHTML = '';
+  BADGES.forEach(b => {
+    const earned = s.earnedBadges.includes(b.id);
+    const item = document.createElement('div');
+    item.className = 'badge-item' + (earned ? '' : ' locked');
+    item.innerHTML = `${b.icon}<span class="bdg-tip">${b.name}</span>`;
+    shelf.appendChild(item);
+  });
+}
+
+function updateStreakDisplay(s) {
+  const el = document.getElementById('streakDisplay');
+  const cnt = document.getElementById('streakCount');
+  if (!el || !cnt) return;
+  if (s.streak >= 1) {
+    cnt.textContent = s.streak;
+    el.style.display = 'flex';
+  }
+}
+
 // ── Init ──────────────────────────────────────────
+// Initialize game system
+const _gs = GS.checkStreak();
+updateStreakDisplay(_gs);
+renderBadgeShelf(_gs);
 if (apiKey) {
   document.getElementById('apiKeyInput').value = '••••••••';
   document.getElementById('keyStatus').textContent = t('設定済み ✓', 'Saved ✓');
@@ -882,7 +1124,16 @@ async function startRecording() {
     analyser.fftSize = 256;
     audioContext.createMediaStreamSource(micStream).connect(analyser);
     startVolumeTracking();
-  } catch(e) { /* volume optional */ }
+
+    // ── MediaRecorder for Whisper ──
+    audioChunks = [];
+    const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+      ? 'audio/webm;codecs=opus'
+      : MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4';
+    mediaRecorder = new MediaRecorder(micStream, { mimeType });
+    mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) audioChunks.push(e.data); };
+    mediaRecorder.start(1000); // collect chunks every 1s
+  } catch(e) { console.warn('mic setup:', e); }
 
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   recognition = new SR();
@@ -898,6 +1149,11 @@ async function startRecording() {
       currentSilenceStart = null;
     }
     lastSpeechTime = now;
+    // Speech detected — stop countdown
+    if (!speechDetectedInTurn && mode === 'roleplay') {
+      speechDetectedInTurn = true;
+      stopResponseCountdown();
+    }
     let interim = '';
     for (let i = e.resultIndex; i < e.results.length; i++) {
       if (e.results[i].isFinal) fullTranscript += e.results[i][0].transcript + ' ';
@@ -917,7 +1173,6 @@ async function startRecording() {
     }
   };
   recognition.onend = () => {
-    // Only restart if still actively recording and recognition wasn't killed
     if (isRecording && recognition) {
       try { recognition.start(); } catch(e) { console.warn('SR restart failed:', e); }
     }
@@ -925,6 +1180,8 @@ async function startRecording() {
   recognition.start();
 
   isRecording = true;
+  // Start countdown for roleplay mode
+  if (mode === 'roleplay') startResponseCountdown();
   pendingComputeTimer = null;
   startTime = Date.now();
 
@@ -946,56 +1203,110 @@ async function startRecording() {
 
 function stopRecording() {
   isRecording = false;
+  stopResponseCountdown(); // always clear countdown
 
-  // Tell recognition to stop but keep onresult alive briefly to capture final results
+  // Stop Speech Recognition
   if (recognition) {
-    recognition.onend = null;  // prevent auto-restart
+    recognition.onend = null;
     recognition.onerror = null;
     recognition.onspeechend = null;
     try { recognition.stop(); } catch(e) {}
-    // Null out onresult after 600ms to capture any final recognition results
     const r = recognition;
-    setTimeout(() => {
-      if (r) { r.onresult = null; }
-    }, 600);
+    setTimeout(() => { if (r) r.onresult = null; }, 600);
     recognition = null;
   }
   if (timerInterval) clearInterval(timerInterval);
   if (animFrameId !== null) { cancelAnimationFrame(animFrameId); animFrameId = -1; }
-  if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
-  if (audioContext) { audioContext.close(); audioContext = null; }
+
+  // Stop MediaRecorder — collect final chunk then send to Whisper
+  const snapStart = startTime;
+  const snapMode = mode;
+
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+    mediaRecorder.onstop = async () => {
+      if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
+      if (audioContext) { audioContext.close(); audioContext = null; }
+      // Send to Whisper for accurate transcription
+      await transcribeWithWhisper(audioChunks, snapStart, snapMode);
+    };
+    mediaRecorder.stop();
+  } else {
+    if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
+    if (audioContext) { audioContext.close(); audioContext = null; }
+    // Fallback to Web Speech transcript
+    onTranscriptReady(fullTranscript.trim(), snapStart, snapMode);
+  }
 
   document.getElementById('recordBtn').classList.remove('recording');
   document.getElementById('dot').style.borderRadius = '50%';
   document.getElementById('timer').classList.remove('active');
   document.getElementById('waveform').classList.remove('visible');
 
-  const snapStart = startTime;
-  // Don't snap transcript here — wait for recognition to deliver final results
-  // snapTranscript will be read when the timer fires (1200ms later)
-
-  if (mode === 'speech') {
-    document.getElementById('recordLabel').textContent = t('クリックして再録音', 'Click to record again');
-    pendingComputeTimer = setTimeout(() => {
-      pendingComputeTimer = null;
-      const finalTranscript = fullTranscript.trim();
-      computeMetrics(snapStart, finalTranscript);
-      setTimeout(() => {
-        const el = document.getElementById('metricsRow');
-        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 150);
-      setTimeout(() => startReflect(), 600);
-    }, 1200);
+  if (snapMode === 'speech') {
+    document.getElementById('recordLabel').textContent = t('文字起こし中…', 'Transcribing…');
   } else {
-    // Roleplay: send user's speech to AI character
-    document.getElementById('recordLabel').textContent = t('AIが返答しています…', 'AI is responding…');
+    document.getElementById('recordLabel').textContent = t('文字起こし中…', 'Transcribing…');
     document.getElementById('recordBtn').disabled = true;
-    pendingComputeTimer = setTimeout(() => {
-      pendingComputeTimer = null;
-      // Read fullTranscript NOW — recognition has had 1200ms to deliver final results
-      const userSpeech = fullTranscript.trim();
-      handleRoleplaysUserTurn(userSpeech || t('（沈黙）', '(silence)'));
-    }, 1200);
+  }
+}
+
+// ── Whisper transcription ──────────────────────────────────────────
+async function transcribeWithWhisper(chunks, snapStart, snapMode) {
+  if (!chunks || chunks.length === 0) {
+    onTranscriptReady(fullTranscript.trim(), snapStart, snapMode);
+    return;
+  }
+
+  // Show interim transcript from Web Speech while Whisper processes
+  updateTranscriptDisplay(fullTranscript.trim() || t('（文字起こし中…）', '(Transcribing…)'));
+
+  try {
+    const mimeType = chunks[0].type || 'audio/webm';
+    const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
+    const audioBlob = new Blob(chunks, { type: mimeType });
+
+    const formData = new FormData();
+    formData.append('file', audioBlob, `audio.${ext}`);
+    formData.append('model', 'whisper-1');
+    formData.append('language', lang === 'ja' ? 'ja' : 'en');
+    formData.append('response_format', 'text');
+    // DO NOT use prompt injection — let Whisper transcribe naturally including fillers
+
+    const resp = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + apiKey },
+      body: formData
+    });
+
+    if (!resp.ok) throw new Error('Whisper ' + resp.status);
+    const whisperText = (await resp.text()).trim();
+
+    // Update transcript display with Whisper result
+    updateTranscriptDisplay(whisperText);
+    onTranscriptReady(whisperText, snapStart, snapMode);
+
+  } catch(e) {
+    console.warn('Whisper error:', e);
+    // Fallback to Web Speech transcript
+    onTranscriptReady(fullTranscript.trim(), snapStart, snapMode);
+  }
+}
+
+// ── After transcript is ready (from Whisper or Web Speech) ──────────────────
+function onTranscriptReady(transcript, snapStart, snapMode) {
+  if (snapMode === 'speech') {
+    document.getElementById('recordLabel').textContent = t('クリックして再録音', 'Click to record again');
+    pendingComputeTimer = null;
+    computeMetrics(snapStart, transcript);
+    setTimeout(() => {
+      const el = document.getElementById('metricsRow');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 150);
+    setTimeout(() => startReflect(), 600);
+  } else {
+    document.getElementById('recordLabel').textContent = t('AIが返答しています…', 'AI is responding…');
+    pendingComputeTimer = null;
+    handleRoleplaysUserTurn(transcript || t('（沈黙）', '(silence)'));
   }
 }
 
@@ -1200,6 +1511,11 @@ async function startRoleplaysReflect() {
   }
 
   const roundsText = ['', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'][roleplaysRoundCount] || String(roleplaysRoundCount);
+
+  // Record roleplay session in game system
+  GS.recordRoleplay(roleplaysRoundCount);
+  updateStreakDisplay(GS.getState());
+
   const q = t(
     `ロールプレイお疲れ様でした。${roundsText}往復の対話でした。\n\nまず、やってみてどうでしたか？どんな瞬間が難しかったですか、あるいは手応えを感じましたか？`,
     `Good work on the roleplay — ${roundsText} exchange${roleplaysRoundCount > 1 ? 's' : ''} completed.\n\nFirst, how did it feel? What moments were challenging, or where did you feel confident?`
@@ -1224,15 +1540,58 @@ async function startRoleplaysReflect() {
 let currentAudio = null;
 let onSpeechEndCallback = null;
 
-// OpenAI TTS voices — mapped to Japanese-friendly labels
-const VOICE_OPTIONS = {
-  'nova':    { label: '女性・自然', tag: '★日本語推奨' },
-  'shimmer': { label: '女性・柔らか', tag: '★日本語推奨' },
-  'alloy':   { label: '女性・中性', tag: '' },
-  'echo':    { label: '男性・若め', tag: '' },
-  'fable':   { label: '男性・中性', tag: '' },
-  'onyx':    { label: '男性・低音', tag: '' },
-};
+// ── Response countdown (roleplay) ──────────────────────────────────────────
+const RESPONSE_LIMIT_SEC = 5;
+let countdownInterval = null;
+let countdownRemaining = 0;
+let speechDetectedInTurn = false;
+
+function startResponseCountdown() {
+  stopResponseCountdown();
+  speechDetectedInTurn = false;
+  countdownRemaining = RESPONSE_LIMIT_SEC;
+
+  const ring = document.getElementById('countdownRing');
+  const num = document.getElementById('countdownNum');
+  const circumference = 2 * Math.PI * 45; // 283
+
+  ring.classList.remove('hidden', 'urgent');
+  num.classList.remove('hidden', 'urgent');
+
+  function updateRing() {
+    const pct = countdownRemaining / RESPONSE_LIMIT_SEC;
+    ring.style.strokeDashoffset = circumference * (1 - pct);
+    num.textContent = Math.ceil(countdownRemaining);
+
+    const urgent = countdownRemaining <= 2;
+    ring.classList.toggle('urgent', urgent);
+    num.classList.toggle('urgent', urgent);
+  }
+
+  updateRing();
+
+  countdownInterval = setInterval(() => {
+    countdownRemaining -= 0.1;
+    if (countdownRemaining <= 0) {
+      stopResponseCountdown();
+      // Time's up — auto-stop recording and send （沈黙）
+      if (isRecording) {
+        addCoachMessage(t('⏱ 時間切れ！', '⏱ Time\'s up!'));
+        stopRecording();
+      }
+    } else {
+      updateRing();
+    }
+  }, 100);
+}
+
+function stopResponseCountdown() {
+  if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
+  const ring = document.getElementById('countdownRing');
+  const num = document.getElementById('countdownNum');
+  if (ring) { ring.classList.add('hidden'); ring.classList.remove('urgent'); ring.style.strokeDashoffset = 283; }
+  if (num)  { num.classList.add('hidden'); num.classList.remove('urgent'); }
+}
 
 let selectedVoice = 'nova'; // default: 日本語に最適
 
@@ -1288,8 +1647,14 @@ async function speakAsRole(text, onEnd) {
 
 // ── End roleplay button ──────────────────────────────────────────
 function endRoleplay() {
+  stopResponseCountdown();
   if (currentAudio) { currentAudio.pause(); currentAudio = null; }
   onSpeechEndCallback = null;
+  // Stop MediaRecorder cleanly without triggering Whisper transcription
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+    mediaRecorder.onstop = null;
+    mediaRecorder.stop();
+  }
   if (isRecording) stopRecording();
 
   document.getElementById('endRoleplaysBtn').style.display = 'none';
@@ -1304,6 +1669,10 @@ function endRoleplay() {
 }
 function startReflect() {
   setPhase('reflect');
+  // Record speech session in game system
+  const fillerCount = lastMetrics?.fillerCount ?? 999;
+  GS.recordSpeech(fillerCount);
+  updateStreakDisplay(GS.getState());
   addCoachMessage(t(`話し終えました。\n\nまず聞かせてください。今、どんな感覚がありますか？話してみてどうでしたか？`, `You've finished speaking.\n\nFirst, I'd like to hear from you — how did that feel? What did you notice?`));
   document.getElementById('chatInput').placeholder = t('感じたことを教えてください…', 'Share what you noticed…');
 }

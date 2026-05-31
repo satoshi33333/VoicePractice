@@ -1585,7 +1585,23 @@ function startResponseCountdown() {
   ring.classList.remove('hidden', 'urgent');
   num.classList.remove('hidden', 'urgent');
 
-  // Large overlay
+  // Large overlay — create dynamically if not exists
+  if (!document.getElementById('countdownOverlay')) {
+    const ov = document.createElement('div');
+    ov.id = 'countdownOverlay';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:9990;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0;transition:opacity 0.2s;background:rgba(250,248,244,0.75);backdrop-filter:blur(3px);';
+    ov.innerHTML = `<div id="_cdWrap" style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+      <div style="position:relative;width:200px;height:200px;">
+        <svg width="200" height="200" viewBox="0 0 200 200" style="position:absolute;top:0;left:0;transform:rotate(-90deg)">
+          <circle cx="100" cy="100" r="88" fill="none" stroke="#e8dfd0" stroke-width="6"/>
+          <circle id="countdownBigRing" cx="100" cy="100" r="88" fill="none" stroke="#6a9b7e" stroke-width="6" stroke-linecap="round" stroke-dasharray="553" stroke-dashoffset="553" style="transition:stroke-dashoffset 0.9s linear,stroke 0.3s;filter:drop-shadow(0 0 8px rgba(106,155,126,0.5))"/>
+        </svg>
+        <div id="countdownBigNum" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:110px;line-height:1;color:#6a9b7e;transition:color 0.2s;">5</div>
+      </div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:0.2em;color:#a89d95;">秒以内にボタンを押してください</div>
+    </div>`;
+    document.body.appendChild(ov);
+  }
   const overlay   = document.getElementById('countdownOverlay');
   const bigRing   = document.getElementById('countdownBigRing');
   const bigNum    = document.getElementById('countdownBigNum');

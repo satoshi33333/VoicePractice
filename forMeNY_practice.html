@@ -1085,6 +1085,7 @@ async function toggleRecord() {
       addCoachMessage(t('相手が話し終わるまでお待ちください。', 'Please wait until the other person finishes speaking.'));
       return;
     }
+    stopResponseCountdown(); // hide overlay immediately on button press
     if (isStarting) return;
     isStarting = true;
     try { await startRecording(); } finally { isStarting = false; }
@@ -1192,11 +1193,10 @@ async function startRecording() {
   recognition.start();
 
   isRecording = true;
-  // Hide countdown hint once user starts recording
+  // Hide countdown hint + overlay once user starts recording
   const hint = document.getElementById('countdownHint');
   if (hint) hint.style.display = 'none';
-  // Start countdown for roleplay mode
-  if (mode === 'roleplay') startResponseCountdown();
+  stopResponseCountdown(); // hide overlay when recording starts
   pendingComputeTimer = null;
   startTime = Date.now();
 
@@ -1356,6 +1356,7 @@ async function startRoleplaysScene() {
     speakAsRole(opener, () => {
       document.getElementById('recordLabel').textContent = t('クリックして返答（録音）', 'Click to respond (record)');
       document.getElementById('countdownHint').style.display = 'block';
+      startResponseCountdown();
     });
   } catch(e) {
     hideTyping();
@@ -1365,6 +1366,7 @@ async function startRoleplaysScene() {
     speakAsRole(selectedRoleplay.opener, () => {
       document.getElementById('recordLabel').textContent = t('クリックして返答（録音）', 'Click to respond (record)');
       document.getElementById('countdownHint').style.display = 'block';
+      startResponseCountdown();
     });
   }
 }
@@ -1384,6 +1386,7 @@ async function handleRoleplaysUserTurn(userSpeech) {
     speakAsRole(reply, () => {
       document.getElementById('recordLabel').textContent = t('クリックして返答（録音）', 'Click to respond (record)');
       document.getElementById('countdownHint').style.display = 'block';
+      startResponseCountdown();
     });
   } catch(e) {
     hideTyping();

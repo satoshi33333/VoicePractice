@@ -1704,6 +1704,9 @@ function startRoleplaysFromButton() {
 async function startRoleplaysScene() {
   roleplaysHistory = [];
   roleplaysRoundCount = 0;
+  roleplaysTimeoutCount = 0;
+  roleplaysRecordingMins = 0;
+  moodLevel = 0;
 
   document.getElementById('aiAvatar').textContent = selectedRoleplay.role[0];
   document.getElementById('aiAvatar').className = 'ai-avatar roleplay';
@@ -1713,6 +1716,16 @@ async function startRoleplaysScene() {
   // Hide start button now that scene has begun
   const sb2 = document.getElementById('roleplaysStartBtn');
   if (sb2) sb2.classList.remove('visible');
+
+  // Apply difficulty atmosphere + show banner
+  applyDifficultyAtmosphere(roleplaysdifficulty);
+  showDifficultyBanner(roleplaysdifficulty);
+
+  // Generate avatar (non-blocking)
+  showAvatar(null, selectedRoleplay.role, roleplaysdifficulty);
+  generateAvatar(selectedRoleplay, roleplaysdifficulty).then(url => {
+    showAvatar(url, selectedRoleplay.role, roleplaysdifficulty);
+  });
 
   addCoachMessage(t(`シナリオ：${selectedRoleplay.role}\n\n${selectedRoleplay.situation}\n\nAIが最初に話しかけます。話し終わったら録音ボタンを押して返答してください。`, `Scenario: ${selectedRoleplay.role}\n\n${selectedRoleplay.situation}\n\nThe AI will speak first. When they finish, press the record button to respond.`));
 

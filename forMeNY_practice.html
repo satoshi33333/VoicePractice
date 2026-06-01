@@ -681,9 +681,6 @@
       </div>
       <div class="record-label" id="recordLabel">クリックして録音開始</div>
       <!-- Countdown hint (roleplay only) -->
-      <div id="countdownHint" style="display:none;font-size:10px;color:var(--text-3);text-align:center;line-height:1.6;max-width:220px;background:var(--gold-pale);border:1px solid var(--gold-dim);border-radius:10px;padding:8px 12px;">
-        ⏱ AIが話し終えてから<strong style="color:var(--terracotta)">5秒以内</strong>に<br>ボタンを押して話し始めてください
-      </div>
       <div id="aiSpeakingIndicator" style="display:none;align-items:center;gap:8px;font-size:10px;color:var(--sage);font-weight:600;">
         <div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>
         <span id="aiSpeakingLabel">相手が話しています…</span>
@@ -847,6 +844,7 @@ let lastMetrics = null;
 let phase = 'prepare'; // 'prepare' | 'rehearse' | 'roleplay' | 'reflect'
 let prepareAnswered = false;
 let roleplaysRoundCount = 0;
+let roleplaysTimeoutCount = 0; // tracks how many turns user timed out
 
 // ── Game System ──────────────────────────────────────────
 const BADGES = [
@@ -1033,6 +1031,7 @@ function selectRoleplay(btn) {
   // Reset roleplay state so new scenario starts fresh
   roleplaysRoundCount = 0;
   roleplaysHistory = [];
+  roleplaysTimeoutCount = 0;
 }
 
 function onCustomTopic(m) {
@@ -1355,7 +1354,6 @@ async function startRoleplaysScene() {
     // Speak opener — after speech ends, user can record
     speakAsRole(opener, () => {
       document.getElementById('recordLabel').textContent = t('クリックして返答（録音）', 'Click to respond (record)');
-      // hint is now shown inside overlay
       startResponseCountdown();
     });
   } catch(e) {
@@ -1365,7 +1363,6 @@ async function startRoleplaysScene() {
     roleplaysRoundCount++;
     speakAsRole(selectedRoleplay.opener, () => {
       document.getElementById('recordLabel').textContent = t('クリックして返答（録音）', 'Click to respond (record)');
-      // hint is now shown inside overlay
       startResponseCountdown();
     });
   }
@@ -1385,7 +1382,6 @@ async function handleRoleplaysUserTurn(userSpeech) {
     // Speak reply — after speech ends, enable recording again
     speakAsRole(reply, () => {
       document.getElementById('recordLabel').textContent = t('クリックして返答（録音）', 'Click to respond (record)');
-      // hint is now shown inside overlay
       startResponseCountdown();
     });
   } catch(e) {
@@ -1555,6 +1551,7 @@ async function startRoleplaysReflect() {
     roleplaysHistory: roleplaysHistory,
     roleplaysRole: selectedRoleplay.role,
     roleplaysRounds: roleplaysRoundCount,
+    timeoutCount: roleplaysTimeoutCount,
     isRoleplay: true,
     fillerCount, fillerList,
     vocabScore,
@@ -1648,10 +1645,21 @@ function startResponseCountdown() {
     countdownRemaining -= 0.1;
     if (countdownRemaining <= 0) {
       stopResponseCountdown();
-      if (isRecording) {
-        addCoachMessage(t('⏱ 時間切れ！次はもっと素早く！', '⏱ Time\'s up! Be quicker next time!'));
-        stopRecording();
-      }
+      // Time's up — don't stop recording (not started), send timeout turn to AI
+      roleplaysTimeoutCount++;
+      stopResponseCountdown();
+      const timeoutMsg = t('（タイムオーバー — 返答なし）', '(Time over — no response)');
+      addRoleMessage(''); // placeholder
+      // Show timeout notice in chat
+      const toEl = document.createElement('div');
+      toEl.style.cssText = 'text-align:center;padding:8px;margin:4px 0;background:rgba(196,112,90,0.08);border-radius:10px;font-size:12px;color:var(--terracotta);font-weight:700;';
+      toEl.textContent = '⏱ タイムオーバー — 次はもっと素早く！';
+      document.getElementById('chatMessages').appendChild(toEl);
+      // Tell AI that user didn't respond and ask it to move forward
+      handleRoleplaysUserTurn(t(
+        '（タイムオーバー：ユーザーは返答しませんでした）',
+        '(Time over: user did not respond)'
+      ));
     } else {
       updateRing();
     }
@@ -1980,6 +1988,7 @@ Approach:
 ロールプレイ概要：
 - 相手役：${lastMetrics.roleplaysRole}
 - 往復数：${lastMetrics.roleplaysRounds}回
+- タイムオーバー：${lastMetrics.timeoutCount || 0}回（返答なし）
 - フィラーワード：${lastMetrics.fillerCount || 0}回（${lastMetrics.fillerList?.join('・') || 'なし'}）
 - 語彙の多様性：${lastMetrics.vocabScore || 0}%
 - 発話ターン数：${lastMetrics.userTurns || 0}ターン

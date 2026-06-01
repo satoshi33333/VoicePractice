@@ -554,24 +554,25 @@
 
   /* Avatar display */
   .avatar-panel {
-    display: none; flex-direction: column; align-items: center;
-    gap: 8px; padding: 14px 16px;
+    display: flex; flex-direction: column; align-items: center;
+    gap: 10px; padding: 16px 16px 14px;
     border-bottom: 1px solid var(--border);
-    background: rgba(255,255,255,0.6);
+    background: linear-gradient(180deg, var(--surface), var(--bg2));
     flex-shrink: 0;
+    position: sticky; top: 0; z-index: 10;
+    transition: all 0.3s;
   }
-  .avatar-panel.visible { display: flex; }
   .avatar-img {
-    width: 80px; height: 80px; border-radius: 50%;
+    width: 100px; height: 100px; border-radius: 16px;
     object-fit: cover;
     border: 3px solid var(--border2);
-    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.12);
     transition: all 0.3s;
   }
   .diff-easy  .avatar-img { border-color: var(--sage); box-shadow: 0 4px 20px rgba(106,155,126,0.3); }
   .diff-normal .avatar-img { border-color: var(--border2); }
   .diff-hard  .avatar-img { border-color: var(--terracotta); box-shadow: 0 4px 20px rgba(196,112,90,0.35); }
-  .avatar-name { font-family: 'Bebas Neue',sans-serif; font-size: 13px; letter-spacing: 0.1em; color: var(--text-2); }
+  .avatar-name { font-family: 'Bebas Neue',sans-serif; font-size: 16px; letter-spacing: 0.1em; color: var(--text); }
   .avatar-diff-badge {
     font-size: 10px; font-weight: 700; padding: 2px 10px;
     border-radius: 12px; letter-spacing: 0.08em;
@@ -579,11 +580,12 @@
   .diff-easy  .avatar-diff-badge { background: var(--sage-pale);  color: var(--sage);       border: 1px solid var(--sage-dim); }
   .diff-normal .avatar-diff-badge { background: var(--gold-pale);  color: var(--gold);       border: 1px solid var(--gold-dim); }
   .diff-hard  .avatar-diff-badge { background: var(--terra-pale); color: var(--terracotta); border: 1px solid var(--terra-dim); }
+  .avatar-diff-badge { background: var(--bg2); color: var(--text-3); border: 1px solid var(--border); border-radius: 20px; font-size: 11px; font-weight: 700; padding: 3px 12px; letter-spacing: 0.06em; }
   .avatar-generating {
-    width: 80px; height: 80px; border-radius: 50%;
+    width: 100px; height: 100px; border-radius: 16px;
     background: var(--bg2); border: 2px dashed var(--border2);
     display: flex; align-items: center; justify-content: center;
-    font-size: 24px; animation: avatarPulse 1.5s ease-in-out infinite;
+    font-size: 32px; animation: avatarPulse 1.5s ease-in-out infinite;
   }
   @keyframes avatarPulse { 0%,100%{opacity:0.5;} 50%{opacity:1;} }
 
@@ -1195,6 +1197,18 @@ if (localStorage.getItem('formeny_eleven_key')) {
 
 setTimeout(() => startPrepare(), 400);
 
+// Show default avatar state on load
+(function initAvatarDisplay() {
+  const gen = document.getElementById('avatarGenerating');
+  const name = document.getElementById('avatarName');
+  const badge = document.getElementById('avatarDiffBadge');
+  const img = document.getElementById('avatarImg');
+  if (gen) gen.style.display = 'flex';
+  if (img) img.style.display = 'none';
+  if (name) name.textContent = 'FOR ME NY Coach';
+  if (badge) badge.textContent = '🎙 Voice Practice';
+})();
+
 // ── Mode switching ──────────────────────────────────────────
 function setMode(m) {
   mode = m;
@@ -1655,7 +1669,7 @@ function showAvatar(url, roleName, difficulty) {
   const name  = document.getElementById('avatarName');
   const badge = document.getElementById('avatarDiffBadge');
 
-  panel.classList.add('visible');
+  // panel is always visible — no need to add class
   name.textContent = roleName;
 
   const diffLabels = { easy: '🌱 Easy', normal: '🔥 Normal', hard: '⚡ Hard' };
@@ -1792,6 +1806,19 @@ async function handleRoleplaysUserTurn(userSpeech, turnDuration) {
     addRoleMessage(reply);
     roleplaysHistory.push({ role: 'assistant', content: reply });
     updateMoodDisplay();
+    // Auto-end if AI mood is angry and said goodbye keywords
+    const _endings = ['失礼します', '終わりにしましょう', '本日はここまで', 'またの機会に', '終了させていただき', 'end our session', 'end this here', 'reschedule'];
+    const _aiGoodbye = moodLevel >= 3 && _endings.some(p => reply.includes(p));
+    if (_aiGoodbye) {
+      speakAsRole(reply, () => {
+        const toEl = document.createElement('div');
+        toEl.style.cssText = 'text-align:center;padding:10px;margin:8px 0;background:rgba(196,112,90,0.1);border-radius:10px;font-size:12px;color:var(--terracotta);font-weight:700;';
+        toEl.textContent = '🚪 相手がロールプレイを終了しました';
+        document.getElementById('chatMessages').appendChild(toEl);
+        setTimeout(() => endRoleplay(), 1000);
+      });
+      return;
+    }
     // Speak reply — after speech ends, enable recording again
     speakAsRole(reply, () => {
       document.getElementById('recordLabel').textContent = t('クリックして返答（録音）', 'Click to respond (record)');
@@ -2298,7 +2325,7 @@ function updateMoodDisplay() {
 
 function endRoleplay() {
   stopResponseCountdown();
-  hideAvatar();
+  // Keep avatar visible during reflect phase
   applyDifficultyAtmosphere('normal'); // reset atmosphere
   if (currentAudio) { currentAudio.pause(); currentAudio = null; }
   onSpeechEndCallback = null;
@@ -2316,6 +2343,25 @@ function endRoleplay() {
   document.getElementById('aiAvatar').textContent = 'F';
   document.getElementById('aiAvatar').className = 'ai-avatar';
   document.getElementById('chatHeaderText').textContent = 'FOR ME NY AI Coach';
+  // Switch avatar to coach mode but keep visible
+  const _gen = document.getElementById('avatarGenerating');
+  const _img = document.getElementById('avatarImg');
+  const _name = document.getElementById('avatarName');
+  const _badge = document.getElementById('avatarDiffBadge');
+  if (_gen) { _gen.style.display='flex'; _gen.textContent='💬'; }
+  if (_img) _img.style.display='none';
+  if (_name) _name.textContent = 'FOR ME NY Coach';
+  if (_badge) _badge.textContent = '📊 Reflect';
+
+  // Switch avatar to coach mode
+  const _eGen = document.getElementById('avatarGenerating');
+  const _eImg = document.getElementById('avatarImg');
+  const _eName = document.getElementById('avatarName');
+  const _eBadge = document.getElementById('avatarDiffBadge');
+  if (_eGen) { _eGen.style.display='flex'; _eGen.textContent='💬'; }
+  if (_eImg) _eImg.style.display='none';
+  if (_eName) _eName.textContent = 'FOR ME NY Coach';
+  if (_eBadge) _eBadge.textContent = '📊 Reflect';
 
   setTimeout(() => startRoleplaysReflect(), 200);
 }

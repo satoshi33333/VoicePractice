@@ -1999,7 +1999,7 @@ function startResponseCountdown() {
   if (!document.getElementById('countdownOverlay')) {
     const ov = document.createElement('div');
     ov.id = 'countdownOverlay';
-    ov.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:170px;z-index:9990;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:170px;gap:12px;opacity:0;transition:opacity 0.2s;background:rgba(250,248,244,0.95);backdrop-filter:blur(4px);pointer-events:none;';
+    ov.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:170px;z-index:9990;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:170px;gap:12px;opacity:0;transition:opacity 0.2s;background:rgba(250,248,244,0.96);pointer-events:none;';
     ov.innerHTML = `
       <div style="font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;color:#c4705a;background:#fdf0ec;border:1.5px solid #e8a896;border-radius:12px;padding:10px 20px;text-align:center;line-height:1.6;">
         ⏱ AIが話し終えてから<span style="font-size:15px;color:#c4705a;">5秒以内</span>に<br>ボタンを押して話し始めてください

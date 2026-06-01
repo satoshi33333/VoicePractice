@@ -1060,7 +1060,7 @@ function renderBadgeShelf(s) {
   BADGES.forEach(b => {
     const earned = s.earnedBadges.includes(b.id);
     const item = document.createElement('div');
-    item.className = 'badge-item' + (earned ? ' earned' : ' locked') + (badge.id.startsWith('hard') ? ' hard-badge' : '');
+    item.className = 'badge-item' + (earned ? ' earned' : ' locked') + (b.id.startsWith('hard') ? ' hard-badge' : '');
     item.innerHTML = `<div class="bdg-emoji">${b.icon}</div><div class="bdg-name">${b.name}</div><span class="bdg-tip">${b.desc}</span>`;
     shelf.appendChild(item);
   });

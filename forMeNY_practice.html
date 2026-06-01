@@ -651,6 +651,53 @@
     gap: 8px !important;
   }
 
+  /* ── REC button animations ── */
+  @keyframes recPulseIdle {
+    0%,100% { box-shadow: 0 4px 20px rgba(196,112,90,0.1), 0 0 0 0 rgba(196,112,90,0.25); }
+    50%      { box-shadow: 0 4px 20px rgba(196,112,90,0.2), 0 0 0 14px rgba(196,112,90,0); }
+  }
+  @keyframes recPulseWait {
+    0%,100% { box-shadow: 0 4px 24px rgba(106,155,126,0.2), 0 0 0 0 rgba(106,155,126,0.5); }
+    50%      { box-shadow: 0 4px 24px rgba(106,155,126,0.3), 0 0 0 20px rgba(106,155,126,0); }
+  }
+  @keyframes recPulseRecording {
+    0%,100% { box-shadow: 0 4px 24px rgba(196,112,90,0.4), 0 0 0 0 rgba(196,112,90,0.6); border-color: var(--terracotta); }
+    50%      { box-shadow: 0 4px 24px rgba(196,112,90,0.1), 0 0 0 24px rgba(196,112,90,0); border-color: rgba(196,112,90,0.4); }
+  }
+  @keyframes dotBlink {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: 0.3; transform: scale(0.85); }
+  }
+  @keyframes dotRecording {
+    0%,100% { transform: scale(1); background: var(--terracotta); }
+    50%      { transform: scale(1.25); background: #e05040; }
+  }
+
+  /* Apply idle pulse by default to rec button */
+  #recordBtn {
+    animation: recPulseIdle 2.5s ease-in-out infinite !important;
+  }
+  #recordBtn.roleplay-wait {
+    animation: recPulseWait 1.2s ease-in-out infinite !important;
+    border-color: var(--sage) !important;
+  }
+  #recordBtn.is-recording {
+    animation: recPulseRecording 0.8s ease-in-out infinite !important;
+  }
+  #recordBtn.is-recording #dot {
+    animation: dotRecording 0.8s ease-in-out infinite !important;
+    border-radius: 4px !important;
+    background: var(--terracotta) !important;
+  }
+  /* REC text label on button */
+  #recText {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 11px; letter-spacing: 0.18em;
+    color: var(--text-3); transition: color 0.2s;
+  }
+  #recordBtn.is-recording #recText { color: var(--terracotta); }
+  #recordBtn.roleplay-wait #recText { color: var(--sage); }
+
   ::-webkit-scrollbar { width: 4px; }
   ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
 </style>
@@ -1436,8 +1483,7 @@ function stopRecording() {
   }
 
   const _rb2 = document.getElementById('recordBtn');
-  if (_rb2) { _rb2.style.borderColor=''; _rb2.style.background=''; }
-  const _dot2 = document.getElementById('dot'); if (_dot2) { _dot2.style.borderRadius='50%'; _dot2.style.animation=''; }
+  if (_rb2) { _rb2.classList.remove('is-recording', 'roleplay-wait'); }
   // dot shape handled by CSS
   document.getElementById('timer').classList.remove('active');
   document.getElementById('waveform').classList.remove('visible');
@@ -1653,6 +1699,8 @@ async function startRoleplaysScene() {
     // Speak opener — after speech ends, user can record
     speakAsRole(opener, () => {
       document.getElementById('recordLabel').textContent = t('クリックして返答（録音）', 'Click to respond (record)');
+      const _rwBtn = document.getElementById('recordBtn');
+      if (_rwBtn) _rwBtn.classList.add('roleplay-wait');
       startResponseCountdown();
     });
   } catch(e) {
@@ -1662,6 +1710,8 @@ async function startRoleplaysScene() {
     roleplaysRoundCount++;
     speakAsRole(selectedRoleplay.opener, () => {
       document.getElementById('recordLabel').textContent = t('クリックして返答（録音）', 'Click to respond (record)');
+      const _rwBtn = document.getElementById('recordBtn');
+      if (_rwBtn) _rwBtn.classList.add('roleplay-wait');
       startResponseCountdown();
     });
   }
@@ -1688,6 +1738,8 @@ async function handleRoleplaysUserTurn(userSpeech) {
     // Speak reply — after speech ends, enable recording again
     speakAsRole(reply, () => {
       document.getElementById('recordLabel').textContent = t('クリックして返答（録音）', 'Click to respond (record)');
+      const _rwBtn = document.getElementById('recordBtn');
+      if (_rwBtn) _rwBtn.classList.add('roleplay-wait');
       startResponseCountdown();
     });
   } catch(e) {
@@ -2080,6 +2132,8 @@ function stopResponseCountdown() {
   const bigRing = document.getElementById('countdownBigRing');
   if (bigRing) { bigRing.style.strokeDashoffset = 553; }
   // Record button already visible
+  const _rcBtn = document.getElementById('recordBtn');
+  if (_rcBtn) _rcBtn.classList.remove('roleplay-wait');
 }
 
 let selectedVoice = 'nova'; // default: 日本語に最適

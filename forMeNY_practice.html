@@ -460,6 +460,8 @@
   .badge-item .bdg-name { font-size: 9px; font-weight: 700; color: var(--text-2); text-align: center; line-height: 1.2; letter-spacing: 0.02em; }
   .badge-item:hover { transform: scale(1.08) translateY(-2px); border-color: var(--gold); box-shadow: 0 8px 24px rgba(196,154,60,0.2); }
   .badge-item.earned { border-color: var(--gold-dim); background: var(--gold-pale); }
+  .badge-item.earned.hard-badge { border-color: var(--terracotta); background: var(--terra-pale); box-shadow: 0 0 12px rgba(196,112,90,0.25); }
+  .badge-item.earned.hard-badge .bdg-name { color: var(--terracotta); }
   .badge-item.earned .bdg-name { color: var(--gold); }
   .badge-item.locked { opacity: 0.35; filter: grayscale(0.8); }
   .badge-item .bdg-tip {
@@ -498,6 +500,81 @@
   }
   .countdown-big-num.urgent { animation: urgentShake 0.25s ease-in-out infinite; }
   @keyframes urgentShake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+
+  @keyframes recordBtnPulse {
+    0%,100% { box-shadow: 0 6px 28px rgba(106,155,126,0.3); }
+    50% { box-shadow: 0 6px 40px rgba(106,155,126,0.7); transform: scale(1.04); }
+  }
+  /* ── Difficulty selector ── */
+  .difficulty-selector { display: flex; gap: 6px; }
+  .diff-btn {
+    flex: 1; padding: 9px 8px; border-radius: 12px; cursor: pointer;
+    border: 1.5px solid var(--border); background: var(--surface);
+    font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 700;
+    text-align: center; transition: all 0.2s; line-height: 1.3;
+  }
+  .diff-btn:hover { transform: translateY(-1px); }
+  .diff-btn.easy   { color: var(--sage); }
+  .diff-btn.normal { color: var(--gold); }
+  .diff-btn.hard   { color: var(--terracotta); }
+  .diff-btn.easy.active   { background: var(--sage-pale);  border-color: var(--sage);       box-shadow: 0 3px 12px rgba(106,155,126,0.2); }
+  .diff-btn.normal.active { background: var(--gold-pale);  border-color: var(--gold);       box-shadow: 0 3px 12px rgba(196,154,60,0.2); }
+  .diff-btn.hard.active   { background: var(--terra-pale); border-color: var(--terracotta); box-shadow: 0 3px 12px rgba(196,112,90,0.25); }
+  .diff-sub { font-size: 9px; font-weight: 400; display: block; margin-top: 2px; opacity: 0.75; }
+
+  /* ── Difficulty atmosphere ── */
+  .app.diff-easy .right  { background: linear-gradient(180deg, #edf5f0 0%, #f5f8f5 100%); }
+  .app.diff-hard .right  { background: linear-gradient(180deg, #fdf0ec 0%, #faf8f4 100%); }
+  .app.diff-easy .chat-header { border-bottom-color: var(--sage-dim); }
+  .app.diff-hard .chat-header { border-bottom-color: var(--terra-dim); }
+
+  /* Avatar display */
+  .avatar-panel {
+    display: none; flex-direction: column; align-items: center;
+    gap: 8px; padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(255,255,255,0.6);
+    flex-shrink: 0;
+  }
+  .avatar-panel.visible { display: flex; }
+  .avatar-img {
+    width: 80px; height: 80px; border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--border2);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    transition: all 0.3s;
+  }
+  .diff-easy  .avatar-img { border-color: var(--sage); box-shadow: 0 4px 20px rgba(106,155,126,0.3); }
+  .diff-normal .avatar-img { border-color: var(--border2); }
+  .diff-hard  .avatar-img { border-color: var(--terracotta); box-shadow: 0 4px 20px rgba(196,112,90,0.35); }
+  .avatar-name { font-family: 'Bebas Neue',sans-serif; font-size: 13px; letter-spacing: 0.1em; color: var(--text-2); }
+  .avatar-diff-badge {
+    font-size: 10px; font-weight: 700; padding: 2px 10px;
+    border-radius: 12px; letter-spacing: 0.08em;
+  }
+  .diff-easy  .avatar-diff-badge { background: var(--sage-pale);  color: var(--sage);       border: 1px solid var(--sage-dim); }
+  .diff-normal .avatar-diff-badge { background: var(--gold-pale);  color: var(--gold);       border: 1px solid var(--gold-dim); }
+  .diff-hard  .avatar-diff-badge { background: var(--terra-pale); color: var(--terracotta); border: 1px solid var(--terra-dim); }
+  .avatar-generating {
+    width: 80px; height: 80px; border-radius: 50%;
+    background: var(--bg2); border: 2px dashed var(--border2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; animation: avatarPulse 1.5s ease-in-out infinite;
+  }
+  @keyframes avatarPulse { 0%,100%{opacity:0.5;} 50%{opacity:1;} }
+
+  /* Difficulty mode entrance message */
+  .diff-mode-banner {
+    text-align: center; padding: 10px 14px; margin: 0;
+    font-family: 'Bebas Neue',sans-serif; font-size: 14px; letter-spacing: 0.12em;
+    border-radius: 10px; animation: msgIn 0.4s ease;
+  }
+  .diff-mode-banner.easy   { background: var(--sage-pale);  color: var(--sage);       border: 1px solid var(--sage-dim); }
+  .diff-mode-banner.normal { background: var(--gold-pale);  color: var(--gold);       border: 1px solid var(--gold-dim); }
+  .diff-mode-banner.hard   { background: var(--terra-pale); color: var(--terracotta); border: 1px solid var(--terra-dim); }
+
+  /* Hide original record button area when countdown overlay is active */
+  .record-wrap-hidden { visibility: hidden; opacity: 0; pointer-events: none; }
 
   ::-webkit-scrollbar { width: 4px; }
   ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
@@ -564,6 +641,22 @@
       <div class="lang-toggle">
         <button class="lang-btn active" id="langJA" onclick="setLang('ja')">日本語</button>
         <button class="lang-btn" id="langEN" onclick="setLang('en')">English</button>
+      </div>
+    </div>
+
+    <!-- Difficulty selector — shown only in roleplay mode -->
+    <div id="difficultySelectorSection" style="display:none">
+      <div class="section-label">難易度</div>
+      <div class="difficulty-selector">
+        <button class="diff-btn easy" id="diffEasy" onclick="setDifficulty('easy')">
+          🌱 Easy<span class="diff-sub">優しめ・協力的</span>
+        </button>
+        <button class="diff-btn normal active" id="diffNormal" onclick="setDifficulty('normal')">
+          🔥 Normal<span class="diff-sub">現実的・適度な圧力</span>
+        </button>
+        <button class="diff-btn hard" id="diffHard" onclick="setDifficulty('hard')">
+          ⚡ Hard<span class="diff-sub">厳しい・プレッシャー大</span>
+        </button>
       </div>
     </div>
 
@@ -805,6 +898,13 @@
       <div class="chat-header-text" id="chatHeaderText">FOR ME NY AI Coach</div>
       <div class="phase-badge" id="phaseBadge">—</div>
     </div>
+    <!-- Avatar panel -->
+    <div class="avatar-panel" id="avatarPanel">
+      <div class="avatar-generating" id="avatarGenerating">🎭</div>
+      <img id="avatarImg" class="avatar-img" style="display:none" src="" alt="character"/>
+      <div class="avatar-name" id="avatarName"></div>
+      <div class="avatar-diff-badge" id="avatarDiffBadge"></div>
+    </div>
     <div class="chat-messages" id="chatMessages"></div>
     <div class="chat-input-area">
       <input class="chat-input" id="chatInput" placeholder="ここに入力…" id="chatInputPlaceholder" onkeydown="if(event.key==='Enter')sendMessage()" />
@@ -844,18 +944,25 @@ let lastMetrics = null;
 let phase = 'prepare'; // 'prepare' | 'rehearse' | 'roleplay' | 'reflect'
 let prepareAnswered = false;
 let roleplaysRoundCount = 0;
-let roleplaysTimeoutCount = 0; // tracks how many turns user timed out
+let roleplaysTimeoutCount = 0;
+let roleplaysdifficulty = 'normal'; // 'easy' | 'normal' | 'hard' // tracks how many turns user timed out
 
 // ── Game System ──────────────────────────────────────────
 const BADGES = [
-  { id: 'first_rec',    icon: '🎙', name: '初めての録音',       desc: '最初の録音を完了',         check: (s) => s.totalSessions >= 1 },
-  { id: 'first_role',   icon: '🎭', name: 'ロールプレイ初挑戦', desc: 'ロールプレイを初めて完了',  check: (s) => s.roleplaySessions >= 1 },
-  { id: 'five_role',    icon: '🌟', name: 'ロールプレイ5回',    desc: 'ロールプレイを5回完了',    check: (s) => s.roleplaySessions >= 5 },
-  { id: 'no_filler',    icon: '⚡', name: 'フィラーゼロ',       desc: '1回の練習でフィラーなし',   check: (s) => s.bestFillerCount === 0 && s.totalSessions >= 1 },
-  { id: 'streak3',      icon: '🔥', name: '3日連続',            desc: '3日連続で練習',             check: (s) => s.streak >= 3 },
-  { id: 'streak7',      icon: '💎', name: '1週間連続',          desc: '7日連続で練習',             check: (s) => s.streak >= 7 },
-  { id: 'ten_sessions', icon: '🏆', name: '練習10回',           desc: '合計10回練習を完了',        check: (s) => s.totalSessions >= 10 },
-  { id: 'long_talk',    icon: '💬', name: '10往復達成',         desc: 'ロールプレイで10往復',      check: (s) => s.maxRoleplaysRounds >= 10 },
+  // ── Basic badges ──
+  { id: 'first_rec',    icon: '🎙', name: '初めての録音',       desc: '最初の録音を完了',                    check: (s) => s.totalSessions >= 1 },
+  { id: 'first_role',   icon: '🎭', name: 'ロールプレイ初挑戦', desc: 'ロールプレイを初めて完了',             check: (s) => s.roleplaySessions >= 1 },
+  { id: 'five_role',    icon: '🌟', name: 'ロールプレイ5回',    desc: 'ロールプレイを5回完了',               check: (s) => s.roleplaySessions >= 5 },
+  { id: 'no_filler',    icon: '⚡', name: 'フィラーゼロ',       desc: '1回の練習でフィラーなし',              check: (s) => s.bestFillerCount === 0 && s.totalSessions >= 1 },
+  { id: 'streak3',      icon: '🔥', name: '3日連続',            desc: '3日連続で練習',                       check: (s) => s.streak >= 3 },
+  { id: 'streak7',      icon: '💎', name: '1週間連続',          desc: '7日連続で練習',                       check: (s) => s.streak >= 7 },
+  { id: 'ten_sessions', icon: '🏆', name: '練習10回',           desc: '合計10回練習を完了',                   check: (s) => s.totalSessions >= 10 },
+  { id: 'long_talk',    icon: '💬', name: '10往復達成',         desc: 'ロールプレイで10往復',                 check: (s) => s.maxRoleplaysRounds >= 10 },
+  // ── Difficulty badges ──
+  { id: 'easy_clear',   icon: '🌱', name: '第一歩',             desc: 'Easyモードをクリア（3往復・TO 2回以下）', check: (s) => s.easyClear >= 1 },
+  { id: 'normal_clear', icon: '🎯', name: '本番力',             desc: 'Normalモードを3回クリア',               check: (s) => s.normalClear >= 3 },
+  { id: 'hard_clear',   icon: '💪', name: '圧力突破',           desc: 'Hardモードをクリア（3往復・TO 1回以下）', check: (s) => s.hardClear >= 1 },
+  { id: 'hard_perfect', icon: '🔱', name: '無敵',              desc: 'HardモードをTO 0回でクリア',             check: (s) => s.hardPerfect >= 1 },
 ];
 
 const GS = {
@@ -866,7 +973,8 @@ const GS = {
   },
   defaults() {
     return { streak:0, lastDate:'', totalSessions:0, roleplaySessions:0,
-             bestFillerCount:999, maxRoleplaysRounds:0, earnedBadges:[] };
+             bestFillerCount:999, maxRoleplaysRounds:0, earnedBadges:[],
+             easyClear:0, normalClear:0, hardClear:0, hardPerfect:0 };
   },
   save(s) { localStorage.setItem(this.key, JSON.stringify(s)); },
 
@@ -898,11 +1006,17 @@ const GS = {
   },
 
   // Called after each roleplay session
-  recordRoleplay(rounds) {
+  recordRoleplay(rounds, difficulty, timeouts) {
     const s = this.load();
     s.totalSessions += 1;
     s.roleplaySessions += 1;
     if (rounds > s.maxRoleplaysRounds) s.maxRoleplaysRounds = rounds;
+    // Difficulty clears
+    const cleared = rounds >= 3;
+    if (difficulty === 'easy'   && cleared && timeouts <= 2) s.easyClear = (s.easyClear||0) + 1;
+    if (difficulty === 'normal' && cleared && timeouts <= 1) s.normalClear = (s.normalClear||0) + 1;
+    if (difficulty === 'hard'   && cleared && timeouts <= 1) s.hardClear = (s.hardClear||0) + 1;
+    if (difficulty === 'hard'   && cleared && timeouts === 0) s.hardPerfect = (s.hardPerfect||0) + 1;
     this.save(s);
     this.checkNewBadges(s);
   },
@@ -921,12 +1035,14 @@ const GS = {
 };
 
 function showBadgePopup(badge) {
+  const isSpecial = ['hard_clear','hard_perfect'].includes(badge.id);
   const el = document.createElement('div');
   el.className = 'badge-popup';
+  if (isSpecial) el.style.cssText += ';border-color:#c49a3c;box-shadow:0 8px 40px rgba(196,154,60,0.5),0 0 60px rgba(196,154,60,0.2);';
   el.innerHTML = `
-    <div class="badge-icon">${badge.icon}</div>
+    <div class="badge-icon" style="${isSpecial ? 'animation:badgeIconBounce 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.3s both;filter:drop-shadow(0 0 10px gold)' : ''}">${badge.icon}</div>
     <div class="badge-text">
-      <div class="badge-got">🏅 バッジ獲得！</div>
+      <div class="badge-got">${isSpecial ? '🏅✨ 特別バッジ獲得！' : '🏅 バッジ獲得！'}</div>
       <div class="badge-name">${badge.name}</div>
       <div class="badge-desc">${badge.desc}</div>
     </div>`;
@@ -944,7 +1060,7 @@ function renderBadgeShelf(s) {
   BADGES.forEach(b => {
     const earned = s.earnedBadges.includes(b.id);
     const item = document.createElement('div');
-    item.className = 'badge-item' + (earned ? ' earned' : ' locked');
+    item.className = 'badge-item' + (earned ? ' earned' : ' locked') + (badge.id.startsWith('hard') ? ' hard-badge' : '');
     item.innerHTML = `<div class="bdg-emoji">${b.icon}</div><div class="bdg-name">${b.name}</div><span class="bdg-tip">${b.desc}</span>`;
     shelf.appendChild(item);
   });
@@ -987,6 +1103,7 @@ function setMode(m) {
   document.getElementById('roleplaysInfo').classList.remove('visible');
   // Show voice selector only in roleplay mode
   document.getElementById('voiceSelectorSection').style.display = m === 'roleplay' ? 'block' : 'none';
+  document.getElementById('difficultySelectorSection').style.display = m === 'roleplay' ? 'block' : 'none';
   // Show countdown hint in roleplay mode
   // Hint shown after AI speaks, not on mode switch
   const hint = document.getElementById('countdownHint');
@@ -1032,6 +1149,8 @@ function selectRoleplay(btn) {
   roleplaysRoundCount = 0;
   roleplaysHistory = [];
   roleplaysTimeoutCount = 0;
+  // Reset avatar cache for new scenario
+  Object.keys(avatarCache).forEach(k => { if (!k.includes(selectedRoleplay?.role?.slice(0,10))) delete avatarCache[k]; });
 }
 
 function onCustomTopic(m) {
@@ -1331,6 +1450,104 @@ function onTranscriptReady(transcript, snapStart, snapMode) {
 }
 
 // ── Roleplay logic ──────────────────────────────────────────
+
+// ── Avatar & Difficulty System ─────────────────────────────────
+const avatarCache = {}; // key: "roleId_difficulty" → image URL
+
+// Difficulty-aware atmosphere
+function applyDifficultyAtmosphere(diff) {
+  const app = document.querySelector('.app');
+  if (!app) return;
+  app.classList.remove('diff-easy','diff-normal','diff-hard');
+  app.classList.add('diff-' + diff);
+}
+
+// Generate avatar via DALL-E 3
+async function generateAvatar(scenario, difficulty) {
+  const cacheKey = scenario.role.slice(0,10) + '_' + difficulty;
+  if (avatarCache[cacheKey]) return avatarCache[cacheKey];
+
+  const diffDesc = {
+    easy:   '穏やかで親切そうな表情、柔らかい笑顔、温かみのある雰囲気',
+    normal: '真剣で集中した表情、プロフェッショナルな雰囲気、中立的',
+    hard:   '厳しい目つき、腕を組んで警戒した表情、プレッシャーを与える雰囲気'
+  }[difficulty];
+
+  const roleDesc = {
+    '採用面接官': 'Japanese corporate HR interviewer in formal suit, sitting at a desk',
+    '直属の上司': 'Japanese middle-aged male manager in business casual, busy and slightly impatient',
+    '転職エージェント': 'Japanese career consultant, professional and attentive expression',
+    '初対面の取引先': 'Japanese business person in their 30s, cautious and evaluating expression',
+    'チームリーダー': 'Japanese team leader in casual business wear, assertive posture',
+    '大学のゼミ': 'Japanese elderly male professor with glasses, scholarly and stern'
+  };
+
+  let baseDesc = 'Professional Japanese business person';
+  for (const [key, val] of Object.entries(roleDesc)) {
+    if (scenario.role.includes(key)) { baseDesc = val; break; }
+  }
+
+  const prompt = `Portrait illustration of a ${baseDesc}. ${diffDesc}. Clean vector art style, warm color palette, professional business setting background, face and upper body, square crop. Studio Ghibli influenced soft illustration style.`;
+
+  try {
+    const resp = await fetch('https://api.openai.com/v1/images/generations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
+      body: JSON.stringify({ model: 'dall-e-3', prompt, n: 1, size: '1024x1024', quality: 'standard' })
+    });
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error.message);
+    const url = data.data[0].url;
+    avatarCache[cacheKey] = url;
+    return url;
+  } catch(e) {
+    console.warn('Avatar gen failed:', e);
+    return null;
+  }
+}
+
+function showAvatar(url, roleName, difficulty) {
+  const panel = document.getElementById('avatarPanel');
+  const gen   = document.getElementById('avatarGenerating');
+  const img   = document.getElementById('avatarImg');
+  const name  = document.getElementById('avatarName');
+  const badge = document.getElementById('avatarDiffBadge');
+
+  panel.classList.add('visible');
+  name.textContent = roleName;
+
+  const diffLabels = { easy: '🌱 Easy', normal: '🔥 Normal', hard: '⚡ Hard' };
+  badge.textContent = diffLabels[difficulty] || '🔥 Normal';
+
+  if (url) {
+    gen.style.display = 'none';
+    img.style.display = 'block';
+    img.src = url;
+  } else {
+    gen.style.display = 'flex';
+    img.style.display = 'none';
+    gen.textContent = '🎭';
+  }
+}
+
+function hideAvatar() {
+  document.getElementById('avatarPanel').classList.remove('visible');
+}
+
+// Difficulty mode entrance banner
+function showDifficultyBanner(difficulty) {
+  const msgs = {
+    easy:   '🌱 Easy モード — リラックスして練習しましょう',
+    normal: '🔥 Normal モード — 現実の場面を想定して挑もう',
+    hard:   '⚡ Hard モード — 本番さながらのプレッシャーへ。覚悟して！'
+  };
+  const el = document.createElement('div');
+  el.className = 'diff-mode-banner ' + difficulty;
+  el.textContent = msgs[difficulty] || msgs.normal;
+  document.getElementById('chatMessages').appendChild(el);
+  el.scrollIntoView({ behavior: 'smooth' });
+}
+
 async function startRoleplaysScene() {
   roleplaysHistory = [];
   roleplaysRoundCount = 0;
@@ -1369,8 +1586,15 @@ async function startRoleplaysScene() {
 }
 
 async function handleRoleplaysUserTurn(userSpeech) {
-  addUserMessage(userSpeech);
-  roleplaysHistory.push({ role: 'user', content: userSpeech });
+  // Don't show __TIMEOUT__ as a user message bubble
+  if (userSpeech !== '__TIMEOUT__') {
+    addUserMessage(userSpeech);
+  }
+  const histContent = userSpeech === '__TIMEOUT__'
+    ? t('（タイムオーバー：ユーザーは返答しませんでした。自然に場を進めてください）',
+        '(Time over: user did not respond. Please move the scene forward naturally)')
+    : userSpeech;
+  roleplaysHistory.push({ role: 'user', content: histContent });
   roleplaysRoundCount++;
 
   showTyping();
@@ -1391,52 +1615,137 @@ async function handleRoleplaysUserTurn(userSpeech) {
   }
 }
 
+function setDifficulty(d) {
+  roleplaysdifficulty = d;
+  ['easy','normal','hard'].forEach(x => {
+    document.getElementById('diff' + x.charAt(0).toUpperCase() + x.slice(1))
+      .classList.toggle('active', x === d);
+  });
+}
+
 function buildRoleplaysSystemPrompt() {
-  if (lang === 'en') {
-    return `You are playing the role of "${selectedRoleplay.role}".
+  const diff = roleplaysdifficulty || 'normal';
+  const role = selectedRoleplay.role;
 
-Scenario: ${selectedRoleplay.situation}
+  // ── Difficulty modifiers ──────────────────────────────────
+  const diffConfig = {
+    easy: {
+      attitude: 'あなたは協力的で親切。相手が言葉に詰まっても待ってあげる。質問は柔らかく、圧力は一切かけない。',
+      pressure: 'なし',
+      interrupt: 'しない',
+      silence: '自然に待つ',
+      examples: '「なるほどですね。もう少し聞かせていただけますか？」\n「ゆっくりで大丈夫ですよ。」'
+    },
+    normal: {
+      attitude: 'あなたはプロフェッショナルで現実的。親切ではあるが甘くない。適度なプレッシャーをかける。',
+      pressure: '中程度',
+      interrupt: '的外れな答えには「少し違う観点で」と促す',
+      silence: '3秒ほど待ってから「どうですか？」と促す',
+      examples: '「具体的にはどういう意味ですか？」\n「なるほど、ただそれだと少し心配なのですが。」'
+    },
+    hard: {
+      attitude: 'あなたは厳しく懐疑的。簡単には納得しない。沈黙や鋭い切り返しでプレッシャーをかける。相手の弱点を突く。',
+      pressure: '高い',
+      interrupt: '抽象的・曖昧な答えには即座に切り返す',
+      silence: '答えをじっくり待つが、不十分なら「それだけですか？」と追い打ち',
+      examples: '「それで？具体的な数字は？」\n「以前も同じようなことを言う人がいましたが、うまくいきませんでした。何が違うんですか？」\n「（沈黙）……続けてください。」'
+    }
+  }[diff];
 
-Rules:
-- Realistic but not intimidating. Keep some tension but maintain a safe practice atmosphere
-- Keep responses to 1–2 short sentences. Conversational back-and-forth tempo
-- Never break character. React to what the person actually said first
-- Natural spoken language only — no symbols or bullet points (this will be read aloud)`;
+  // ── Character-specific settings ──────────────────────────────
+  let character = '';
+  if (role.includes('採用面接官')) {
+    character = `
+【キャラクター：採用面接官 田中部長 / 人事部 15年ベテラン】
+背景：大手メーカー人事部長。年間100人以上の面接を担当。見た目は温和だが本質を見抜く目を持つ。
+動機：会社に本当に貢献できる人材を見極めたい。表面だけの答えには騙されない。
+口調：丁寧な敬語。「〜でしょうか」「〜いただけますか」
+よく使う技：「それは具体的にどういう状況でしたか？」「その結果、何が変わりましたか？」
+${diff === 'hard' ? '圧迫時：長い沈黙。「本当にそれだけですか？」。矛盾を突く。' : ''}`;
+  } else if (role.includes('上司') || role.includes('課長')) {
+    character = `
+【キャラクター：上司 鈴木課長 / 営業2課 課長 43歳】
+背景：現場叩き上げで課長に昇進。多忙で細かい説明は嫌い。成果主義。
+動機：チームの数字を守りたい。余計な仕事は増やしたくない。
+口調：「〜だけど」「〜なの？」「で、結局どうしたいの？」
+よく使う技：話を途中で「要するに何が言いたいの？」と遮る。
+${diff === 'hard' ? '圧迫時：「前も同じ失敗してたよね」「それ、本当に効果あるの？」' : ''}`;
+  } else if (role.includes('転職エージェント')) {
+    character = `
+【キャラクター：転職エージェント 山田さん / キャリアアドバイザー 5年目】
+背景：年間200件の転職支援。候補者の本音を引き出すプロ。
+動機：本当に合った仕事に転職させたい。建前だけの答えには踏み込む。
+口調：丁寧で温かみがある。「〜なんですね」「それはどういう意味でしょうか？」
+よく使う技：「本当のところは何が不満だったんですか？」「5年後どうなりたいですか？」
+${diff === 'hard' ? '圧迫時：「正直に言うと、今の経歴では厳しい会社が多いんですが…」' : ''}`;
+  } else if (role.includes('取引先')) {
+    character = `
+【キャラクター：取引先担当 佐々木さん 32歳 / 購買部】
+背景：複数のベンダーと取引経験あり。飛び込み営業には慣れていて、大半は断ってきた。
+動機：コスト削減と安定供給が最優先。信頼できない業者に時間を使いたくない。
+口調：「うちは今のところ別のところとうまくやってるので」「で、他社と何が違うんですか？」
+よく使う技：時間を区切る。「5分だけですよ」。競合他社を引き合いに出す。
+${diff === 'hard' ? '圧迫時：「正直、今すぐ変える気はないんですよね」「価格は他社より高いですよね？」' : ''}`;
+  } else if (role.includes('チームリーダー') || role.includes('意見')) {
+    character = `
+【キャラクター：チームリーダー 中村さん 28歳 / エンジニア】
+背景：優秀なエンジニア上がりのリーダー。論理的思考が強く、感情より数字・根拠を重視。
+動機：チームの生産性を落としたくない。自分の判断に自信がある。
+口調：「それって根拠あるの？」「ちょっと待って、それだと〜の問題が出ない？」
+よく使う技：すぐ反論。「でも〜じゃない？」「他のメンバーはどう思ってるの？」
+${diff === 'hard' ? '圧迫時：「正直、前回のあなたの提案もうまくいかなかったよね」' : ''}`;
+  } else if (role.includes('教授') || role.includes('ゼミ')) {
+    character = `
+【キャラクター：田村教授 62歳 / 社会学専攻】
+背景：40年のキャリア。論文200本以上。学生には厳しいが愛情がある。曖昧さを嫌う。
+動機：本当に研究を理解しているか確かめたい。表面的な答えでは認めない。
+口調：「それはどういう意味ですか」「先行研究は読みましたか」「もう少し精緻に」
+よく使う技：沈黙。「それは私の質問に答えていません」。
+${diff === 'hard' ? '圧迫時：「この程度の理解では卒論は通りません」「根本から考え直しなさい」' : ''}`;
+  } else {
+    // Custom scenario
+    character = `【キャラクター：${role}】\nシナリオ：${selectedRoleplay.situation}`;
   }
 
-  // Determine appropriate speech register based on role
-  const role = selectedRoleplay.role;
-  const isFormatContext = role.includes('面接') || role.includes('取引先') || role.includes('教授') || role.includes('エージェント');
-  const isSemiFormatContext = role.includes('上司') || role.includes('課長') || role.includes('リーダー');
+  if (lang === 'en') {
+    const diffEN = {
+      easy:   'Be supportive and patient. Use gentle questions. No pressure.',
+      normal: 'Be professional and realistic. Apply moderate pressure. Push back on vague answers.',
+      hard:   'Be demanding and skeptical. Use silence and sharp comebacks. Apply strong pressure.'
+    }[diff];
+    return `You are playing the role of "${role}". This is an immersive roleplay for communication training.
 
-  const registerGuide = isFormatContext
-    ? `【言葉遣い：丁寧な敬語】
-- 「〜でございます」「〜いただけますか」「〜はいかがでしょうか」などフォーマルな表現
-- 相手への敬意を保ちながらも、温かみのある話し方
-- 例：「なるほど、それは興味深いですね。もう少し詳しくお聞かせいただけますか」`
-    : isSemiFormatContext
-    ? `【言葉遣い：上司→部下の話し言葉】
-- 「〜だけど」「〜かな」「〜してみて」など、上下関係を保ちながらも自然な話し言葉
-- 親しみはあるが軽すぎない
-- 例：「うん、なるほどな。でも、具体的にはどう進めるつもり？」`
-    : `【言葉遣い：対等な同僚の話し言葉】
-- 「〜だね」「〜じゃない？」「〜しようよ」など、フレンドリーな話し言葉
-- 例：「そっか。でも私はちょっと違うと思ってて、聞いてもいい？」`;
+${character}
 
-  return `あなたは「${selectedRoleplay.role}」を演じるロールプレイのパートナーです。
+DIFFICULTY: ${diff.toUpperCase()} — ${diffEN}
 
-【シナリオ】
-${selectedRoleplay.situation}
+CORE RULES (演劇的ロールプレイ):
+- Stay 100% in character. Never break role to coach or comment.
+- React to what was actually said — don't ignore or rush past it.
+- Use silences, interruptions, and pressure appropriate to difficulty.
+- 1–3 short sentences. Natural spoken language only.
+- End with a question or reaction that moves the scene forward.`;
+  }
 
-${registerGuide}
+  return `あなたは今から「${role}」という人物を完全に演じます。これはコミュニケーション訓練のための演劇的ロールプレイです。
 
-【最重要：人間らしく自然に反応する】
-- 相手が言ったことにまず素直に反応する。本題に強引に戻さない
-- 驚き・納得・疑問など感情を自然に出す
-- 相手が敬語を使っていれば、こちらもその場にふさわしい言葉遣いで返す
-- 返答は2〜3文。短くテンポよく
-- 音声で読まれるので記号・括弧・箇条書きは使わない
-- 必ず会話が続くよう、短い問いかけや反応で締める`;
+${character}
+
+【難易度：${diff.toUpperCase()}】
+${diffConfig.attitude}
+プレッシャー：${diffConfig.pressure}
+割り込み：${diffConfig.interrupt}
+沈黙時：${diffConfig.silence}
+セリフ例：
+${diffConfig.examples}
+
+【演劇ルール — 絶対に守ること】
+- キャラクターを完全に維持する。コーチや評価者としてのコメントは一切しない
+- 相手が言ったことに必ず反応してから次に進む
+- 記号・括弧・箇条書きは一切使わない（音声で読まれる）
+- 1〜3文で短くテンポよく返す
+- 必ず次の会話につながる反応や問いかけで締める
+- 必要なら沈黙を使う：「（沈黙）……続けてください」`;
 }
 
 async function startRoleplaysReflect() {
@@ -1445,7 +1754,8 @@ async function startRoleplaysReflect() {
 
   // ── ロールプレイの分析 ──
   // ユーザーの発言だけを抽出して分析
-  const userTurns = roleplaysHistory.filter(m => m.role === 'user').map(m => m.content);
+  // Filter out timeout markers from real user turns
+  const userTurns = roleplaysHistory.filter(m => m.role === 'user' && m.content !== '__TIMEOUT__').map(m => m.content);
   const userTranscript = userTurns.join(' ');
 
   if (userTranscript.trim()) {
@@ -1548,7 +1858,7 @@ async function startRoleplaysReflect() {
   const roundsText = ['', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'][roleplaysRoundCount] || String(roleplaysRoundCount);
 
   // Record roleplay session in game system
-  GS.recordRoleplay(roleplaysRoundCount);
+  GS.recordRoleplay(roleplaysRoundCount, roleplaysdifficulty, roleplaysTimeoutCount);
   updateStreakDisplay(GS.getState());
 
   const q = t(
@@ -1598,7 +1908,7 @@ function startResponseCountdown() {
   if (!document.getElementById('countdownOverlay')) {
     const ov = document.createElement('div');
     ov.id = 'countdownOverlay';
-    ov.style.cssText = 'position:fixed;inset:0;z-index:9990;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;opacity:0;transition:opacity 0.2s;background:rgba(250,248,244,0.82);backdrop-filter:blur(3px);';
+    ov.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:9990;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;opacity:0;transition:opacity 0.2s;background:rgba(250,248,244,0.88);backdrop-filter:blur(3px);';
     ov.innerHTML = `
       <div style="font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;color:#c4705a;background:#fdf0ec;border:1.5px solid #e8a896;border-radius:12px;padding:10px 20px;text-align:center;line-height:1.6;">
         ⏱ AIが話し終えてから<span style="font-size:15px;color:#c4705a;">5秒以内</span>に<br>ボタンを押して話し始めてください
@@ -1611,10 +1921,10 @@ function startResponseCountdown() {
           </svg>
           <div id="countdownBigNum" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:110px;line-height:1;color:#6a9b7e;transition:color 0.2s;">5</div>
         </div>
-        <button onclick="toggleRecord()" style="width:80px;height:80px;border-radius:50%;border:2.5px solid #6a9b7e;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(106,155,126,0.3);transition:all 0.2s;" onmouseover="this.style.transform='scale(1.08)'" onmouseout="this.style.transform='scale(1)'">
-          <div style="width:22px;height:22px;border-radius:50%;background:#6a9b7e;box-shadow:0 0 10px rgba(106,155,126,0.5);"></div>
+        <button onclick="stopResponseCountdown();toggleRecord();" style="width:90px;height:90px;border-radius:50%;border:3px solid #6a9b7e;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 28px rgba(106,155,126,0.4);transition:all 0.2s;animation:recordBtnPulse 1.5s ease-in-out infinite;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+          <div style="width:26px;height:26px;border-radius:50%;background:#6a9b7e;box-shadow:0 0 12px rgba(106,155,126,0.6);"></div>
         </button>
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:0.12em;color:#6a9b7e;">▶ タップして話す</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:0.14em;color:#6a9b7e;margin-top:4px;">▶ ここをタップして話す</div>
       </div>`;
     document.body.appendChild(ov);
   }
@@ -1624,6 +1934,11 @@ function startResponseCountdown() {
   const bigCirc   = 2 * Math.PI * 88; // 553
   let lastCeil    = RESPONSE_LIMIT_SEC + 1;
   overlay.classList.add('visible');
+  // Hide original record button area so only overlay button is visible
+  const recWrap = document.querySelector('.record-wrap');
+  if (recWrap) recWrap.classList.add('record-wrap-hidden');
+  const recLabel = document.getElementById('recordLabel');
+  if (recLabel) recLabel.style.visibility = 'hidden';
 
   function updateRing() {
     const pct    = countdownRemaining / RESPONSE_LIMIT_SEC;
@@ -1671,10 +1986,7 @@ function startResponseCountdown() {
       toEl.textContent = '⏱ タイムオーバー — 次はもっと素早く！';
       document.getElementById('chatMessages').appendChild(toEl);
       // Tell AI that user didn't respond and ask it to move forward
-      handleRoleplaysUserTurn(t(
-        '（タイムオーバー：ユーザーは返答しませんでした）',
-        '(Time over: user did not respond)'
-      ));
+      handleRoleplaysUserTurn('__TIMEOUT__');
     } else {
       updateRing();
     }
@@ -1694,6 +2006,11 @@ function stopResponseCountdown() {
   // Reset big ring
   const bigRing = document.getElementById('countdownBigRing');
   if (bigRing) { bigRing.style.strokeDashoffset = 553; }
+  // Restore original record button area
+  const recWrap = document.querySelector('.record-wrap');
+  if (recWrap) recWrap.classList.remove('record-wrap-hidden');
+  const recLabel = document.getElementById('recordLabel');
+  if (recLabel) recLabel.style.visibility = '';
 }
 
 let selectedVoice = 'nova'; // default: 日本語に最適
@@ -1751,6 +2068,8 @@ async function speakAsRole(text, onEnd) {
 // ── End roleplay button ──────────────────────────────────────────
 function endRoleplay() {
   stopResponseCountdown();
+  hideAvatar();
+  applyDifficultyAtmosphere('normal'); // reset atmosphere
   if (currentAudio) { currentAudio.pause(); currentAudio = null; }
   onSpeechEndCallback = null;
   // Stop MediaRecorder cleanly without triggering Whisper transcription

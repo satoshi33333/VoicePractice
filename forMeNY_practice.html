@@ -313,7 +313,7 @@
   .transcript-box.placeholder { color: var(--text-3); font-style: normal; font-family: 'Nunito', sans-serif; font-size: 12px; }
 
   /* ── Right panel ── */
-  .right { display: flex; flex-direction: column; background: linear-gradient(180deg, var(--surface2) 0%, #fdfbf7 100%); }
+  .right { display: flex; flex-direction: column; background: linear-gradient(180deg, var(--surface2) 0%, #fdfbf7 100%); overflow: hidden; }
   .chat-header {
     padding: 14px 18px; border-bottom: 1px solid var(--border);
     display: flex; align-items: center; gap: 12px; flex-shrink: 0;
@@ -559,7 +559,6 @@
     border-bottom: 1px solid var(--border);
     background: linear-gradient(180deg, var(--surface), var(--bg2));
     flex-shrink: 0;
-    position: sticky; top: 0; z-index: 10;
     transition: all 0.3s;
   }
   .avatar-img {

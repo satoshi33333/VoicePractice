@@ -627,6 +627,18 @@
   .roleplay-start-btn.hard-mode:hover { box-shadow: 0 10px 32px rgba(196,112,90,0.55); }
   .start-btn-sub { display: block; font-family: 'Nunito',sans-serif; font-size: 11px; font-weight: 600; opacity: 0.85; letter-spacing: 0.05em; margin-top: 2px; }
 
+  /* ── Sticky record area ── */
+  .record-area {
+    position: sticky !important;
+    bottom: 0;
+    background: rgba(250,248,244,0.97);
+    backdrop-filter: blur(8px);
+    border-top: 1px solid var(--border);
+    z-index: 50;
+    margin: 0 -26px;
+    padding: 16px 26px !important;
+  }
+
   ::-webkit-scrollbar { width: 4px; }
   ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
 </style>
@@ -2010,7 +2022,7 @@ function startResponseCountdown() {
   if (!document.getElementById('countdownOverlay')) {
     const ov = document.createElement('div');
     ov.id = 'countdownOverlay';
-    ov.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:55%;z-index:9990;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:16px;gap:12px;opacity:0;transition:opacity 0.2s;background:rgba(250,248,244,0.95);backdrop-filter:blur(4px);pointer-events:none;';
+    ov.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:160px;z-index:9990;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:16px;gap:12px;opacity:0;transition:opacity 0.2s;background:rgba(250,248,244,0.95);backdrop-filter:blur(4px);pointer-events:none;';
     ov.innerHTML = `
       <div style="font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;color:#c4705a;background:#fdf0ec;border:1.5px solid #e8a896;border-radius:12px;padding:10px 20px;text-align:center;line-height:1.6;">
         ⏱ AIが話し終えてから<span style="font-size:15px;color:#c4705a;">5秒以内</span>に<br>ボタンを押して話し始めてください

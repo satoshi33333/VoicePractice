@@ -1518,10 +1518,22 @@ async function startRoleplaysReflect() {
     document.querySelector('#cardSilence .mc-unit').textContent = '%発話比率';
     document.querySelector('#cardSilence .mc-ref').textContent = '自分の発話割合';
 
+    // Timeout card — replace Pauses metric with timeout count
+    const toCount = roleplaysTimeoutCount;
+    const toClass = toCount === 0 ? 'ok' : toCount <= 2 ? 'warn' : 'bad';
+    document.getElementById('pauseVal').textContent = toCount;
+    document.getElementById('pauseBar').style.width = Math.min(100, toCount * 33) + '%';
+    document.getElementById('pauseBar').className = 'mc-bar-fill ' + toClass;
+    document.getElementById('cardPause').className = 'metric-card ' + toClass;
+    document.querySelector('#cardPause .mc-label').textContent = 'Timeout';
+    document.querySelector('#cardPause .mc-unit').textContent = '回';
+    document.querySelector('#cardPause .mc-ref').textContent = toCount === 0 ? '完璧！全ターン応答' : 'タイムオーバー回数';
+
     // レーダーチャート更新
+    const timeoutPenalty = Math.min(100, roleplaysTimeoutCount * 33);
     updateRadar(
       Math.min(100, avgCharsPerTurn / 1.5),
-      Math.min(100, userTurns.length * 12),
+      100 - timeoutPenalty,  // Timeout: 0回=100%, 1回=67%, 2回=33%, 3回+=0%
       Math.min(100, totalChars / 4),
       100 - fillerPct,
       vocabScore,
@@ -1589,9 +1601,9 @@ function startResponseCountdown() {
     ov.style.cssText = 'position:fixed;inset:0;z-index:9990;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;opacity:0;transition:opacity 0.2s;background:rgba(250,248,244,0.82);backdrop-filter:blur(3px);';
     ov.innerHTML = `
       <div style="font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;color:#c4705a;background:#fdf0ec;border:1.5px solid #e8a896;border-radius:12px;padding:10px 20px;text-align:center;line-height:1.6;">
-        ⏱ AIが話し終えてから<span style="font-size:15px;">5秒以内</span>に<br>ボタンを押して話し始めてください
+        ⏱ AIが話し終えてから<span style="font-size:15px;color:#c4705a;">5秒以内</span>に<br>ボタンを押して話し始めてください
       </div>
-      <div id="_cdWrap" style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+      <div id="_cdWrap" style="display:flex;flex-direction:column;align-items:center;gap:14px;">
         <div style="position:relative;width:200px;height:200px;">
           <svg width="200" height="200" viewBox="0 0 200 200" style="position:absolute;top:0;left:0;transform:rotate(-90deg)">
             <circle cx="100" cy="100" r="88" fill="none" stroke="#e8dfd0" stroke-width="6"/>
@@ -1599,7 +1611,10 @@ function startResponseCountdown() {
           </svg>
           <div id="countdownBigNum" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:110px;line-height:1;color:#6a9b7e;transition:color 0.2s;">5</div>
         </div>
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:0.2em;color:#a89d95;">録音ボタンを押してください</div>
+        <button onclick="toggleRecord()" style="width:80px;height:80px;border-radius:50%;border:2.5px solid #6a9b7e;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(106,155,126,0.3);transition:all 0.2s;" onmouseover="this.style.transform='scale(1.08)'" onmouseout="this.style.transform='scale(1)'">
+          <div style="width:22px;height:22px;border-radius:50%;background:#6a9b7e;box-shadow:0 0 10px rgba(106,155,126,0.5);"></div>
+        </button>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:0.12em;color:#6a9b7e;">▶ タップして話す</div>
       </div>`;
     document.body.appendChild(ov);
   }

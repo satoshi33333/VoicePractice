@@ -1260,6 +1260,7 @@ function selectRoleplay(btn) {
   roleplaysRoundCount = 0;
   roleplaysHistory = [];
   roleplaysTimeoutCount = 0;
+  roleplaysRecordingMins = 0;
   // Reset avatar cache for new scenario
   Object.keys(avatarCache).forEach(k => { if (!k.includes(selectedRoleplay?.role?.slice(0,10))) delete avatarCache[k]; });
 }
@@ -1464,6 +1465,7 @@ function stopRecording() {
 
   // Stop MediaRecorder — collect final chunk then send to Whisper
   const snapStart = startTime;
+  const snapDuration = (Date.now() - startTime) / 1000 / 60; // minutes
   const snapMode = mode;
 
   if (mediaRecorder && mediaRecorder.state !== 'inactive') {
@@ -1717,21 +1719,33 @@ async function startRoleplaysScene() {
   }
 }
 
-async function handleRoleplaysUserTurn(userSpeech) {
+async function handleRoleplaysUserTurn(userSpeech, turnDuration) {
+  // Accumulate per-turn duration for pace calculation
+  if (turnDuration && userSpeech !== '__TIMEOUT__') roleplaysRecordingMins = (roleplaysRecordingMins||0) + turnDuration;
   // Don't show __TIMEOUT__ as a user message bubble
   if (userSpeech !== '__TIMEOUT__') {
     addUserMessage(userSpeech);
   }
+  // Push __TIMEOUT__ marker to history so analysis can filter it out
+  roleplaysHistory.push({ role: 'user', content: '__TIMEOUT__' });
+  // But send Japanese explanation to AI as the actual message
   const histContent = userSpeech === '__TIMEOUT__'
     ? t('（タイムオーバー：ユーザーは返答しませんでした。自然に場を進めてください）',
         '(Time over: user did not respond. Please move the scene forward naturally)')
     : userSpeech;
-  roleplaysHistory.push({ role: 'user', content: histContent });
   roleplaysRoundCount++;
 
+  // Build AI messages: replace __TIMEOUT__ with explanatory text for the AI
+  const aiMessages = roleplaysHistory.map(m => ({
+    role: m.role,
+    content: m.content === '__TIMEOUT__'
+      ? t('（タイムオーバー：ユーザーは返答しませんでした。自然に場を進めてください）',
+          '(Time over: user did not respond. Please move the scene forward naturally)')
+      : m.content
+  }));
   showTyping();
   try {
-    const reply = await callOpenAI(roleplaysHistory, buildRoleplaysSystemPrompt());
+    const reply = await callOpenAI(aiMessages, buildRoleplaysSystemPrompt());
     hideTyping();
     addRoleMessage(reply);
     roleplaysHistory.push({ role: 'assistant', content: reply });
@@ -1901,6 +1915,13 @@ async function startRoleplaysReflect() {
   const userTurns = roleplaysHistory.filter(m => m.role === 'user' && m.content !== '__TIMEOUT__').map(m => m.content);
   const userTranscript = userTurns.join(' ');
 
+  if (!userTranscript.trim()) {
+    // No real speech — show message and skip analysis
+    const panel = document.getElementById('metricsRow');
+    panel.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-3);font-size:13px;">📊 発話データがありません。ロールプレイで返答してから分析できます。</div>';
+    panel.classList.add('visible');
+    return;
+  }
   if (userTranscript.trim()) {
     // フィラーワード
     const fillerPatterns = /(えーと|えっと|えー+|あー+|あのー?|あのう|うーん|まあ|なんか|なんかこう|ちょっと|そのー|なんていうか|要するに|つまり)/gi;
@@ -1913,8 +1934,11 @@ async function startRoleplaysReflect() {
     // 語彙の多様性
     const words = userTranscript.replace(/[、。！？\s]/g, ' ').split(/\s+/).filter(w => w.length > 1);
     const uniqueWords = new Set(words.map(w => w.toLowerCase()));
-    const vocabScore = words.length > 0 ? Math.round((uniqueWords.size / words.length) * 100) : 0;
-    const vocabClass = vocabScore >= 70 ? 'ok' : vocabScore >= 50 ? 'warn' : 'bad';
+    // Need at least 20 words for meaningful vocab diversity
+    const vocabScore = words.length >= 20
+      ? Math.round((uniqueWords.size / words.length) * 100)
+      : words.length >= 5 ? Math.round((uniqueWords.size / words.length) * 100) : -1;
+    const vocabClass = vocabScore < 0 ? 'warn' : vocabScore >= 70 ? 'ok' : vocabScore >= 50 ? 'warn' : 'bad';
 
     // 発話量（文字数）
     const totalChars = userTranscript.replace(/\s/g, '').length;
@@ -1926,19 +1950,26 @@ async function startRoleplaysReflect() {
     document.getElementById('transcriptBox').className = 'transcript-box';
 
     // 分析パネルを表示（スピード・ポーズ・音量はロールプレイでは計測不可なのでN/A）
-    document.getElementById('speedVal').textContent = avgCharsPerTurn;
-    document.getElementById('speedUnit').textContent = '字/ターン';
-    document.getElementById('speedHint').textContent = '1ターンの平均文字数';
-    document.getElementById('speedBar').style.width = Math.min(100, avgCharsPerTurn / 2) + '%';
-    document.getElementById('speedBar').className = 'mc-bar-fill ' + (avgCharsPerTurn >= 30 ? 'ok' : 'warn');
-    document.getElementById('cardSpeed').className = 'metric-card ' + (avgCharsPerTurn >= 30 ? 'ok' : 'warn');
+    // Pace（話速：字/分） — actual recording time based
+    const paceVal = roleplaysRecordingMins > 0 ? Math.round(totalChars / roleplaysRecordingMins) : 0;
+    const paceClass = paceVal >= 200 && paceVal <= 400 ? 'ok' : paceVal >= 100 ? 'warn' : 'bad';
+    document.getElementById('speedVal').textContent = paceVal > 0 ? paceVal : '—';
+    document.getElementById('speedUnit').textContent = '字/分';
+    document.getElementById('speedHint').textContent = '目安 200〜400字/分';
+    document.getElementById('speedBar').style.width = Math.min(100, (paceVal / 500) * 100) + '%';
+    document.getElementById('speedBar').className = 'mc-bar-fill ' + (paceVal > 0 ? paceClass : 'warn');
+    document.getElementById('cardSpeed').className = 'metric-card ' + (paceVal > 0 ? paceClass : 'warn');
+    document.querySelector('#cardSpeed .mc-label').textContent = 'Pace';
 
+    // Turns（返答回数）
+    const turnsClass = userTurns.length >= 3 ? 'ok' : 'warn';
     document.getElementById('pauseVal').textContent = userTurns.length;
-    document.getElementById('pauseBar').style.width = Math.min(100, userTurns.length * 10) + '%';
-    document.getElementById('pauseBar').className = 'mc-bar-fill ok';
-    document.getElementById('cardPause').className = 'metric-card ok';
+    document.getElementById('pauseBar').style.width = Math.min(100, userTurns.length * 12) + '%';
+    document.getElementById('pauseBar').className = 'mc-bar-fill ' + turnsClass;
+    document.getElementById('cardPause').className = 'metric-card ' + turnsClass;
     document.querySelector('#cardPause .mc-label').textContent = 'Turns';
-    document.querySelector('#cardPause .mc-ref').textContent = '発話ターン数';
+    document.querySelector('#cardPause .mc-unit').textContent = '回';
+    document.querySelector('#cardPause .mc-ref').textContent = '返答した回数';
 
     document.getElementById('volVal').textContent = totalChars;
     document.getElementById('volBar').style.width = Math.min(100, totalChars / 5) + '%';
@@ -1953,23 +1984,30 @@ async function startRoleplaysReflect() {
     document.getElementById('fillerBar').className = 'mc-bar-fill ' + fillerClass;
     document.getElementById('cardFiller').className = 'metric-card ' + fillerClass;
 
-    document.getElementById('vocabVal').textContent = vocabScore;
-    document.getElementById('vocabBar').style.width = vocabScore + '%';
+    const vocabDisplay = vocabScore < 0 ? '—' : vocabScore;
+    const vocabBarWidth = vocabScore < 0 ? 0 : vocabScore;
+    document.getElementById('vocabVal').textContent = vocabDisplay;
+    document.getElementById('vocabBar').style.width = vocabBarWidth + '%';
     document.getElementById('vocabBar').className = 'mc-bar-fill ' + vocabClass;
-    document.getElementById('cardVocab').className = 'metric-card ' + vocabClass;
+    document.getElementById('cardVocab').className = 'metric-card ' + (vocabScore < 0 ? 'warn' : vocabClass);
+    if (vocabScore < 0) document.querySelector('#cardVocab .mc-ref').textContent = '発話量が少なすぎます';
 
     // 沈黙率はロールプレイでは「相手の発言数との比率」で代替
     const aiTurns = roleplaysHistory.filter(m => m.role === 'assistant').length;
-    const turnRatio = aiTurns + userTurns.length > 0
-      ? Math.round((userTurns.length / (aiTurns + userTurns.length)) * 100) : 50;
-    const turnRatioClass = turnRatio >= 40 && turnRatio <= 60 ? 'ok' : 'warn';
-    document.getElementById('silenceVal').textContent = turnRatio;
-    document.getElementById('silenceBar').style.width = turnRatio + '%';
+    // Balance only meaningful with 3+ exchanges
+    const totalTurns = aiTurns + userTurns.length;
+    const turnRatio = totalTurns >= 4
+      ? Math.round((userTurns.length / totalTurns) * 100) : -1;
+    const turnRatioClass = turnRatio < 0 ? 'warn' : turnRatio >= 35 && turnRatio <= 65 ? 'ok' : 'warn';
+    const balanceDisplay = turnRatio < 0 ? '—' : turnRatio;
+    const balanceBarWidth = turnRatio < 0 ? 0 : turnRatio;
+    document.getElementById('silenceVal').textContent = balanceDisplay;
+    document.getElementById('silenceBar').style.width = balanceBarWidth + '%';
     document.getElementById('silenceBar').className = 'mc-bar-fill ' + turnRatioClass;
     document.getElementById('cardSilence').className = 'metric-card ' + turnRatioClass;
     document.querySelector('#cardSilence .mc-label').textContent = 'Balance';
-    document.querySelector('#cardSilence .mc-unit').textContent = '%発話比率';
-    document.querySelector('#cardSilence .mc-ref').textContent = '自分の発話割合';
+    document.querySelector('#cardSilence .mc-unit').textContent = turnRatio < 0 ? '' : '%発話比率';
+    document.querySelector('#cardSilence .mc-ref').textContent = turnRatio < 0 ? '往復が少なすぎます' : '自分の発話割合';
 
     // Timeout card — replace Pauses metric with timeout count
     const toCount = roleplaysTimeoutCount;
@@ -2114,7 +2152,6 @@ function startResponseCountdown() {
       roleplaysTimeoutCount++;
       stopResponseCountdown();
       const timeoutMsg = t('（タイムオーバー — 返答なし）', '(Time over — no response)');
-      addRoleMessage(''); // placeholder
       // Show timeout notice in chat
       const toEl = document.createElement('div');
       toEl.style.cssText = 'text-align:center;padding:8px;margin:4px 0;background:rgba(196,112,90,0.08);border-radius:10px;font-size:12px;color:var(--terracotta);font-weight:700;';

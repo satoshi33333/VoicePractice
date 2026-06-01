@@ -1633,11 +1633,13 @@ async function generateAvatar(scenario, difficulty) {
     const resp = await fetch('https://api.openai.com/v1/images/generations', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
-      body: JSON.stringify({ model: 'dall-e-3', prompt, n: 1, size: '1024x1024', quality: 'standard' })
+      body: JSON.stringify({ model: 'gpt-image-1', prompt, n: 1, size: '1024x1024', quality: 'medium' })
     });
     const data = await resp.json();
     if (data.error) throw new Error(data.error.message);
-    const url = data.data[0].url;
+    // gpt-image-1 returns base64, dall-e-3 returned URL
+    const imgData = data.data[0];
+    const url = imgData.url || ('data:image/png;base64,' + imgData.b64_json);
     avatarCache[cacheKey] = url;
     return url;
   } catch(e) {

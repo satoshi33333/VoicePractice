@@ -647,6 +647,11 @@
     background: rgba(250,248,244,0.97);
     border-top: 1.5px solid var(--border);
     z-index: 200;
+    overflow: visible;
+  }
+  #endRoleplaysBtn {
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
   }
   #recFooter .record-area {
     padding: 12px 0 14px !important;
@@ -1617,8 +1622,8 @@ function applyDifficultyAtmosphere(diff) {
 }
 
 // Generate avatar via DALL-E 3
-async function generateAvatar(scenario, difficulty) {
-  const cacheKey = scenario.role.slice(0,10) + '_' + difficulty;
+async function generateAvatar(scenario, difficulty, voice) {
+  const cacheKey = scenario.role.slice(0,10) + '_' + difficulty + '_' + (voice||'nova');
   if (avatarCache[cacheKey]) return avatarCache[cacheKey];
 
   const diffDesc = {
@@ -1627,16 +1632,24 @@ async function generateAvatar(scenario, difficulty) {
     hard:   '厳しい目つき、腕を組んで警戒した表情、プレッシャーを与える雰囲気'
   }[difficulty];
 
+  // Determine gender from selected voice
+  const voiceGenderMap = {
+    nova: 'female', shimmer: 'female', alloy: 'female',
+    echo: 'male', fable: 'male', onyx: 'male'
+  };
+  const voiceGender = voiceGenderMap[voice || selectedVoice || 'nova'] || 'female';
+  const genderDesc = voiceGender === 'female' ? 'woman' : 'man';
+
   const roleDesc = {
-    '採用面接官': 'Japanese corporate HR interviewer in formal suit, sitting at a desk',
-    '直属の上司': 'Japanese middle-aged male manager in business casual, busy and slightly impatient',
-    '転職エージェント': 'Japanese career consultant, professional and attentive expression',
-    '初対面の取引先': 'Japanese business person in their 30s, cautious and evaluating expression',
-    'チームリーダー': 'Japanese team leader in casual business wear, assertive posture',
-    '大学のゼミ': 'Japanese elderly male professor with glasses, scholarly and stern'
+    '採用面接官': `Japanese ${genderDesc}, corporate HR interviewer in formal suit, sitting at a desk`,
+    '直属の上司': `Japanese ${genderDesc}, middle-aged manager in business casual, busy and slightly impatient`,
+    '転職エージェント': `Japanese ${genderDesc}, career consultant, professional and attentive expression`,
+    '初対面の取引先': `Japanese ${genderDesc} in their 30s, business person, cautious and evaluating expression`,
+    'チームリーダー': `Japanese ${genderDesc}, team leader in casual business wear, assertive posture`,
+    '大学のゼミ': `Japanese ${genderDesc}, professor with glasses, scholarly and stern`
   };
 
-  let baseDesc = 'Professional Japanese business person';
+  let baseDesc = 'Professional Japanese ' + genderDesc + ', business professional';
   for (const [key, val] of Object.entries(roleDesc)) {
     if (scenario.role.includes(key)) { baseDesc = val; break; }
   }
@@ -1739,7 +1752,7 @@ async function startRoleplaysScene() {
 
   // Generate avatar (non-blocking)
   showAvatar(null, selectedRoleplay.role, roleplaysdifficulty);
-  generateAvatar(selectedRoleplay, roleplaysdifficulty).then(url => {
+  generateAvatar(selectedRoleplay, roleplaysdifficulty, selectedVoice).then(url => {
     showAvatar(url, selectedRoleplay.role, roleplaysdifficulty);
   });
 

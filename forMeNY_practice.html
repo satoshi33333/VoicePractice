@@ -1794,8 +1794,8 @@ async function handleRoleplaysUserTurn(userSpeech, turnDuration) {
   if (userSpeech !== '__TIMEOUT__') {
     addUserMessage(userSpeech);
   }
-  // Push __TIMEOUT__ marker to history so analysis can filter it out
-  roleplaysHistory.push({ role: 'user', content: '__TIMEOUT__' });
+  // Push user speech to history（タイムアウトの場合はマーカーを使う）
+  roleplaysHistory.push({ role: 'user', content: userSpeech === '__TIMEOUT__' ? '__TIMEOUT__' : userSpeech });
   // But send Japanese explanation to AI as the actual message
   const histContent = userSpeech === '__TIMEOUT__'
     ? t('（タイムオーバー：ユーザーは返答しませんでした。自然に場を進めてください）',
@@ -2006,13 +2006,12 @@ async function startRoleplaysReflect() {
   const userTranscript = userTurns.join(' ');
 
   if (!userTranscript.trim()) {
-    // No real speech — show message and skip analysis
+    // No real speech — show message but continue to reflect
     const panel = document.getElementById('metricsRow');
     panel.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-3);font-size:13px;">📊 発話データがありません。ロールプレイで返答してから分析できます。</div>';
     panel.classList.add('visible');
-    return;
-  }
-  if (userTranscript.trim()) {
+    // fall through to addCoachMessage below
+  } else {
     // フィラーワード
     const fillerPatterns = /(えーと|えっと|えー+|あー+|あのー?|あのう|うーん|まあ|なんか|なんかこう|ちょっと|そのー|なんていうか|要するに|つまり)/gi;
     const fillerMatches = userTranscript.match(fillerPatterns) || [];
@@ -2146,10 +2145,11 @@ async function startRoleplaysReflect() {
     roleplaysRounds: roleplaysRoundCount,
     timeoutCount: roleplaysTimeoutCount,
     isRoleplay: true,
-    fillerCount, fillerList,
-    vocabScore,
+    fillerCount: typeof fillerCount !== 'undefined' ? fillerCount : 0,
+    fillerList: typeof fillerList !== 'undefined' ? fillerList : [],
+    vocabScore: typeof vocabScore !== 'undefined' ? vocabScore : 0,
     userTurns: userTurns.length,
-    totalChars
+    totalChars: typeof totalChars !== 'undefined' ? totalChars : 0
   };
 }
 
@@ -2341,11 +2341,9 @@ function updateMoodDisplay() {
 
 function endRoleplay() {
   stopResponseCountdown();
-  // Keep avatar visible during reflect phase
-  applyDifficultyAtmosphere('normal'); // reset atmosphere
+  applyDifficultyAtmosphere('normal');
   if (currentAudio) { currentAudio.pause(); currentAudio = null; }
   onSpeechEndCallback = null;
-  // Stop MediaRecorder cleanly without triggering Whisper transcription
   if (mediaRecorder && mediaRecorder.state !== 'inactive') {
     mediaRecorder.onstop = null;
     mediaRecorder.stop();
@@ -2354,12 +2352,15 @@ function endRoleplay() {
 
   document.getElementById('endRoleplaysBtn').style.display = 'none';
   document.getElementById('aiSpeakingIndicator').style.display = 'none';
-  document.getElementById('recordBtn').disabled = false;
+  // 録音ボタンを無効化（ロールプレイ終了後は録音させない）
+  const recBtn = document.getElementById('recordBtn');
+  recBtn.disabled = true;
+  recBtn.style.opacity = '0.4';
+  document.getElementById('recordLabel').textContent = t('セッション終了', 'Session ended');
 
   document.getElementById('aiAvatar').textContent = 'F';
   document.getElementById('aiAvatar').className = 'ai-avatar';
   document.getElementById('chatHeaderText').textContent = 'FOR ME NY AI Coach';
-  // Switch avatar to coach mode but keep visible
   const _gen = document.getElementById('avatarGenerating');
   const _img = document.getElementById('avatarImg');
   const _name = document.getElementById('avatarName');
@@ -2368,16 +2369,6 @@ function endRoleplay() {
   if (_img) _img.style.display='none';
   if (_name) _name.textContent = 'FOR ME NY Coach';
   if (_badge) _badge.textContent = '📊 Reflect';
-
-  // Switch avatar to coach mode
-  const _eGen = document.getElementById('avatarGenerating');
-  const _eImg = document.getElementById('avatarImg');
-  const _eName = document.getElementById('avatarName');
-  const _eBadge = document.getElementById('avatarDiffBadge');
-  if (_eGen) { _eGen.style.display='flex'; _eGen.textContent='💬'; }
-  if (_eImg) _eImg.style.display='none';
-  if (_eName) _eName.textContent = 'FOR ME NY Coach';
-  if (_eBadge) _eBadge.textContent = '📊 Reflect';
 
   setTimeout(() => startRoleplaysReflect(), 200);
 }

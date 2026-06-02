@@ -856,8 +856,8 @@
 
           <button class="topic-btn roleplay-btn"
             data-role="チームリーダー（同僚・30代）"
-            data-situation="プロジェクトの進め方について意見が食い違っている場面。相手も自分の意見を持っており、感情的にならず建設的に話し合う必要がある。自分の意見を主張しながらも相手を尊重し、落としどころを探る。"
-            data-opener="ちょっとさ、今回のプロジェクトの進め方なんだけど、正直あなたとは少し考え方が違うなって思っていて。話し合いたいんだけど、いいかな。"
+            data-situation="プロジェクトの進め方について意見が食い違っている。あなた（AI）はアジャイルで小さく早く動くべきと考えており、すでにチームに根回し済み。ユーザーは慎重な計画重視派。感情的にはならないが、自分の意見をはっきり持っており、簡単には引かない。ユーザーに意見を聞きながらも、自分の立場をしっかり主張する。"
+            data-opener="ちょっとさ、今回のプロジェクトの進め方なんだけど、正直あなたとは考え方が違うと思っていて。私はもう小さく動いてフィードバックを取るべきだと思ってるし、チームにもそう話してる。あなたはどう考えてる？"
             onclick="selectRoleplay(this)">意見の食い違い<span class="topic-tag">社内・チーム調整</span></button>
 
           <button class="topic-btn roleplay-btn"
@@ -870,8 +870,11 @@
         <textarea class="custom-input" id="customTopicRoleplay" placeholder="カスタムシナリオを入力（例：クレーム対応、病院での症状説明）…" oninput="onCustomTopic('roleplay')"></textarea>
       </div>
 
-      <!-- Roleplay context display -->
-      <div class="roleplay-info" id="roleplaysInfo"></div>
+      <!-- Roleplay context display — editable -->
+      <div id="roleplaysInfoWrap" style="display:none;flex-direction:column;gap:4px;">
+        <div style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);">Scene Setting <span style="color:var(--text-3);font-size:9px;text-transform:none;letter-spacing:0;">（編集可能）</span></div>
+        <textarea id="roleplaysInfo" rows="3" style="width:100%;background:rgba(74,122,155,0.06);border:1px solid rgba(74,122,155,0.3);border-radius:6px;padding:9px 10px;font-size:11px;color:var(--text);font-family:'Nunito',sans-serif;line-height:1.6;resize:vertical;outline:none;" oninput="selectedRoleplay.situation=this.value"></textarea>
+      </div>
 
       <!-- Start button — appears after scenario selection -->
       <button class="roleplay-start-btn" id="roleplaysStartBtn" onclick="startRoleplaysFromButton()">
@@ -1002,14 +1005,15 @@
     <div class="chat-header">
       <div class="ai-avatar" id="aiAvatar">F</div>
       <div class="chat-header-text" id="chatHeaderText">FOR ME NY AI Coach</div>
-      <div class="phase-badge" id="phaseBadge">—</div>
+
     </div>
     <!-- Avatar panel -->
     <div class="avatar-panel" id="avatarPanel">
       <div class="avatar-generating" id="avatarGenerating">🎭</div>
       <img id="avatarImg" class="avatar-img" style="display:none" src="" alt="character"/>
-      <div class="avatar-name" id="avatarName"></div>
-      <div class="avatar-diff-badge" id="avatarDiffBadge"></div>
+      <div class="avatar-name" id="avatarName">FOR ME NY Coach</div>
+      <div id="avatarSub" style="font-size:10px;color:var(--text-3);text-align:center;padding:0 12px;line-height:1.5;max-height:48px;overflow:hidden;">🎙 Voice Practice</div>
+
     </div>
     <div class="chat-messages" id="chatMessages"></div>
     <div class="chat-input-area">
@@ -1210,7 +1214,8 @@ setTimeout(() => startPrepare(), 400);
   if (gen) gen.style.display = 'flex';
   if (img) img.style.display = 'none';
   if (name) name.textContent = 'FOR ME NY Coach';
-  if (badge) badge.textContent = '🎙 Voice Practice';
+  const sub = document.getElementById('avatarSub');
+  if (sub) sub.textContent = '🎙 Voice Practice';
 })();
 
 // ── Mode switching ──────────────────────────────────────────
@@ -1264,9 +1269,10 @@ function selectRoleplay(btn) {
     opener: btn.dataset.opener
   };
   document.getElementById('customTopicRoleplay').value = '';
-  const info = document.getElementById('roleplaysInfo');
-  info.textContent = `相手役：${selectedRoleplay.role} / ${selectedRoleplay.situation}`;
-  info.classList.add('visible');
+  const infoWrap = document.getElementById('roleplaysInfoWrap');
+  const infoTA = document.getElementById('roleplaysInfo');
+  infoWrap.style.display = 'flex';
+  infoTA.value = selectedRoleplay.situation;
   // Show start button
   const startBtn = document.getElementById('roleplaysStartBtn');
   if (startBtn) {
@@ -1318,9 +1324,11 @@ function startPrepare() {
 function setPhase(p) {
   phase = p;
   const badge = document.getElementById('phaseBadge');
-  const labels = { prepare: 'Prepare', rehearse: 'Rehearse', roleplay: 'Role Play', reflect: 'Reflect' };
-  badge.textContent = labels[p] || '—';
-  badge.className = 'phase-badge ' + p;
+  if (badge) {
+    const labels = { prepare: 'Prepare', rehearse: 'Rehearse', roleplay: 'Role Play', reflect: 'Reflect' };
+    badge.textContent = labels[p] || '—';
+    badge.className = 'phase-badge ' + p;
+  }
 }
 
 // ── Recording ──────────────────────────────────────────
@@ -1580,7 +1588,8 @@ function onTranscriptReady(transcript, snapStart, snapMode) {
   } else {
     document.getElementById('recordLabel').textContent = t('AIが返答しています…', 'AI is responding…');
     pendingComputeTimer = null;
-    handleRoleplaysUserTurn(transcript || t('（沈黙）', '(silence)'));
+    const turnDurationMins = snapStart ? (Date.now() - snapStart) / 1000 / 60 : 0;
+    handleRoleplaysUserTurn(transcript || t('（沈黙）', '(silence)'), turnDurationMins);
   }
 }
 
@@ -1679,13 +1688,20 @@ function showAvatar(url, roleName, difficulty) {
   const gen   = document.getElementById('avatarGenerating');
   const img   = document.getElementById('avatarImg');
   const name  = document.getElementById('avatarName');
-  const badge = document.getElementById('avatarDiffBadge');
+  const sub   = document.getElementById('avatarSub');
 
-  // panel is always visible — no need to add class
-  name.textContent = roleName;
+  // 役割名を表示
+  if (name) name.textContent = roleName;
 
-  const diffLabels = { easy: '🌱 Easy', normal: '🔥 Normal', hard: '⚡ Hard' };
-  badge.textContent = diffLabels[difficulty] || '🔥 Normal';
+  // サブテキスト：難易度 ＋ シナリオ説明（先頭40文字）
+  if (sub && selectedRoleplay) {
+    const diffLabels = { easy: '🌱 Easy', normal: '🔥 Normal', hard: '⚡ Hard' };
+    const diffLabel = diffLabels[difficulty] || '';
+    const situationShort = selectedRoleplay.situation
+      ? selectedRoleplay.situation.slice(0, 50) + (selectedRoleplay.situation.length > 50 ? '…' : '')
+      : '';
+    sub.textContent = [diffLabel, situationShort].filter(Boolean).join('  ');
+  }
 
   if (url) {
     gen.style.display = 'none';
@@ -1930,12 +1946,14 @@ ${diff === 'hard' ? '圧迫時：「正直、今すぐ変える気はないん�
   } else if (role.includes('チームリーダー') || role.includes('意見')) {
     character = `
 【キャラクター：チームリーダー 中村さん 28歳 / エンジニア】
-背景：優秀なエンジニア上がりのリーダー。論理的思考が強く、感情より数字・根拠を重視。
-動機：チームの生産性を落としたくない。自分の判断に自信がある。
-口調：「それって根拠あるの？」「ちょっと待って、それだと〜の問題が出ない？」
-よく使う技：すぐ反論。「でも〜じゃない？」「他のメンバーはどう思ってるの？」
-${diff === 'hard' ? '圧迫時：「正直、前回のあなたの提案もうまくいかなかったよね」' : ''}`;
-  } else if (role.includes('教授') || role.includes('ゼミ')) {
+背景：優秀なエンジニア上がりのリーダー。アジャイル推進派で、小さく早く動いてフィードバックを取るのが正しいと確信している。すでにチームの何人かに根回し済み。
+動機：チームを自分の考える方向に動かしたい。ただし感情的にはならない。論理で勝ちたい。
+口調：「それって根拠あるの？」「でも実際、慎重にやって間に合った試しある？」「私はこう思う」
+よく使う技：自分の立場を明確に主張してから相手の意見を聞く。同意しない点はすぐ指摘。「他のメンバーはどう思ってるの？」
+シナリオ補足：${selectedRoleplay?.situation || ''}
+${diff === 'hard' ? '圧迫時：「正直、あなたのやり方だと遅すぎる。もう動き始めないと間に合わない」' : ''}
+
+【重要】あなたはすでに自分の意見を持っており、最初から主張する。相手の話をまず聞くのではなく、自分の立場を先に示してから問い返す。ただし怒鳴ったり感情的にはならない。`;  } else if (role.includes('教授') || role.includes('ゼミ')) {
     character = `
 【キャラクター：田村教授 62歳 / 社会学専攻】
 背景：40年のキャリア。論文200本以上。学生には厳しいが愛情がある。曖昧さを嫌う。
@@ -1991,6 +2009,9 @@ ${diffConfig.examples}
 - 必ず次の会話につながる反応や問いかけで締める
 - 必要なら沈黙を使う：「（沈黙）……続けてください」
 - あなたは常に「聞く・評価する・反応する」側。自分から説明・提案・サービス紹介をすることは絶対にしない
+
+【シーン設定（ユーザーが指定）】
+${selectedRoleplay.situation}
 
 【現在の機嫌レベル：` + getMoodInstruction() + `】`;
 }
@@ -2364,11 +2385,11 @@ function endRoleplay() {
   const _gen = document.getElementById('avatarGenerating');
   const _img = document.getElementById('avatarImg');
   const _name = document.getElementById('avatarName');
-  const _badge = document.getElementById('avatarDiffBadge');
+  const _sub = document.getElementById('avatarSub');
   if (_gen) { _gen.style.display='flex'; _gen.textContent='💬'; }
   if (_img) _img.style.display='none';
   if (_name) _name.textContent = 'FOR ME NY Coach';
-  if (_badge) _badge.textContent = '📊 Reflect';
+  if (_sub) _sub.textContent = '📊 Reflect';
 
   setTimeout(() => startRoleplaysReflect(), 200);
 }

@@ -582,9 +582,13 @@
   .avatar-diff-badge { background: var(--bg2); color: var(--text-3); border: 1px solid var(--border); border-radius: 20px; font-size: 11px; font-weight: 700; padding: 3px 12px; letter-spacing: 0.06em; }
   .avatar-generating {
     width: 100px; height: 100px; border-radius: 16px;
-    background: var(--bg2); border: 2px dashed var(--border2);
+    background: var(--bg2); border: 1px solid var(--border2);
     display: flex; align-items: center; justify-content: center;
-    font-size: 32px; animation: avatarPulse 1.5s ease-in-out infinite;
+    font-size: 32px;
+  }
+  .avatar-generating.generating {
+    border-style: dashed;
+    animation: avatarPulse 1.5s ease-in-out infinite;
   }
   @keyframes avatarPulse { 0%,100%{opacity:0.5;} 50%{opacity:1;} }
 
@@ -1009,7 +1013,7 @@
     </div>
     <!-- Avatar panel -->
     <div class="avatar-panel" id="avatarPanel">
-      <div class="avatar-generating" id="avatarGenerating">🎭</div>
+      <div class="avatar-generating" id="avatarGenerating"><svg width="72" height="72" viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg"><circle cx="70" cy="70" r="70" fill="#fdf6ee"/><circle cx="70" cy="70" r="52" fill="none" stroke="#c9a84c" stroke-width="1.2" opacity="0.45"/><text x="70" y="66" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="38" letter-spacing="6" fill="#c4705a">FM</text><text x="70" y="102" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="38" letter-spacing="6" fill="#6a9b7e">NY</text><circle cx="70" cy="10" r="3.5" fill="#c9a84c"/><circle cx="70" cy="130" r="3.5" fill="#c9a84c"/><circle cx="10" cy="70" r="3.5" fill="#c9a84c" opacity="0.5"/><circle cx="130" cy="70" r="3.5" fill="#c9a84c" opacity="0.5"/></svg></div>
       <img id="avatarImg" class="avatar-img" style="display:none" src="" alt="character"/>
       <div class="avatar-name" id="avatarName">FOR ME NY Coach</div>
       <div id="avatarSub" style="font-size:10px;color:var(--text-3);text-align:center;padding:0 12px;line-height:1.5;max-height:48px;overflow:hidden;">🎙 Voice Practice</div>
@@ -1027,6 +1031,8 @@
 // ── State ──────────────────────────────────────────
 let apiKey = localStorage.getItem('formeny_openai_key') || '';
 let lang = 'ja';
+
+const COACH_AVATAR_SVG = `<svg width="72" height="72" viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg"><circle cx="70" cy="70" r="70" fill="#fdf6ee"/><circle cx="70" cy="70" r="52" fill="none" stroke="#c9a84c" stroke-width="1.2" opacity="0.45"/><text x="70" y="66" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="38" letter-spacing="6" fill="#c4705a">FM</text><text x="70" y="102" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="38" letter-spacing="6" fill="#6a9b7e">NY</text><circle cx="70" cy="10" r="3.5" fill="#c9a84c"/><circle cx="70" cy="130" r="3.5" fill="#c9a84c"/><circle cx="10" cy="70" r="3.5" fill="#c9a84c" opacity="0.5"/><circle cx="130" cy="70" r="3.5" fill="#c9a84c" opacity="0.5"/></svg>`;
 let mode = 'speech'; // 'speech' | 'roleplay'
 let selectedTopic = '自己紹介（1分間）';
 let selectedRoleplay = null; // { role, situation, opener }
@@ -1226,6 +1232,8 @@ function setMode(m) {
   document.getElementById('speechScenarios').style.display = m === 'speech' ? 'block' : 'none';
   document.getElementById('roleplaysScenarios').style.display = m === 'roleplay' ? 'block' : 'none';
   document.getElementById('roleplaysInfo').classList.remove('visible');
+  const infoWrap = document.getElementById('roleplaysInfoWrap');
+  if (infoWrap) infoWrap.style.display = 'none';
   const sb = document.getElementById('roleplaysStartBtn');
   if (sb) sb.classList.remove('visible');
   // Show voice selector only in roleplay mode
@@ -1704,10 +1712,12 @@ function showAvatar(url, roleName, difficulty) {
   }
 
   if (url) {
+    gen.classList.remove('generating');
     gen.style.display = 'none';
     img.style.display = 'block';
     img.src = url;
   } else {
+    gen.classList.add('generating');
     gen.style.display = 'flex';
     img.style.display = 'none';
     gen.textContent = '🎭';
@@ -1776,7 +1786,10 @@ async function startRoleplaysScene() {
   showTyping();
   try {
     const opener = await callOpenAI([
-      { role: 'user', content: t('シーンを始めてください。最初の一言を、自然な話し言葉で短く言ってください。', 'Please start the scene. Say your opening line naturally and briefly.') }
+      { role: 'user', content: t(
+        'シーンを始めてください。最初の一言を、自然な話し言葉で短く言ってください。毎回少し違う状況・切り口・雰囲気で始めること（同じ言い回しを繰り返さない）。',
+        'Please start the scene. Say your opening line naturally and briefly. Vary the situation, angle, or mood slightly each time — never repeat the same phrasing.'
+      )}
     ], buildRoleplaysSystemPrompt());
     hideTyping();
     addRoleMessage(opener);
@@ -2012,6 +2025,9 @@ ${diffConfig.examples}
 
 【シーン設定（ユーザーが指定）】
 ${selectedRoleplay.situation}
+
+【バリエーション指示】
+毎回少し違う入り方・展開にすること。同じ言い回し・同じ質問の順番を繰り返さない。気分・状況・話の切り口を毎回少しずらす。
 
 【現在の機嫌レベル：` + getMoodInstruction() + `】`;
 }
@@ -2386,7 +2402,7 @@ function endRoleplay() {
   const _img = document.getElementById('avatarImg');
   const _name = document.getElementById('avatarName');
   const _sub = document.getElementById('avatarSub');
-  if (_gen) { _gen.style.display='flex'; _gen.textContent='💬'; }
+  if (_gen) { _gen.classList.remove('generating'); _gen.style.display='flex'; _gen.innerHTML = COACH_AVATAR_SVG; }
   if (_img) _img.style.display='none';
   if (_name) _name.textContent = 'FOR ME NY Coach';
   if (_sub) _sub.textContent = '📊 Reflect';

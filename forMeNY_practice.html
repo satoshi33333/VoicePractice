@@ -313,7 +313,7 @@
   .transcript-box.placeholder { color: var(--text-3); font-style: normal; font-family: 'Nunito', sans-serif; font-size: 12px; }
 
   /* ── Right panel ── */
-  .right { display: flex; flex-direction: column; background: linear-gradient(180deg, var(--surface2) 0%, #fdfbf7 100%); overflow: hidden; }
+  .right { display: flex; flex-direction: column; background: linear-gradient(180deg, var(--surface2) 0%, #fdfbf7 100%); overflow: hidden; height: 100%; min-height: 0; max-height: calc(100vh - 53px); }
   .chat-header {
     padding: 14px 18px; border-bottom: 1px solid var(--border);
     display: flex; align-items: center; gap: 12px; flex-shrink: 0;
@@ -2880,5 +2880,5 @@ function escHtml(s) {
   <span id="countdownNum" style="display:none"></span>
 </div>
 
-</body>
+</body></body>
 </html>

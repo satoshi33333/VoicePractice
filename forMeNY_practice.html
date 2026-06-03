@@ -746,9 +746,9 @@
 <div class="app">
   <div class="left">
 
-    <!-- OpenAI API Key -->
+    <!-- OpenAI API Key (Whisper用) -->
     <div>
-      <div class="section-label">OpenAI API Key</div>
+      <div class="section-label">OpenAI API Key <span style="font-size:9px;color:var(--text-3);text-transform:none;letter-spacing:0;">（音声認識 Whisper用）</span></div>
       <div class="key-row">
         <input class="key-input" id="apiKeyInput" type="password" placeholder="sk-..." />
         <button class="key-save-btn" onclick="saveKey()" id="btnSave">保存</button>
@@ -756,14 +756,24 @@
       <div class="key-status" id="keyStatus">未設定</div>
     </div>
 
-    <!-- ElevenLabs API Key (future) -->
+    <!-- Anthropic API Key (会話生成用) -->
     <div>
-      <div class="section-label" style="color:var(--text-3)">ElevenLabs API Key（音声・準備中）</div>
+      <div class="section-label">Anthropic API Key <span style="font-size:9px;color:var(--text-3);text-transform:none;letter-spacing:0;">（会話生成 Claude用）</span></div>
       <div class="key-row">
-        <input class="key-input" id="elevenKeyInput" type="password" placeholder="sk_..." style="opacity:0.5" />
-        <button class="key-save-btn" onclick="saveElevenKey()" id="btnSaveEleven" style="opacity:0.5;cursor:not-allowed">保存</button>
+        <input class="key-input" id="anthropicKeyInput" type="password" placeholder="sk-ant-..." />
+        <button class="key-save-btn" onclick="saveAnthropicKey()" id="btnSaveAnthropic">保存</button>
       </div>
-      <div class="key-status" id="elevenKeyStatus" style="color:var(--text-3)">現在はOpenAI TTSを使用中</div>
+      <div class="key-status" id="anthropicKeyStatus">未設定</div>
+    </div>
+
+    <!-- Google Cloud API Key (TTS) -->
+    <div>
+      <div class="section-label">Google Cloud API Key（音声）</div>
+      <div class="key-row">
+        <input class="key-input" id="elevenKeyInput" type="password" placeholder="AIza..." />
+        <button class="key-save-btn" onclick="saveElevenKey()" id="btnSaveEleven">保存</button>
+      </div>
+      <div class="key-status" id="elevenKeyStatus" style="color:var(--text-3)">未設定（設定するとChirp 3 HD音声になります）</div>
     </div>
 
 
@@ -878,12 +888,12 @@
     <div id="voiceSelectorSection" style="display:none">
       <div class="section-label" id="labelVoice">AI Voice（ロールプレイ）</div>
       <div class="voice-grid" id="voiceGrid">
-        <button class="voice-btn active" data-voice="nova" onclick="setVoice(this)">Nova<span class="voice-tag" id="vt-nova">女性・自然 ★推奨</span></button>
-        <button class="voice-btn" data-voice="shimmer" onclick="setVoice(this)">Shimmer<span class="voice-tag" id="vt-shimmer">女性・柔らか ★推奨</span></button>
-        <button class="voice-btn" data-voice="alloy" onclick="setVoice(this)">Alloy<span class="voice-tag" id="vt-alloy">女性・中性</span></button>
-        <button class="voice-btn" data-voice="echo" onclick="setVoice(this)">Echo<span class="voice-tag" id="vt-echo">男性・若め</span></button>
-        <button class="voice-btn" data-voice="fable" onclick="setVoice(this)">Fable<span class="voice-tag" id="vt-fable">男性・中性</span></button>
-        <button class="voice-btn" data-voice="onyx" onclick="setVoice(this)">Onyx<span class="voice-tag" id="vt-onyx">男性・低音</span></button>
+        <button class="voice-btn active" data-voice="Aoede" onclick="setVoice(this)">Aoede<span class="voice-tag" id="vt-nova">女性・自然</span></button>
+        <button class="voice-btn" data-voice="Callirrhoe" onclick="setVoice(this)">Callirrhoe<span class="voice-tag" id="vt-shimmer">女性・柔らか</span></button>
+        <button class="voice-btn" data-voice="Despina" onclick="setVoice(this)">Despina<span class="voice-tag" id="vt-alloy">女性・中性</span></button>
+        <button class="voice-btn" data-voice="Achird" onclick="setVoice(this)">Achird<span class="voice-tag" id="vt-echo">男性・若め</span></button>
+        <button class="voice-btn" data-voice="Algenib" onclick="setVoice(this)">Algenib<span class="voice-tag" id="vt-fable">男性・中性</span></button>
+        <button class="voice-btn" data-voice="Charon" onclick="setVoice(this)">Charon<span class="voice-tag" id="vt-onyx">男性・低音</span></button>
       </div>
     </div>
 
@@ -1028,6 +1038,7 @@
 <script>
 // ── State ──────────────────────────────────────────
 let apiKey = localStorage.getItem('formeny_openai_key') || '';
+let anthropicKey = localStorage.getItem('formeny_anthropic_key') || '';
 let lang = 'ja';
 
 const COACH_AVATAR_SVG = `<svg width="72" height="72" viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg"><circle cx="70" cy="70" r="70" fill="#fdf6ee"/><circle cx="70" cy="70" r="52" fill="none" stroke="#c9a84c" stroke-width="1.2" opacity="0.45"/><text x="70" y="66" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="38" letter-spacing="6" fill="#c4705a">FM</text><text x="70" y="102" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="38" letter-spacing="6" fill="#6a9b7e">NY</text><circle cx="70" cy="10" r="3.5" fill="#c9a84c"/><circle cx="70" cy="130" r="3.5" fill="#c9a84c"/><circle cx="10" cy="70" r="3.5" fill="#c9a84c" opacity="0.5"/><circle cx="130" cy="70" r="3.5" fill="#c9a84c" opacity="0.5"/></svg>`;
@@ -1202,9 +1213,15 @@ if (apiKey) {
   document.getElementById('keyStatus').textContent = t('設定済み ✓', 'Saved ✓');
   document.getElementById('keyStatus').className = 'key-status ok';
 }
+if (anthropicKey) {
+  document.getElementById('anthropicKeyInput').value = '••••••••';
+  document.getElementById('anthropicKeyStatus').textContent = t('設定済み ✓', 'Saved ✓');
+  document.getElementById('anthropicKeyStatus').className = 'key-status ok';
+}
 if (localStorage.getItem('formeny_eleven_key')) {
   document.getElementById('elevenKeyInput').value = '••••••••';
-  document.getElementById('elevenKeyStatus').textContent = t('保存済み（現在未使用）', 'Saved (not active yet)');
+  document.getElementById('elevenKeyStatus').textContent = t('設定済み ✓ Chirp 3 HD使用中', 'Saved ✓ Using Chirp 3 HD');
+  document.getElementById('elevenKeyStatus').className = 'key-status ok';
 }
 
 setTimeout(() => startPrepare(), 400);
@@ -2315,7 +2332,7 @@ function stopResponseCountdown() {
   if (_rcBtn) _rcBtn.classList.remove('roleplay-wait');
 }
 
-let selectedVoice = 'nova'; // default: 日本語に最適
+let selectedVoice = 'Aoede'; // default: Chirp 3 HD 日本語女性
 
 async function speakAsRole(text, onEnd) {
   onSpeechEndCallback = onEnd || null;
@@ -2327,24 +2344,46 @@ async function speakAsRole(text, onEnd) {
   if (ind) { ind.style.display = 'flex'; label.textContent = (selectedRoleplay?.role || 'AI') + 'が話しています…'; }
   recordBtn.disabled = true;
 
-  try {
-    const resp = await fetch('https://api.openai.com/v1/audio/speech', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
-      body: JSON.stringify({
-        model: 'tts-1-hd',
-        input: text,
-        voice: selectedVoice,
-        speed: lang === 'ja' ? 0.92 : 1.0
-      })
-    });
+  const gcloudKey = localStorage.getItem('formeny_eleven_key');
 
-    if (!resp.ok) throw new Error('TTS ' + resp.status);
-    const blob = await resp.blob();
+  try {
+    let blob;
+
+    if (gcloudKey) {
+      // Google Cloud Chirp 3 HD TTS
+      const voiceName = `ja-JP-Chirp3-HD-${selectedVoice}`;
+      const resp = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${gcloudKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          input: { text },
+          voice: { languageCode: 'ja-JP', name: voiceName },
+          audioConfig: { audioEncoding: 'MP3' }
+        })
+      });
+      if (!resp.ok) throw new Error('Google TTS ' + resp.status);
+      const data = await resp.json();
+      if (!data.audioContent) throw new Error('No audio content');
+      const binary = atob(data.audioContent);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      blob = new Blob([bytes], { type: 'audio/mp3' });
+    } else {
+      // Fallback: OpenAI tts-1-hd
+      const openaiVoiceMap = { Aoede: 'nova', Callirrhoe: 'shimmer', Despina: 'alloy', Achird: 'echo', Algenib: 'fable', Charon: 'onyx' };
+      const openaiVoice = openaiVoiceMap[selectedVoice] || 'nova';
+      const resp = await fetch('https://api.openai.com/v1/audio/speech', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
+        body: JSON.stringify({ model: 'tts-1-hd', input: text, voice: openaiVoice, speed: lang === 'ja' ? 0.92 : 1.0 })
+      });
+      if (!resp.ok) throw new Error('OpenAI TTS ' + resp.status);
+      blob = await resp.blob();
+    }
+
     const url = URL.createObjectURL(blob);
     const audio = new Audio(url);
     currentAudio = audio;
-
     audio.onended = () => {
       URL.revokeObjectURL(url); currentAudio = null;
       if (ind) ind.style.display = 'none';
@@ -2560,21 +2599,31 @@ function updateTranscriptDisplay(text) {
 
 // ── OpenAI ──────────────────────────────────────────
 async function callOpenAI(messages, systemPrompt) {
-  const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
-    body: JSON.stringify({ model: 'gpt-4o', max_tokens: 600, messages: [{ role: 'system', content: systemPrompt }, ...messages] })
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': anthropicKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 600,
+      system: systemPrompt,
+      messages: messages
+    })
   });
   const data = await resp.json();
   if (data.error) throw new Error(data.error.message);
-  return data.choices[0].message.content;
+  return data.content[0].text;
 }
 
 async function sendMessage() {
   const input = document.getElementById('chatInput');
   const text = input.value.trim();
   if (!text) return;
-  if (!apiKey) { addCoachMessage(t('APIキーを設定してください。', 'Please set your API key.')); return; }
+  if (!anthropicKey) { addCoachMessage(t('Anthropic APIキーを設定してください。', 'Please set your Anthropic API key.')); return; }
   input.value = '';
 
   addUserMessage(text);
@@ -2751,12 +2800,23 @@ function saveKey() {
   document.getElementById('keyStatus').className = 'key-status ok';
 }
 
+function saveAnthropicKey() {
+  const val = document.getElementById('anthropicKeyInput').value.trim();
+  if (!val || val === '••••••••') return;
+  anthropicKey = val;
+  localStorage.setItem('formeny_anthropic_key', val);
+  document.getElementById('anthropicKeyInput').value = '••••••••';
+  document.getElementById('anthropicKeyStatus').textContent = t('設定済み ✓', 'Saved ✓');
+  document.getElementById('anthropicKeyStatus').className = 'key-status ok';
+}
+
 function saveElevenKey() {
   const val = document.getElementById('elevenKeyInput').value.trim();
   if (!val || val === '••••••••') return;
   localStorage.setItem('formeny_eleven_key', val);
   document.getElementById('elevenKeyInput').value = '••••••••';
-  document.getElementById('elevenKeyStatus').textContent = t('保存済み（現在未使用）', 'Saved (not active yet)');
+  document.getElementById('elevenKeyStatus').textContent = t('設定済み ✓ Chirp 3 HD使用中', 'Saved ✓ Using Chirp 3 HD');
+  document.getElementById('elevenKeyStatus').className = 'key-status ok';
 }
 
 
@@ -2858,8 +2918,12 @@ function setLang(l) {
 
   // Voice tags
   const vt = {
-    // Voice tags are in HTML directly for this version
-
+    'vt-nova':    t('女性・自然',   'Female · Natural'),
+    'vt-shimmer': t('女性・柔らか', 'Female · Soft'),
+    'vt-alloy':   t('女性・中性',   'Female · Neutral'),
+    'vt-echo':    t('男性・若め',   'Male · Young'),
+    'vt-fable':   t('男性・中性',   'Male · Neutral'),
+    'vt-onyx':    t('男性・低音',   'Male · Deep'),
   };
   Object.entries(vt).forEach(([id, text]) => {
     const el = document.getElementById(id);

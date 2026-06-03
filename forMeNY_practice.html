@@ -986,6 +986,7 @@
           <div class="mc-unit">回</div>
           <div class="mc-bar-track"><div class="mc-bar-fill" id="pauseBar" style="width:0%"></div></div>
           <div class="mc-ref">時間切れ回数</div>
+          <div class="evidence-tags" id="evSpeechFiller"></div>
         </div>
         <div class="metric-card" id="cardVol">
           <div class="mc-label">論点の発展性</div>
@@ -2902,15 +2903,16 @@ function computeMetrics(snapStart, snapTranscript) {
   const usedStart = snapStart !== undefined ? snapStart : startTime;
   const usedTranscript = (snapTranscript !== undefined ? snapTranscript : fullTranscript).trim();
   const elapsedMin = (Date.now() - usedStart) / 1000 / 60;
-  const elapsedSec = elapsedMin * 60;
 
   if (!usedTranscript) {
-    document.getElementById('transcriptBox').textContent = t('（音声が認識されませんでした。マイクの許可を確認してください）', '(No speech detected. Please check microphone permissions.)');  
+    document.getElementById('transcriptBox').textContent = t('（音声が認識されませんでした。マイクの許可を確認してください）', '(No speech detected. Please check microphone permissions.)');
     document.getElementById('transcriptBox').className = 'transcript-box placeholder';
     return;
   }
 
-  // ── Speed ──
+  setSpeechCardLabels();
+
+  // ── ① Pace ──
   let speed, speedPct, speedClass;
   if (lang === 'ja') {
     speed = Math.round(usedTranscript.replace(/\s/g,'').length / elapsedMin);
@@ -2921,81 +2923,104 @@ function computeMetrics(snapStart, snapTranscript) {
     speedPct = Math.min(100, (speed / 200) * 100);
     speedClass = speed >= 130 && speed <= 150 ? 'ok' : speed < 100 || speed > 180 ? 'bad' : 'warn';
   }
+  setCard8('cardSpeed', 'speedVal', 'speedBar', speed, speedPct, speedClass);
 
-  // ── Pauses ──
+  // ── ② Fillers（フィラー音＋冗長表現＋曖昧語）──
+  const fillerSoundRe = lang === 'ja'
+    ? /(えーと|えっと|えー+|あー+|あのー?|あのう|うーん)/gi
+    : /\b(um+|uh+|er+)\b/gi;
+  const redundantRe = lang === 'ja'
+    ? /(という形で|という風に|になります|となります|ということで|ということです|させていただき)/gi
+    : /\b(basically|literally|actually|you know|i mean|kind of|sort of)\b/gi;
+  const vagueWordRe = lang === 'ja'
+    ? /(?<![えあ])(なんか|ちょっと|一応|まあ|けっこう|わりと|なんとなく|ある意味)/gi
+    : /\b(like|just|pretty much|kinda|sorta)\b/gi;
+  const fillerSounds   = usedTranscript.match(fillerSoundRe)  || [];
+  const redundantWords = usedTranscript.match(redundantRe)    || [];
+  const vagueWords     = usedTranscript.match(vagueWordRe)    || [];
+  const allFillers     = [...fillerSounds, ...redundantWords, ...vagueWords];
+  const fillerCount    = allFillers.length;
+  const fillerUnique   = [...new Set(allFillers.map(f => f.trim().toLowerCase()))].slice(0, 6);
+  const fillerPct      = Math.min(100, (fillerCount / 15) * 100);
+  const fillerClass    = fillerCount <= 3 ? 'ok' : fillerCount <= 8 ? 'warn' : 'bad';
+  setCard8('cardPause', 'pauseVal', 'pauseBar', fillerCount, fillerPct, fillerClass);
+  renderEvidenceTags('evSpeechFiller', fillerUnique, 'speechfiller');
+
+  // ── ③ 間（Pauses）──
   const pauseCount = silenceEvents.filter(s => s.duration >= SILENCE_THRESHOLD).length;
-  const pausePct = Math.min(100, (pauseCount / 10) * 100);
+  const pausePct   = Math.min(100, (pauseCount / 10) * 100);
   const pauseClass = pauseCount >= 2 && pauseCount <= 8 ? 'ok' : pauseCount < 2 ? 'warn' : 'bad';
+  setCard8('cardVol', 'volVal', 'volBar', pauseCount, pausePct, pauseClass);
+  document.querySelector('#cardVol .mc-ref').textContent =
+    pauseCount === 0 ? '間がありませんでした' :
+    pauseCount <= 1  ? '間が少ない' :
+    pauseCount <= 8  ? '効果的な間' : '間が多すぎる';
 
-  // ── Volume ──
-  let volDB = 0, volClass = 'ok', volNorm = 0;
-  if (volumeSamples.length > 0) {
-    const va = volumeSamples.reduce((a,b)=>a+b,0) / volumeSamples.length;
-    volNorm = Math.min(100, (va / 80) * 100);
-    const vv = volumeSamples.reduce((a,b)=>a+Math.pow(b-va,2),0)/volumeSamples.length;
-    volClass = volNorm > 30 && vv < 800 ? 'ok' : volNorm < 20 ? 'warn' : 'bad';
-    volDB = va > 0 ? Math.round(20 * Math.log10(va / 255) + 60) : 0;
+  // ── ④ 音量のコントロール（変動係数で判定）──
+  let volScore = 0, volClass = 'warn', volLabel = 'データなし';
+  if (volumeSamples.length > 10) {
+    const avg = volumeSamples.reduce((a, b) => a + b, 0) / volumeSamples.length;
+    const variance = volumeSamples.reduce((a, b) => a + Math.pow(b - avg, 2), 0) / volumeSamples.length;
+    const stdDev = Math.sqrt(variance);
+    const cv = avg > 0 ? (stdDev / avg) * 100 : 0; // 変動係数（%）
+    // cv 10〜40% → ok（適度な変化）/ cv < 10 → warn（単調）/ cv > 60 → bad（不安定）
+    volScore = Math.round(Math.min(100, cv * 2));
+    volClass = cv >= 10 && cv <= 40 ? 'ok' : cv < 10 ? 'warn' : cv <= 60 ? 'warn' : 'bad';
+    volLabel = cv < 10  ? '単調・抑揚なし' :
+               cv <= 40 ? '適度なコントロール' :
+               cv <= 60 ? 'やや不安定' : 'コントロール不安定';
   }
+  setCard8('cardFiller', 'fillerVal', 'fillerBar', volScore, volScore, volClass);
+  document.querySelector('#cardFiller .mc-ref').textContent = volLabel;
 
-  // ── Filler words ──
-  const fillerPatterns = lang === 'ja'
-    ? /(えーと|えっと|えー+|あー+|あのー?|あのう|うーん|まあ|なんか|なんかこう|ちょっと|そのー|なんていうか|要するに|つまり)/gi
-    : /\b(um+|uh+|er+|like|you know|i mean|basically|literally|actually|so+|well+|right)\b/gi;
-  const fillerMatches = usedTranscript.match(fillerPatterns) || [];
-  const fillerCount = fillerMatches.length;
-  const fillerList = [...new Set(fillerMatches.map(f => f.toLowerCase()))].slice(0, 5);
-  const fillerPct = Math.min(100, (fillerCount / 15) * 100);
-  const fillerClass = fillerCount <= 3 ? 'ok' : fillerCount <= 8 ? 'warn' : 'bad';
+  // 使わないカード3枚を非表示
+  ['cardVocab','cardSilence','cardQ','cardAssert'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
 
-  // ── Vocabulary diversity ──
-  const words = usedTranscript.replace(/[、。！？\s]/g, ' ').split(/\s+/).filter(w => w.length > 1);
-  const uniqueWords = new Set(words.map(w => w.toLowerCase()));
-  const vocabScore = words.length > 0 ? Math.round((uniqueWords.size / words.length) * 100) : 0;
-  const vocabClass = vocabScore >= 70 ? 'ok' : vocabScore >= 50 ? 'warn' : 'bad';
+  // ── レーダーチャート（4軸 → 6軸に合わせて配置）──
+  updateRadar(speedPct, fillerPct > 0 ? 100 - fillerPct : 100, pausePct, volScore, speedPct, 100 - fillerPct);
 
-  // ── Silence rate ──
-  const totalSilenceSec = silenceEvents.reduce((a, s) => a + s.duration, 0);
-  const silenceRate = elapsedSec > 0 ? Math.round((totalSilenceSec / elapsedSec) * 100) : 0;
-  const silenceClass = silenceRate >= 10 && silenceRate <= 30 ? 'ok' : silenceRate < 5 ? 'warn' : silenceRate > 50 ? 'bad' : 'warn';
-
-  // ── Update DOM ──
-  const setCard = (cardId, valId, barId, val, pct, cls, unit) => {
-    document.getElementById(valId).textContent = val;
-    const bar = document.getElementById(barId);
-    bar.style.width = Math.min(100, pct) + '%';
-    bar.className = 'mc-bar-fill ' + cls;
-    const card = document.getElementById(cardId);
-    card.className = 'metric-card ' + cls;
-  };
-
-  setCard('cardSpeed',  'speedVal',  'speedBar',  speed,       speedPct,               speedClass);
-  setCard('cardPause',  'pauseVal',  'pauseBar',  pauseCount,  pausePct,               pauseClass);
-  setCard('cardVol',    'volVal',    'volBar',    volDB,       volNorm,                volClass);
-  setCard('cardFiller', 'fillerVal', 'fillerBar', fillerCount, fillerPct,              fillerClass);
-  setCard('cardVocab',  'vocabVal',  'vocabBar',  vocabScore,  vocabScore,             vocabClass);
-  setCard('cardSilence','silenceVal','silenceBar',silenceRate, Math.min(100, silenceRate*2), silenceClass);
-
-  // ── Radar chart ──
-  updateRadar(speedPct, pausePct, volNorm, 100 - fillerPct, vocabScore, 100 - Math.abs(silenceRate - 20) * 2);
+  // ── Transcript表示 ──
+  document.getElementById('transcriptSection').style.display = 'block';
+  updateTranscriptDisplay(usedTranscript);
 
   const panel = document.getElementById('metricsRow');
   panel.classList.add('visible');
-
-  updateTranscriptDisplay(usedTranscript);
+  setTimeout(() => scrollLeftTo(panel, 20), 150);
 
   lastMetrics = {
     isRoleplay: false,
     transcript: usedTranscript,
     speed, speedClass,
+    fillerCount, fillerClass, fillerList: fillerUnique,
     pauseCount, pauseClass,
-    volDB, volClass,
-    fillerCount, fillerClass, fillerList,
-    vocabScore, vocabClass,
-    silenceRate, silenceClass,
-    durationMin: elapsedMin, durationSec: Math.round(elapsedSec),
-    lang, topic: selectedTopic
+    volScore, volClass,
+    durationMin: elapsedMin, lang, topic: selectedTopic
   };
 }
+
+function setSpeechCardLabels() {
+  const labels = {
+    cardSpeed:  { label: 'Pace',                    unit: lang === 'ja' ? '字/分' : 'wpm', ref: lang === 'ja' ? '目安 300〜400字/分' : 'target 130–150 wpm' },
+    cardPause:  { label: 'Fillers（不必要な言葉）', unit: '回',  ref: 'フィラー音・冗長・曖昧語' },
+    cardVol:    { label: '間（Pauses）',             unit: '回',  ref: '有意な沈黙の回数' },
+    cardFiller: { label: '音量のコントロール',       unit: '',    ref: 'データなし' },
+  };
+  Object.entries(labels).forEach(([id, { label, unit, ref }]) => {
+    const card = document.getElementById(id);
+    if (!card) return;
+    card.style.display = '';
+    const labelEl = card.querySelector('.mc-label');
+    const unitEl  = card.querySelector('.mc-unit');
+    const refEl   = card.querySelector('.mc-ref');
+    if (labelEl) labelEl.textContent = label;
+    if (unitEl)  unitEl.textContent  = unit;
+    if (refEl)   refEl.textContent   = ref;
+  });
+}
+
 
 function updateRadar(speed, pause, vol, fillerInv, vocab, silenceBalance) {
   const cx = 110, cy = 110, maxR = 84;

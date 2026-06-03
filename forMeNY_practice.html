@@ -776,35 +776,6 @@
       </div>
     </div>
 
-    <!-- Difficulty selector — shown only in roleplay mode -->
-    <div id="difficultySelectorSection" style="display:none">
-      <div class="section-label">難易度</div>
-      <div class="difficulty-selector">
-        <button class="diff-btn easy" id="diffEasy" onclick="setDifficulty('easy')">
-          🌱 Easy<span class="diff-sub">優しめ・協力的</span>
-        </button>
-        <button class="diff-btn normal active" id="diffNormal" onclick="setDifficulty('normal')">
-          🔥 Normal<span class="diff-sub">現実的・適度な圧力</span>
-        </button>
-        <button class="diff-btn hard" id="diffHard" onclick="setDifficulty('hard')">
-          ⚡ Hard<span class="diff-sub">厳しい・プレッシャー大</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- AI Voice — shown only in roleplay mode -->
-    <div id="voiceSelectorSection" style="display:none">
-      <div class="section-label" id="labelVoice">AI Voice（ロールプレイ）</div>
-      <div class="voice-grid" id="voiceGrid">
-        <button class="voice-btn active" data-voice="nova" onclick="setVoice(this)">Nova<span class="voice-tag" id="vt-nova">女性・自然 ★推奨</span></button>
-        <button class="voice-btn" data-voice="shimmer" onclick="setVoice(this)">Shimmer<span class="voice-tag" id="vt-shimmer">女性・柔らか ★推奨</span></button>
-        <button class="voice-btn" data-voice="alloy" onclick="setVoice(this)">Alloy<span class="voice-tag" id="vt-alloy">女性・中性</span></button>
-        <button class="voice-btn" data-voice="echo" onclick="setVoice(this)">Echo<span class="voice-tag" id="vt-echo">男性・若め</span></button>
-        <button class="voice-btn" data-voice="fable" onclick="setVoice(this)">Fable<span class="voice-tag" id="vt-fable">男性・中性</span></button>
-        <button class="voice-btn" data-voice="onyx" onclick="setVoice(this)">Onyx<span class="voice-tag" id="vt-onyx">男性・低音</span></button>
-      </div>
-    </div>
-
     <!-- Mode -->
     <div>
       <div class="section-label">Mode</div>
@@ -887,13 +858,40 @@
       </button>
     </div>
 
+    <!-- Difficulty selector — shown only in roleplay mode -->
+    <div id="difficultySelectorSection" style="display:none">
+      <div class="section-label">難易度</div>
+      <div class="difficulty-selector">
+        <button class="diff-btn easy" id="diffEasy" onclick="setDifficulty('easy')">
+          🌱 Easy<span class="diff-sub">優しめ・協力的</span>
+        </button>
+        <button class="diff-btn normal active" id="diffNormal" onclick="setDifficulty('normal')">
+          🔥 Normal<span class="diff-sub">現実的・適度な圧力</span>
+        </button>
+        <button class="diff-btn hard" id="diffHard" onclick="setDifficulty('hard')">
+          ⚡ Hard<span class="diff-sub">厳しい・プレッシャー大</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- AI Voice — shown only in roleplay mode -->
+    <div id="voiceSelectorSection" style="display:none">
+      <div class="section-label" id="labelVoice">AI Voice（ロールプレイ）</div>
+      <div class="voice-grid" id="voiceGrid">
+        <button class="voice-btn active" data-voice="nova" onclick="setVoice(this)">Nova<span class="voice-tag" id="vt-nova">女性・自然 ★推奨</span></button>
+        <button class="voice-btn" data-voice="shimmer" onclick="setVoice(this)">Shimmer<span class="voice-tag" id="vt-shimmer">女性・柔らか ★推奨</span></button>
+        <button class="voice-btn" data-voice="alloy" onclick="setVoice(this)">Alloy<span class="voice-tag" id="vt-alloy">女性・中性</span></button>
+        <button class="voice-btn" data-voice="echo" onclick="setVoice(this)">Echo<span class="voice-tag" id="vt-echo">男性・若め</span></button>
+        <button class="voice-btn" data-voice="fable" onclick="setVoice(this)">Fable<span class="voice-tag" id="vt-fable">男性・中性</span></button>
+        <button class="voice-btn" data-voice="onyx" onclick="setVoice(this)">Onyx<span class="voice-tag" id="vt-onyx">男性・低音</span></button>
+      </div>
+    </div>
+
     <!-- Badges -->
     <div id="badgeSection">
       <div class="section-label">Badges</div>
       <div class="badge-shelf" id="badgeShelf"></div>
     </div>
-
-    <!-- Record -->
     <!-- Analysis panel -->
     <div class="metrics-panel" id="metricsRow">
 
@@ -1958,15 +1956,16 @@ ${diff === 'hard' ? '圧迫時：「正直、今すぐ変える気はないん�
 【重要】あなたは話を"聞く側・評価する側"です。自分からサービスの説明や提案を一切しないこと。相手（ユーザー）に説明させ、質問や反応で返すだけ。`;
   } else if (role.includes('チームリーダー') || role.includes('意見')) {
     character = `
-【キャラクター：チームリーダー 中村さん 28歳 / エンジニア】
-背景：優秀なエンジニア上がりのリーダー。アジャイル推進派で、小さく早く動いてフィードバックを取るのが正しいと確信している。すでにチームの何人かに根回し済み。
-動機：チームを自分の考える方向に動かしたい。ただし感情的にはならない。論理で勝ちたい。
-口調：「それって根拠あるの？」「でも実際、慎重にやって間に合った試しある？」「私はこう思う」
-よく使う技：自分の立場を明確に主張してから相手の意見を聞く。同意しない点はすぐ指摘。「他のメンバーはどう思ってるの？」
-シナリオ補足：${selectedRoleplay?.situation || ''}
+【キャラクター：チームリーダー（同僚・30代）】
+基本設定：論理的で自分の意見をはっきり持っている。感情的にはならないが、簡単には引かない。
+
+【最重要 — ユーザーが指定したシーン設定を完全に優先すること】
+${selectedRoleplay?.situation || ''}
+
+上記のシーン設定に書かれた人物像・立場・行動パターンを忠実に演じること。シーン設定に書かれていない場合のみ、上記の基本設定を参考にする。
 ${diff === 'hard' ? '圧迫時：「正直、あなたのやり方だと遅すぎる。もう動き始めないと間に合わない」' : ''}
 
-【重要】あなたはすでに自分の意見を持っており、最初から主張する。相手の話をまず聞くのではなく、自分の立場を先に示してから問い返す。ただし怒鳴ったり感情的にはならない。`;  } else if (role.includes('教授') || role.includes('ゼミ')) {
+【重要】自分の立場・意見を最初から持って演じる。ただし怒鳴ったり感情的にはならない。`;  } else if (role.includes('教授') || role.includes('ゼミ')) {
     character = `
 【キャラクター：田村教授 62歳 / 社会学専攻】
 背景：40年のキャリア。論文200本以上。学生には厳しいが愛情がある。曖昧さを嫌う。
@@ -2006,6 +2005,8 @@ CURRENT MOOD: ` + getMoodInstructionEN() + `\n`;
 
 ${character}
 
+【最重要原則】上記キャラクター設定とシーン設定が矛盾する場合、ユーザーが指定したシーン設定を必ず優先すること。
+
 【難易度：${diff.toUpperCase()}】
 ${diffConfig.attitude}
 プレッシャー：${diffConfig.pressure}
@@ -2021,9 +2022,9 @@ ${diffConfig.examples}
 - 1〜3文で短くテンポよく返す
 - 必ず次の会話につながる反応や問いかけで締める
 - 必要なら沈黙を使う：「（沈黙）……続けてください」
-- あなたは常に「聞く・評価する・反応する」側。自分から説明・提案・サービス紹介をすることは絶対にしない
+${!role.includes('チームリーダー') && !role.includes('意見') ? '- あなたは常に「聞く・評価する・反応する」側。自分から説明・提案・サービス紹介をすることは絶対にしない' : ''}
 
-【シーン設定（ユーザーが指定）】
+【シーン設定（ユーザーが指定） — これを最優先で演じること】
 ${selectedRoleplay.situation}
 
 【バリエーション指示】

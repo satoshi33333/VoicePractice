@@ -860,12 +860,6 @@
         <div style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);">Scene Setting <span style="color:var(--text-3);font-size:9px;text-transform:none;letter-spacing:0;">（編集可能）</span></div>
         <textarea id="roleplaysInfo" rows="3" style="width:100%;background:rgba(74,122,155,0.06);border:1px solid rgba(74,122,155,0.3);border-radius:6px;padding:9px 10px;font-size:11px;color:var(--text);font-family:'Nunito',sans-serif;line-height:1.6;resize:vertical;outline:none;" oninput="selectedRoleplay.situation=this.value"></textarea>
       </div>
-
-      <!-- Start button — appears after scenario selection -->
-      <button class="roleplay-start-btn" id="roleplaysStartBtn" onclick="startRoleplaysFromButton()">
-        🎭 ロールプレイを開始する
-        <span class="start-btn-sub" id="startBtnSub">シナリオと難易度を確認してスタート</span>
-      </button>
     </div>
 
     <!-- Difficulty selector — shown only in roleplay mode -->
@@ -895,6 +889,11 @@
         <button class="voice-btn" data-voice="Algenib" onclick="setVoice(this)">Algenib<span class="voice-tag" id="vt-fable">男性・中性</span></button>
         <button class="voice-btn" data-voice="Charon" onclick="setVoice(this)">Charon<span class="voice-tag" id="vt-onyx">男性・低音</span></button>
       </div>
+      <!-- Start button — appears after scenario selection, under AI Voice -->
+      <button class="roleplay-start-btn" id="roleplaysStartBtn" onclick="startRoleplaysFromButton()" style="margin-top:10px">
+        🎭 ロールプレイを開始する
+        <span class="start-btn-sub" id="startBtnSub">シナリオと難易度を確認してスタート</span>
+      </button>
     </div>
 
     <!-- Badges -->
@@ -1665,10 +1664,13 @@ async function generateAvatar(scenario, difficulty, voice) {
 
   // Determine gender from selected voice
   const voiceGenderMap = {
+    Aoede: 'female', Callirrhoe: 'female', Despina: 'female',
+    Achird: 'male', Algenib: 'male', Charon: 'male',
+    // OpenAI fallback names
     nova: 'female', shimmer: 'female', alloy: 'female',
     echo: 'male', fable: 'male', onyx: 'male'
   };
-  const voiceGender = voiceGenderMap[voice || selectedVoice || 'nova'] || 'female';
+  const voiceGender = voiceGenderMap[voice || selectedVoice || 'Aoede'] || 'female';
   const genderDesc = voiceGender === 'female' ? 'woman' : 'man';
 
   const roleDesc = {

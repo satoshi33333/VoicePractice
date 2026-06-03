@@ -3246,7 +3246,9 @@ function computeMetrics(snapStart, snapTranscript) {
 
   // ── ③ 間（0.8秒以上の無音回数）──
   const pauseCount = silenceEvents.filter(s => s.duration >= SILENCE_THRESHOLD).length;
-  setCard8('cardVol', 'volVal', 'volBar', pauseCount, Math.min(100, pauseCount * 10), 'warn');
+  const pausePct = Math.min(100, pauseCount * 10);
+  const pauseClass = 'warn'; // 評価なし・事実のみ
+  setCard8('cardVol', 'volVal', 'volBar', pauseCount, pausePct, pauseClass);
   document.querySelector('#cardVol .mc-ref').textContent = '0.8秒以上の無音回数';
 
   // ── ④ 音量のコントロール（変動係数で判定）──

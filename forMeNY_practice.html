@@ -2213,11 +2213,26 @@ async function startRoleplaysReflect() {
     setCard8('cardFiller', 'fillerVal', 'fillerBar', fillerCount, fillerPct, fillerClass);
     renderEvidenceTags('evFiller', fillerList, 'filler');
 
-    // ── ⑤ Yes, And（受容語で始まった返答） ──
-    const yesAndRe = /^(なるほど|そうですね|そうですか|わかります|わかりました|確かに|おっしゃる通り|そうか|そうだね|そうそう|たしかに|ええ、|はい、|理解できます|受け取|それはそう|その通り)/;
+    // ── ⑤ Yes, And（受容語で始まった返答 OR 受容表現を含む返答） ──
+    // 文頭受容：なるほど・確かに 等
+    const yesAndStartRe = /^(なるほど|そうですね|そうですか|確かに|おっしゃる通り|そうか|そうだね|そうそう|たしかに|それはそう|その通り|ええ、|はい、)/;
+    // 文中受容動詞：わかります・理解・受け取る 等
+    const yesAndContainRe = /(わかります|わかりました|わかる|理解(できます|します|しました)|おっしゃる通り|受け取れます|受け取りました|聴いています|聞いています|そう思います)/;
     const yesAndHits = userTurns.map((turn, i) => {
-      const m = turn.trim().match(/^([^\s、。]{2,10})/);
-      return { turn: i, matched: yesAndRe.test(turn.trim()), opener: m ? m[0] : '' };
+      const trimmed = turn.trim();
+      const matchedStart = yesAndStartRe.test(trimmed);
+      const matchedContain = yesAndContainRe.test(trimmed);
+      const matched = matchedStart || matchedContain;
+      // タグ表示用：マッチした言葉を抽出
+      let opener = '';
+      if (matchedStart) {
+        const m = trimmed.match(yesAndStartRe);
+        opener = m ? m[0] : '';
+      } else if (matchedContain) {
+        const m = trimmed.match(yesAndContainRe);
+        opener = m ? m[0] : '';
+      }
+      return { turn: i, matched, opener };
     }).filter(h => h.matched);
     const yesAndCount = yesAndHits.length;
     const yesAndPct = userTurns.length > 0 ? Math.round((yesAndCount / userTurns.length) * 100) : 0;

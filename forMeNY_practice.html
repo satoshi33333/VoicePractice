@@ -1,0 +1,2929 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FOR ME NY — Voice Practice</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Mono:wght@300;400&display=swap');
+
+  :root {
+    --bg:         #faf8f4;
+    --bg2:        #f5f1eb;
+    --surface:    #ffffff;
+    --surface2:   #fef9f3;
+    --border:     #e8dfd0;
+    --border2:    #d4c9b8;
+    --terracotta: #c4705a;
+    --terra-dim:  #e8a896;
+    --terra-pale: #fdf0ec;
+    --sage:       #6a9b7e;
+    --sage-dim:   #a8c9b4;
+    --sage-pale:  #edf5f0;
+    --gold:       #c49a3c;
+    --gold-dim:   #e8c97a;
+    --gold-pale:  #fdf8ec;
+    --lavender:   #8b7aaa;
+    --lav-pale:   #f2f0f7;
+    --text:       #3d3530;
+    --text-2:     #7a6e65;
+    --text-3:     #a89d95;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Nunito', sans-serif; font-size: 14px;
+    height: 100vh; overflow: hidden; display: flex; flex-direction: column;
+  }
+  body::before {
+    content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background:
+      radial-gradient(ellipse at 20% 20%, rgba(196,112,90,0.06) 0%, transparent 55%),
+      radial-gradient(ellipse at 80% 80%, rgba(106,155,126,0.06) 0%, transparent 55%),
+      radial-gradient(ellipse at 60% 10%, rgba(196,154,60,0.05) 0%, transparent 45%);
+  }
+
+  /* ── Header ── */
+  header {
+    border-bottom: 1px solid var(--border); padding: 12px 28px;
+    display: flex; justify-content: space-between; align-items: center;
+    flex-shrink: 0; background: rgba(255,255,255,0.9); position: relative; z-index: 10;
+  }
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px; letter-spacing: 0.08em; color: var(--text);
+  }
+  .logo span { color: var(--terracotta); }
+  .tagline { font-size: 10px; color: var(--text-3); letter-spacing: 0.1em; }
+
+  /* ── Layout ── */
+  .app {
+    flex: 1; display: grid; grid-template-columns: 1fr 420px;
+    height: calc(100vh - 53px); overflow: hidden; position: relative; z-index: 1;
+  }
+  .left {
+    padding: 22px 26px 120px; display: flex; flex-direction: column; gap: 18px;
+    overflow-y: auto; border-right: 1px solid var(--border);
+    scroll-behavior: smooth; background: var(--bg);
+  }
+  .left::-webkit-scrollbar { width: 4px; }
+  .left::-webkit-scrollbar-thumb { background: var(--terra-dim); border-radius: 2px; }
+
+  .section-label {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 13px; letter-spacing: 0.14em; color: var(--terracotta);
+    margin-bottom: 6px;
+  }
+
+  /* ── API Key ── */
+  .key-row { display: flex; gap: 8px; }
+  .key-input {
+    flex: 1; background: var(--surface); border: 1.5px solid var(--border);
+    color: var(--text); padding: 9px 12px;
+    font-family: 'DM Mono', monospace; font-size: 11px;
+    outline: none; border-radius: 10px; transition: border-color 0.2s;
+  }
+  .key-input:focus { border-color: var(--terracotta); }
+  .key-save-btn {
+    background: var(--terracotta); color: white; border: none; padding: 9px 16px;
+    cursor: pointer; font-family: 'Nunito', sans-serif; font-size: 12px;
+    font-weight: 700; border-radius: 10px; transition: all 0.2s;
+  }
+  .key-save-btn:hover { opacity: 0.85; transform: scale(1.02); }
+  .key-status { font-size: 11px; margin-top: 4px; color: var(--text-3); }
+  .key-status.ok { color: var(--sage); font-weight: 700; }
+
+  /* ── Language ── */
+  .lang-toggle { display: flex; border: 1.5px solid var(--border); border-radius: 10px; overflow: hidden; width: fit-content; }
+  .lang-btn {
+    background: transparent; border: none; color: var(--text-3);
+    padding: 6px 16px; cursor: pointer;
+    font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 600; transition: all 0.2s;
+  }
+  .lang-btn.active { background: var(--terracotta); color: white; }
+
+  /* ── Mode tabs ── */
+  .mode-tabs { display: flex; gap: 6px; }
+  .mode-tab {
+    flex: 1; background: var(--surface); border: 1.5px solid var(--border);
+    color: var(--text-2); padding: 10px 12px; cursor: pointer;
+    font-family: 'Bebas Neue', sans-serif; font-size: 14px; letter-spacing: 0.08em;
+    text-align: center; border-radius: 12px; transition: all 0.2s;
+  }
+  .mode-tab:hover { border-color: var(--terra-dim); color: var(--terracotta); }
+  .mode-tab.active.speech {
+    background: var(--terra-pale); border-color: var(--terracotta); color: var(--terracotta);
+    box-shadow: 0 4px 16px rgba(196,112,90,0.15);
+  }
+  .mode-tab.active.roleplay {
+    background: var(--sage-pale); border-color: var(--sage); color: var(--sage);
+    box-shadow: 0 4px 16px rgba(106,155,126,0.15);
+  }
+  .mode-hint { font-size: 11px; color: var(--text-3); margin-top: 5px; }
+
+  /* ── Topic grid ── */
+  .topic-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .topic-btn {
+    background: var(--surface); border: 1.5px solid var(--border);
+    color: var(--text-2); padding: 11px 12px; cursor: pointer;
+    font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 500;
+    text-align: left; border-radius: 12px; transition: all 0.2s; line-height: 1.4;
+  }
+  .topic-btn:hover { border-color: var(--terra-dim); background: var(--terra-pale); transform: translateY(-1px); }
+  .topic-btn.active { border-color: var(--terracotta); background: var(--terra-pale); color: var(--terracotta); font-weight: 700; box-shadow: 0 4px 12px rgba(196,112,90,0.12); }
+  .topic-btn.roleplay-btn.active { border-color: var(--sage); background: var(--sage-pale); color: var(--sage); box-shadow: 0 4px 12px rgba(106,155,126,0.12); }
+  .topic-tag { font-size: 10px; color: var(--text-3); display: block; margin-top: 2px; font-weight: 400; }
+  .custom-input {
+    width: 100%; background: var(--surface); border: 1.5px solid var(--border);
+    color: var(--text); padding: 10px 12px;
+    font-family: 'Nunito', sans-serif; font-size: 12px;
+    outline: none; resize: vertical; min-height: 56px; margin-top: 6px;
+    border-radius: 12px; transition: border-color 0.2s;
+  }
+  .custom-input:focus { border-color: var(--terracotta); }
+  .roleplay-info {
+    background: var(--sage-pale); border: 1.5px solid var(--sage-dim);
+    padding: 10px 14px; font-size: 11px; color: var(--sage);
+    line-height: 1.6; display: none; border-radius: 12px;
+  }
+  .roleplay-info.visible { display: block; }
+
+  /* ── Record area ── */
+  .record-area { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 20px 0; }
+  .timer {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 54px; letter-spacing: 0.06em;
+    color: var(--text-3); transition: color 0.3s;
+  }
+  .timer.active { color: var(--terracotta); text-shadow: 0 2px 12px rgba(196,112,90,0.3); }
+  .waveform { display: flex; align-items: center; gap: 4px; height: 32px; opacity: 0; transition: opacity 0.3s; }
+  .waveform.visible { opacity: 1; }
+  .wave-bar { width: 4px; background: var(--terracotta); border-radius: 4px; height: 4px; }
+
+  /* ── Record wrap + countdown ── */
+  .record-wrap {
+    position: relative; display: flex;
+    align-items: center; justify-content: center;
+    width: 130px; height: 130px;
+    cursor: pointer;
+  }
+  .record-wrap:hover .countdown-ring-bg { stroke: var(--terra-dim); }
+  .rec-inner {
+    position: absolute;
+    width: 90px; height: 90px; border-radius: 50%;
+    background: var(--surface);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 3px; pointer-events: none;
+    border: 1.5px solid var(--border2); transition: all 0.2s;
+  }
+  .rec-icon {
+    width: 20px; height: 20px; border-radius: 50%; background: var(--terracotta);
+    transition: all 0.25s; box-shadow: 0 2px 8px rgba(196,112,90,0.35);
+  }
+  .rec-icon.roleplay { background: var(--sage); }
+  .rec-text { font-family: "Bebas Neue",sans-serif; font-size: 10px; letter-spacing: 0.12em; color: var(--text-3); }
+  .record-wrap.recording .rec-inner { background: var(--terra-pale); border-color: var(--terracotta); }
+  .record-wrap.recording .rec-icon { border-radius: 4px; animation: recDot 1s ease-in-out infinite; }
+  @keyframes recDot { 0%,100%{transform:scale(1);} 50%{transform:scale(1.3);} }
+  .record-wrap.idle .countdown-ring-bg { animation: idlePulse 2.5s ease-in-out infinite; }
+  @keyframes idlePulse { 0%,100%{stroke:var(--border2);} 50%{stroke:var(--terra-dim);} }
+  @keyframes recDot { 0%,100%{transform:scale(1);} 50%{transform:scale(1.3);} }
+  .countdown-svg {
+    position: absolute; top: 0; left: 0; width: 130px; height: 130px;
+    transform: rotate(-90deg); pointer-events: none;
+  }
+  .countdown-ring-bg { fill: none; stroke: var(--border); stroke-width: 3; }
+  .countdown-ring {
+    fill: none; stroke: var(--sage);
+    stroke-width: 5; stroke-linecap: round;
+    stroke-dasharray: 352; stroke-dashoffset: 352;
+    transition: stroke-dashoffset 0.9s linear, stroke 0.3s;
+    filter: drop-shadow(0 0 4px rgba(106,155,126,0.6));
+  }
+  .countdown-ring.urgent { stroke: var(--terracotta); filter: drop-shadow(0 0 6px rgba(196,112,90,0.8)); }
+  .countdown-num {
+    position: absolute;
+    font-family: 'Bebas Neue', sans-serif; font-size: 28px;
+    color: var(--sage); pointer-events: none; transition: color 0.3s;
+  }
+  .countdown-num.urgent { color: var(--terracotta); animation: urgentPulse 0.5s ease-in-out infinite alternate; }
+  @keyframes urgentPulse { from { opacity: 1; } to { opacity: 0.5; } }
+  .countdown-num.hidden { display: none; }
+
+  .record-btn {
+    display: none;
+    width: 80px; height: 80px; border-radius: 50%;
+    border: 2.5px solid var(--border2); background: var(--surface);
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: all 0.25s; box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  }
+  .record-btn:hover { border-color: var(--terracotta); transform: scale(1.05); box-shadow: 0 6px 28px rgba(196,112,90,0.2); }
+  .record-btn.recording { border-color: var(--terracotta); animation: recordPulse 1.2s ease-in-out infinite; }
+  .record-btn.recording .dot { background: var(--terracotta); border-radius: 5px; }
+  .record-btn.roleplay-mode { border-color: var(--sage-dim); }
+  .record-btn.roleplay-mode:hover { border-color: var(--sage); box-shadow: 0 6px 28px rgba(106,155,126,0.2); }
+  .record-btn.roleplay-mode .dot { background: var(--sage); }
+  @keyframes recordPulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(196,112,90,0.4); }
+    50% { box-shadow: 0 0 0 18px rgba(196,112,90,0); }
+  }
+  .dot { display: none; }
+  .record-label { font-family: 'Bebas Neue', sans-serif; font-size: 15px; letter-spacing: 0.14em; color: var(--text-2); text-align: center; line-height: 1.5; }
+  .record-label span { display: block; font-size: 11px; font-family: 'Nunito',sans-serif; color: var(--text-3); letter-spacing: 0.04em; font-weight: 500; }
+
+  #aiSpeakingIndicator { align-items: center; gap: 8px; font-size: 12px; color: var(--sage); font-weight: 600; display: none; }
+  .end-roleplay-btn {
+    background: transparent; border: 1.5px solid rgba(196,112,90,0.4);
+    color: var(--terracotta); padding: 8px 22px; cursor: pointer;
+    font-family: 'Bebas Neue', sans-serif; font-size: 13px; letter-spacing: 0.1em;
+    border-radius: 20px; transition: all 0.2s;
+  }
+  .end-roleplay-btn:hover { background: var(--terra-pale); border-color: var(--terracotta); transform: scale(1.02); }
+
+  /* ── Voice selector ── */
+  .voice-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+  .voice-btn {
+    background: var(--surface); border: 1.5px solid var(--border);
+    color: var(--text-2); padding: 8px 6px; cursor: pointer;
+    font-family: 'Nunito', sans-serif; font-size: 11px; font-weight: 600;
+    text-align: center; border-radius: 10px; transition: all 0.2s;
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+  }
+  .voice-btn:hover { border-color: var(--sage-dim); color: var(--sage); }
+  .voice-btn.active { border-color: var(--sage); color: var(--sage); background: var(--sage-pale); font-weight: 700; }
+  .voice-tag { font-size: 9px; color: var(--text-3); }
+
+  /* ── Metrics ── */
+  .metrics-panel { display: none; flex-direction: column; gap: 14px; }
+  .metrics-panel.visible { display: flex; animation: fadeSlideUp 0.5s ease; }
+  @keyframes fadeSlideUp { from { opacity:0; transform: translateY(14px); } to { opacity:1; transform: translateY(0); } }
+
+  .metrics-title {
+    font-family: 'Bebas Neue', sans-serif; font-size: 22px;
+    color: var(--text); letter-spacing: 0.08em;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .metrics-title::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--terracotta), transparent); }
+
+  .metrics-top { display: flex; gap: 14px; align-items: flex-start; }
+  .radar-wrap {
+    flex-shrink: 0; background: var(--surface); border: 1.5px solid var(--border);
+    border-radius: 16px; padding: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  }
+  .metrics-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; flex: 1; }
+  .metric-card {
+    background: var(--surface); border: 1.5px solid var(--border);
+    padding: 11px 13px; border-radius: 12px;
+    display: flex; flex-direction: column; gap: 3px;
+    transition: all 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    animation: cardIn 0.4s ease both;
+  }
+  @keyframes cardIn { from { opacity:0; transform: scale(0.95); } to { opacity:1; transform: scale(1); } }
+  .metric-card:nth-child(1) { animation-delay: 0.05s; }
+  .metric-card:nth-child(2) { animation-delay: 0.10s; }
+  .metric-card:nth-child(3) { animation-delay: 0.15s; }
+  .metric-card:nth-child(4) { animation-delay: 0.20s; }
+  .metric-card:nth-child(5) { animation-delay: 0.25s; }
+  .metric-card:nth-child(6) { animation-delay: 0.30s; }
+  .metric-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
+  .metric-card.ok   { border-left: 3px solid var(--sage);       background: linear-gradient(135deg, #fff, var(--sage-pale)); }
+  .metric-card.warn { border-left: 3px solid var(--gold);       background: linear-gradient(135deg, #fff, var(--gold-pale)); }
+  .metric-card.bad  { border-left: 3px solid var(--terracotta); background: linear-gradient(135deg, #fff, var(--terra-pale)); }
+  .mc-label { font-family: 'Bebas Neue', sans-serif; font-size: 11px; letter-spacing: 0.14em; color: var(--text-3); }
+  .mc-value { font-family: 'Bebas Neue', sans-serif; font-size: 30px; color: var(--text); line-height: 1.05; letter-spacing: 0.02em; }
+  .mc-unit  { font-size: 10px; color: var(--text-3); font-weight: 500; }
+  .mc-ref   { font-size: 10px; color: var(--text-3); margin-top: 1px; }
+  .mc-bar-track { height: 3px; background: var(--border); margin-top: 5px; border-radius: 2px; position: relative; }
+  .mc-bar-fill  { position: absolute; top:0; left:0; height:100%; border-radius: 2px; transition: width 1.2s cubic-bezier(0.34,1.56,0.64,1); }
+  .mc-bar-fill.ok   { background: linear-gradient(90deg, var(--sage-dim), var(--sage)); }
+  .mc-bar-fill.warn { background: linear-gradient(90deg, var(--gold-dim), var(--gold)); }
+  .mc-bar-fill.bad  { background: linear-gradient(90deg, var(--terra-dim), var(--terracotta)); }
+  .metrics-row { display: none; }
+  .metric { display: none; }
+
+  /* ── Transcript ── */
+  .transcript-box {
+    background: var(--surface); border: 1.5px solid var(--border);
+    padding: 14px 16px; min-height: 70px; line-height: 1.8;
+    color: var(--text-2); font-family: 'Playfair Display', serif;
+    font-size: 15px; font-style: italic; border-radius: 14px;
+  }
+  .transcript-box.placeholder { color: var(--text-3); font-style: normal; font-family: 'Nunito', sans-serif; font-size: 12px; }
+
+  /* ── Right panel ── */
+  .right { display: flex; flex-direction: column; background: linear-gradient(180deg, var(--surface2) 0%, #fdfbf7 100%); overflow: hidden; height: 100%; min-height: 0; max-height: calc(100vh - 53px); }
+  .chat-header {
+    padding: 14px 18px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+    background: rgba(255,255,255,0.8);
+  }
+  .ai-avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--terra-pale), var(--gold-pale));
+    border: 2px solid var(--terra-dim);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Bebas Neue', sans-serif; font-size: 17px; color: var(--terracotta);
+  }
+  .ai-avatar.roleplay { background: linear-gradient(135deg, var(--sage-pale), var(--lav-pale)); border-color: var(--sage-dim); color: var(--sage); }
+  .chat-header-text { font-family: 'Bebas Neue', sans-serif; font-size: 15px; color: var(--text); letter-spacing: 0.06em; }
+  .phase-badge {
+    margin-left: auto; font-family: 'Bebas Neue', sans-serif;
+    font-size: 11px; letter-spacing: 0.1em; padding: 4px 12px;
+    border-radius: 20px; font-weight: 700;
+    border: 1.5px solid var(--border); color: var(--text-3);
+  }
+  .phase-badge.prepare  { background: var(--gold-pale);  border-color: var(--gold-dim);  color: var(--gold);  animation: badgePulse 2s ease-in-out infinite; }
+  .phase-badge.rehearse { background: var(--lav-pale);   border-color: #c4b4d4;          color: var(--lavender); }
+  .phase-badge.roleplay { background: var(--sage-pale);  border-color: var(--sage-dim);  color: var(--sage);  animation: badgePulse 2s ease-in-out infinite; }
+  .phase-badge.reflect  { background: var(--terra-pale); border-color: var(--terra-dim); color: var(--terracotta); animation: badgePulse 2s ease-in-out infinite; }
+  @keyframes badgePulse { 0%,100% { box-shadow: 0 0 0 0 rgba(196,112,90,0.15); } 50% { box-shadow: 0 0 0 6px rgba(196,112,90,0); } }
+
+  /* ── Chat messages ── */
+  .chat-messages { flex: 1; overflow-y: auto; padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+  .chat-messages::-webkit-scrollbar { width: 4px; }
+  .chat-messages::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+  .msg { animation: msgIn 0.3s ease; }
+  @keyframes msgIn { from { opacity:0; transform: translateY(6px); } to { opacity:1; transform: translateY(0); } }
+  .msg-role {
+    font-family: 'Bebas Neue', sans-serif; font-size: 11px; letter-spacing: 0.12em;
+    color: var(--text-3); margin-bottom: 5px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .msg-role::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--text-3); display: inline-block; }
+  .msg.ai .msg-role::before { background: var(--gold); }
+  .msg.role-player .msg-role::before { background: var(--sage); }
+  .msg.user .msg-role::before { background: var(--terracotta); }
+
+  .msg.ai .msg-bubble {
+    background: var(--surface); border: 1.5px solid var(--border);
+    border-radius: 4px 18px 18px 18px; padding: 13px 16px; line-height: 1.75;
+    color: var(--text); font-family: 'Playfair Display', serif; font-size: 15px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  }
+  .msg.role-player .msg-bubble {
+    background: linear-gradient(135deg, var(--sage-pale), #f0f7f3);
+    border: 1.5px solid var(--sage-dim);
+    border-radius: 4px 18px 18px 18px; padding: 13px 16px; line-height: 1.75;
+    color: var(--text); font-family: 'Playfair Display', serif; font-size: 15px; font-style: italic;
+  }
+  .msg.user .msg-bubble {
+    background: linear-gradient(135deg, var(--terra-pale), #fef5f2);
+    border: 1.5px solid var(--terra-dim);
+    border-radius: 18px 4px 18px 18px; padding: 11px 14px; line-height: 1.65;
+    color: var(--text); font-size: 13px;
+  }
+
+  .typing-indicator { display: flex; gap: 5px; align-items: center; padding: 4px 0; }
+  .typing-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--terra-dim); animation: typingBounce 1.1s ease-in-out infinite; }
+  .typing-dot:nth-child(2) { animation-delay: 0.18s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.36s; }
+  @keyframes typingBounce { 0%,80%,100% { transform: translateY(0); opacity:0.4; } 40% { transform: translateY(-6px); opacity:1; } }
+
+  .chat-input-area { border-top: 1px solid var(--border); padding: 12px 16px; display: flex; gap: 8px; flex-shrink: 0; background: rgba(255,255,255,0.8); }
+  .chat-input {
+    flex: 1; background: var(--surface); border: 1.5px solid var(--border);
+    color: var(--text); padding: 10px 14px;
+    font-family: 'Nunito', sans-serif; font-size: 13px;
+    outline: none; border-radius: 20px; transition: border-color 0.2s;
+  }
+  .chat-input:focus { border-color: var(--terracotta); }
+  .chat-input::placeholder { color: var(--text-3); }
+  .send-btn {
+    background: var(--terracotta); color: white; border: none; padding: 10px 18px;
+    cursor: pointer; font-family: 'Bebas Neue', sans-serif; font-size: 14px;
+    letter-spacing: 0.08em; border-radius: 20px; transition: all 0.2s;
+  }
+  .send-btn:hover { opacity: 0.85; transform: scale(1.03); }
+
+  /* ── Badge popup ── */
+  .badge-popup {
+    position: fixed; top: 72px; right: 20px; z-index: 9999;
+    background: linear-gradient(135deg, var(--gold-pale), #fffbef);
+    border: 2px solid var(--gold); border-radius: 18px;
+    padding: 14px 18px; box-shadow: 0 8px 40px rgba(196,154,60,0.25);
+    display: flex; align-items: center; gap: 14px; min-width: 240px;
+    animation: badgeIn 0.5s cubic-bezier(0.34,1.56,0.64,1);
+    font-family: 'Nunito', sans-serif;
+  }
+  @keyframes badgeIn { from { opacity:0; transform: translateX(80px) scale(0.8); } to { opacity:1; transform: translateX(0) scale(1); } }
+  .badge-popup.out { animation: badgeOut 0.4s ease forwards; }
+  @keyframes badgeOut { to { opacity:0; transform: translateX(80px); } }
+  .badge-icon { font-size: 34px; line-height: 1; animation: badgeIconBounce 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.3s both; }
+  @keyframes badgeIconBounce { from { transform: scale(0) rotate(-20deg); } to { transform: scale(1) rotate(0deg); } }
+  .badge-text { display: flex; flex-direction: column; gap: 2px; }
+  .badge-got  { font-family: 'Bebas Neue', sans-serif; font-size: 10px; letter-spacing: 0.14em; color: var(--gold); }
+  .badge-name { font-size: 15px; font-weight: 700; color: var(--text); }
+  .badge-desc { font-size: 11px; color: var(--text-3); }
+
+  /* ── Badge shelf ── */
+  .badge-shelf { display: flex; flex-wrap: wrap; gap: 7px; min-height: 44px; }
+  .badge-item {
+    width: 44px; height: 44px; border-radius: 12px;
+    background: var(--surface); border: 1.5px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; cursor: default; transition: all 0.25s; position: relative;
+  }
+  .badge-item:hover { transform: scale(1.25) rotate(-3deg); border-color: var(--gold); box-shadow: 0 6px 20px rgba(196,154,60,0.25); }
+  .badge-item.locked { filter: grayscale(1) opacity(0.3); }
+  .badge-item .bdg-tip {
+    position: absolute; bottom: 52px; left: 50%; transform: translateX(-50%);
+    background: var(--text); color: white; font-size: 10px; white-space: nowrap;
+    padding: 4px 8px; border-radius: 6px; opacity: 0; pointer-events: none;
+    transition: opacity 0.2s; font-family: 'Nunito', sans-serif; font-weight: 600; z-index: 10;
+  }
+  .badge-item:hover .bdg-tip { opacity: 1; }
+
+  /* ── Analysis panel redesign ── */
+  .analysis-header {
+    display: flex; align-items: baseline; gap: 12px;
+    border-bottom: 2px solid var(--border); padding-bottom: 10px;
+  }
+  .analysis-title {
+    font-family: 'Bebas Neue', sans-serif; font-size: 22px;
+    color: var(--text); letter-spacing: 0.1em;
+  }
+  .analysis-sub { font-size: 11px; color: var(--text-3); font-weight: 500; }
+
+  .radar-center {
+    display: flex; justify-content: center;
+    background: linear-gradient(135deg, var(--surface), var(--bg2));
+    border: 1.5px solid var(--border); border-radius: 20px;
+    padding: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+  }
+
+  /* Override metrics-cards to 3-column full width */
+  .metrics-panel .metrics-cards {
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+  }
+  .metrics-panel .metric-card {
+    padding: 14px 16px;
+  }
+  .metrics-panel .mc-value { font-size: 32px; }
+
+  /* ── Badge shelf redesign ── */
+  .badge-shelf {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px; min-height: 60px;
+  }
+  .badge-item {
+    width: auto; height: auto;
+    border-radius: 14px;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 5px; padding: 12px 6px;
+    cursor: default; transition: all 0.25s;
+    position: relative;
+  }
+  .badge-item .bdg-emoji { font-size: 28px; line-height: 1; }
+  .badge-item .bdg-name { font-size: 9px; font-weight: 700; color: var(--text-2); text-align: center; line-height: 1.2; letter-spacing: 0.02em; }
+  .badge-item:hover { transform: scale(1.08) translateY(-2px); border-color: var(--gold); box-shadow: 0 8px 24px rgba(196,154,60,0.2); }
+  .badge-item.earned { border-color: var(--gold-dim); background: var(--gold-pale); }
+  .badge-item.earned.hard-badge { border-color: var(--terracotta); background: var(--terra-pale); box-shadow: 0 0 12px rgba(196,112,90,0.25); }
+  .badge-item.earned.hard-badge .bdg-name { color: var(--terracotta); }
+  .badge-item.earned .bdg-name { color: var(--gold); }
+  .badge-item.locked { opacity: 0.35; filter: grayscale(0.8); }
+  .badge-item .bdg-tip {
+    position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
+    background: var(--text); color: white; font-size: 10px; white-space: nowrap;
+    padding: 5px 10px; border-radius: 8px; opacity: 0; pointer-events: none;
+    transition: opacity 0.2s; font-family: 'Nunito', sans-serif; font-weight: 600; z-index: 10;
+  }
+  .badge-item:hover .bdg-tip { opacity: 1; }
+
+  /* ── Large countdown overlay ── */
+  .countdown-overlay {
+    position: fixed; inset: 0; z-index: 9990;
+    display: flex; align-items: center; justify-content: center;
+    pointer-events: none; opacity: 0; transition: opacity 0.2s;
+    background: rgba(250,248,244,0.6);
+  }
+  .countdown-overlay.visible { opacity: 1; }
+  .countdown-big-wrap {
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    animation: coBounceIn 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  @keyframes coBounceIn { from { transform: scale(0.5); opacity:0; } to { transform: scale(1); opacity:1; } }
+  .countdown-big-ring { position: relative; width: 200px; height: 200px; }
+  .countdown-big-ring svg { position: absolute; top:0; left:0; transform: rotate(-90deg); }
+  .countdown-big-num {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-family: 'Bebas Neue', sans-serif; font-size: 110px; line-height: 1;
+    color: var(--terracotta); transition: color 0.2s;
+  }
+  .countdown-big-num.tick { animation: numTick 0.12s ease; }
+  @keyframes numTick { 0% { transform: scale(1.25); } 100% { transform: scale(1); } }
+  .countdown-big-label {
+    font-family: 'Bebas Neue', sans-serif; font-size: 13px;
+    letter-spacing: 0.2em; color: var(--text-3);
+  }
+  .countdown-big-num.urgent { animation: urgentShake 0.25s ease-in-out infinite; }
+  @keyframes urgentShake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+
+  @keyframes recordBtnPulse {
+    0%,100% { box-shadow: 0 6px 28px rgba(106,155,126,0.3); }
+    50% { box-shadow: 0 6px 40px rgba(106,155,126,0.7); transform: scale(1.04); }
+  }
+  /* ── Difficulty selector ── */
+  .difficulty-selector { display: flex; gap: 6px; }
+  .diff-btn {
+    flex: 1; padding: 9px 8px; border-radius: 12px; cursor: pointer;
+    border: 1.5px solid var(--border); background: var(--surface);
+    font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 700;
+    text-align: center; transition: all 0.2s; line-height: 1.3;
+  }
+  .diff-btn:hover { transform: translateY(-1px); }
+  .diff-btn.easy   { color: var(--sage); }
+  .diff-btn.normal { color: var(--gold); }
+  .diff-btn.hard   { color: var(--terracotta); }
+  .diff-btn.easy.active   { background: var(--sage-pale);  border-color: var(--sage);       box-shadow: 0 3px 12px rgba(106,155,126,0.2); }
+  .diff-btn.normal.active { background: var(--gold-pale);  border-color: var(--gold);       box-shadow: 0 3px 12px rgba(196,154,60,0.2); }
+  .diff-btn.hard.active   { background: var(--terra-pale); border-color: var(--terracotta); box-shadow: 0 3px 12px rgba(196,112,90,0.25); }
+  .diff-sub { font-size: 9px; font-weight: 400; display: block; margin-top: 2px; opacity: 0.75; }
+
+  /* ── Difficulty atmosphere ── */
+  .app.diff-easy .right  { background: linear-gradient(180deg, #edf5f0 0%, #f5f8f5 100%); }
+  .app.diff-hard .right  { background: linear-gradient(180deg, #fdf0ec 0%, #faf8f4 100%); }
+  .app.diff-easy .chat-header { border-bottom-color: var(--sage-dim); }
+  .app.diff-hard .chat-header { border-bottom-color: var(--terra-dim); }
+
+  /* Avatar display */
+  .avatar-panel {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 10px; padding: 16px 16px 14px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, var(--surface), var(--bg2));
+    flex-shrink: 0;
+    transition: all 0.3s;
+  }
+  .avatar-img {
+    width: 100px; height: 100px; border-radius: 16px;
+    object-fit: cover;
+    border: 3px solid var(--border2);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.12);
+    transition: all 0.3s;
+  }
+  .diff-easy  .avatar-img { border-color: var(--sage); box-shadow: 0 4px 20px rgba(106,155,126,0.3); }
+  .diff-normal .avatar-img { border-color: var(--border2); }
+  .diff-hard  .avatar-img { border-color: var(--terracotta); box-shadow: 0 4px 20px rgba(196,112,90,0.35); }
+  .avatar-name { font-family: 'Bebas Neue',sans-serif; font-size: 16px; letter-spacing: 0.1em; color: var(--text); }
+  .avatar-diff-badge {
+    font-size: 10px; font-weight: 700; padding: 2px 10px;
+    border-radius: 12px; letter-spacing: 0.08em;
+  }
+  .diff-easy  .avatar-diff-badge { background: var(--sage-pale);  color: var(--sage);       border: 1px solid var(--sage-dim); }
+  .diff-normal .avatar-diff-badge { background: var(--gold-pale);  color: var(--gold);       border: 1px solid var(--gold-dim); }
+  .diff-hard  .avatar-diff-badge { background: var(--terra-pale); color: var(--terracotta); border: 1px solid var(--terra-dim); }
+  .avatar-diff-badge { background: var(--bg2); color: var(--text-3); border: 1px solid var(--border); border-radius: 20px; font-size: 11px; font-weight: 700; padding: 3px 12px; letter-spacing: 0.06em; }
+  .avatar-generating {
+    width: 100px; height: 100px; border-radius: 16px;
+    background: var(--bg2); border: 1px solid var(--border2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px;
+  }
+  .avatar-generating.generating {
+    border-style: dashed;
+    animation: avatarPulse 1.5s ease-in-out infinite;
+  }
+  @keyframes avatarPulse { 0%,100%{opacity:0.5;} 50%{opacity:1;} }
+
+  /* Difficulty mode entrance message */
+  .diff-mode-banner {
+    text-align: center; padding: 10px 14px; margin: 0;
+    font-family: 'Bebas Neue',sans-serif; font-size: 14px; letter-spacing: 0.12em;
+    border-radius: 10px; animation: msgIn 0.4s ease;
+  }
+  .diff-mode-banner.easy   { background: var(--sage-pale);  color: var(--sage);       border: 1px solid var(--sage-dim); }
+  .diff-mode-banner.normal { background: var(--gold-pale);  color: var(--gold);       border: 1px solid var(--gold-dim); }
+  .diff-mode-banner.hard   { background: var(--terra-pale); color: var(--terracotta); border: 1px solid var(--terra-dim); }
+
+  /* Hide original record button area when countdown overlay is active */
+  .record-wrap-hidden { visibility: hidden; opacity: 0; pointer-events: none; }
+
+  /* ── Roleplay start button ── */
+  .roleplay-start-btn {
+    display: none; width: 100%; padding: 16px;
+    background: linear-gradient(135deg, var(--sage), #4a8a62);
+    color: white; border: none; border-radius: 16px; cursor: pointer;
+    font-family: 'Bebas Neue', sans-serif; font-size: 20px;
+    letter-spacing: 0.16em; text-align: center;
+    box-shadow: 0 6px 24px rgba(106,155,126,0.4);
+    transition: all 0.2s; position: relative; overflow: hidden;
+  }
+  .roleplay-start-btn::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+    pointer-events: none;
+  }
+  .roleplay-start-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(106,155,126,0.5); }
+  .roleplay-start-btn:active { transform: translateY(0); }
+  .roleplay-start-btn.visible { display: block; animation: btnAppear 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+  @keyframes btnAppear { from { opacity:0; transform: scale(0.9) translateY(8px); } to { opacity:1; transform: scale(1) translateY(0); } }
+  .roleplay-start-btn.hard-mode {
+    background: linear-gradient(135deg, var(--terracotta), #a85040);
+    box-shadow: 0 6px 24px rgba(196,112,90,0.4);
+  }
+  .roleplay-start-btn.hard-mode:hover { box-shadow: 0 10px 32px rgba(196,112,90,0.55); }
+  .start-btn-sub { display: block; font-family: 'Nunito',sans-serif; font-size: 11px; font-weight: 600; opacity: 0.85; letter-spacing: 0.05em; margin-top: 2px; }
+
+  /* ── Sticky record area ── */
+  .record-area {
+    position: sticky !important;
+    bottom: 0;
+    background: rgba(250,248,244,0.97);
+    border-top: 1px solid var(--border);
+    z-index: 50;
+    margin: 0 -26px;
+    padding: 16px 26px !important;
+  }
+
+  /* ── Fixed record footer ── */
+  #recFooter {
+    position: fixed;
+    bottom: 0; left: 0;
+    width: calc(100% - 420px);
+    background: rgba(250,248,244,0.97);
+    border-top: 1.5px solid var(--border);
+    z-index: 200;
+    overflow: visible;
+  }
+  #endRoleplaysBtn {
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+  }
+  #recFooter .record-area {
+    padding: 12px 0 14px !important;
+    gap: 8px !important;
+  }
+
+  /* ── REC button animations ── */
+  @keyframes recPulseIdle {
+    0%,100% { box-shadow: 0 4px 20px rgba(196,112,90,0.1), 0 0 0 0 rgba(196,112,90,0.25); }
+    50%      { box-shadow: 0 4px 20px rgba(196,112,90,0.2), 0 0 0 14px rgba(196,112,90,0); }
+  }
+  @keyframes recPulseWait {
+    0%,100% { box-shadow: 0 4px 24px rgba(106,155,126,0.2), 0 0 0 0 rgba(106,155,126,0.5); }
+    50%      { box-shadow: 0 4px 24px rgba(106,155,126,0.3), 0 0 0 20px rgba(106,155,126,0); }
+  }
+  @keyframes recPulseRecording {
+    0%,100% { box-shadow: 0 4px 24px rgba(196,112,90,0.4), 0 0 0 0 rgba(196,112,90,0.6); border-color: var(--terracotta); }
+    50%      { box-shadow: 0 4px 24px rgba(196,112,90,0.1), 0 0 0 24px rgba(196,112,90,0); border-color: rgba(196,112,90,0.4); }
+  }
+  @keyframes dotBlink {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: 0.3; transform: scale(0.85); }
+  }
+  @keyframes dotRecording {
+    0%,100% { transform: scale(1); background: var(--terracotta); }
+    50%      { transform: scale(1.25); background: #e05040; }
+  }
+
+  /* Apply idle pulse by default to rec button */
+  #recordBtn {
+    animation: recPulseIdle 2.5s ease-in-out infinite !important;
+  }
+  #recordBtn.roleplay-wait {
+    animation: recPulseWait 1.2s ease-in-out infinite !important;
+    border-color: var(--sage) !important;
+  }
+  #recordBtn.is-recording {
+    animation: recPulseRecording 0.8s ease-in-out infinite !important;
+  }
+  #recordBtn.is-recording #dot {
+    animation: dotRecording 0.8s ease-in-out infinite !important;
+    border-radius: 4px !important;
+    background: var(--terracotta) !important;
+  }
+  /* REC text label on button */
+  #recText {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 11px; letter-spacing: 0.18em;
+    color: var(--text-3); transition: color 0.2s;
+  }
+  #recordBtn.is-recording #recText { color: var(--terracotta); }
+  #recordBtn.roleplay-wait #recText { color: var(--sage); }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+</style>
+
+
+</head>
+<body>
+
+<!-- Large countdown overlay -->
+<div class="countdown-overlay" id="countdownOverlay">
+  <div class="countdown-big-wrap">
+    <div class="countdown-big-ring">
+      <svg width="200" height="200" viewBox="0 0 200 200">
+        <circle cx="100" cy="100" r="88" fill="none" stroke="var(--border)" stroke-width="6"/>
+        <circle id="countdownBigRing" cx="100" cy="100" r="88" fill="none"
+          stroke="var(--terracotta)" stroke-width="6" stroke-linecap="round"
+          stroke-dasharray="553" stroke-dashoffset="553"
+          style="transition: stroke-dashoffset 0.9s linear, stroke 0.3s; filter: drop-shadow(0 0 8px rgba(196,112,90,0.5))"/>
+      </svg>
+      <div class="countdown-big-num" id="countdownBigNum">5</div>
+    </div>
+    <div class="countdown-big-label">秒以内にボタンを押してください</div>
+  </div>
+</div>
+
+<header>
+  <div class="logo">FOR ME <span>NY</span></div>
+  <div style="display:flex;align-items:center;gap:16px">
+    <div id="streakDisplay" style="display:none;align-items:center;gap:6px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:600;color:var(--terracotta)">
+      🔥 <span id="streakCount">0</span>日連続
+    </div>
+    <div class="tagline">Voice Practice Studio</div>
+  </div>
+</header>
+
+<div class="app">
+  <div class="left">
+
+    <!-- OpenAI API Key -->
+    <div>
+      <div class="section-label">OpenAI API Key</div>
+      <div class="key-row">
+        <input class="key-input" id="apiKeyInput" type="password" placeholder="sk-..." />
+        <button class="key-save-btn" onclick="saveKey()" id="btnSave">保存</button>
+      </div>
+      <div class="key-status" id="keyStatus">未設定</div>
+    </div>
+
+    <!-- ElevenLabs API Key (future) -->
+    <div>
+      <div class="section-label" style="color:var(--text-3)">ElevenLabs API Key（音声・準備中）</div>
+      <div class="key-row">
+        <input class="key-input" id="elevenKeyInput" type="password" placeholder="sk_..." style="opacity:0.5" />
+        <button class="key-save-btn" onclick="saveElevenKey()" id="btnSaveEleven" style="opacity:0.5;cursor:not-allowed">保存</button>
+      </div>
+      <div class="key-status" id="elevenKeyStatus" style="color:var(--text-3)">現在はOpenAI TTSを使用中</div>
+    </div>
+
+
+    <!-- Language -->
+    <div>
+      <div class="section-label">Language</div>
+      <div class="lang-toggle">
+        <button class="lang-btn active" id="langJA" onclick="setLang('ja')">日本語</button>
+        <button class="lang-btn" id="langEN" onclick="setLang('en')">English</button>
+      </div>
+    </div>
+
+    <!-- Difficulty selector — shown only in roleplay mode -->
+    <div id="difficultySelectorSection" style="display:none">
+      <div class="section-label">難易度</div>
+      <div class="difficulty-selector">
+        <button class="diff-btn easy" id="diffEasy" onclick="setDifficulty('easy')">
+          🌱 Easy<span class="diff-sub">優しめ・協力的</span>
+        </button>
+        <button class="diff-btn normal active" id="diffNormal" onclick="setDifficulty('normal')">
+          🔥 Normal<span class="diff-sub">現実的・適度な圧力</span>
+        </button>
+        <button class="diff-btn hard" id="diffHard" onclick="setDifficulty('hard')">
+          ⚡ Hard<span class="diff-sub">厳しい・プレッシャー大</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- AI Voice — shown only in roleplay mode -->
+    <div id="voiceSelectorSection" style="display:none">
+      <div class="section-label" id="labelVoice">AI Voice（ロールプレイ）</div>
+      <div class="voice-grid" id="voiceGrid">
+        <button class="voice-btn active" data-voice="nova" onclick="setVoice(this)">Nova<span class="voice-tag" id="vt-nova">女性・自然 ★推奨</span></button>
+        <button class="voice-btn" data-voice="shimmer" onclick="setVoice(this)">Shimmer<span class="voice-tag" id="vt-shimmer">女性・柔らか ★推奨</span></button>
+        <button class="voice-btn" data-voice="alloy" onclick="setVoice(this)">Alloy<span class="voice-tag" id="vt-alloy">女性・中性</span></button>
+        <button class="voice-btn" data-voice="echo" onclick="setVoice(this)">Echo<span class="voice-tag" id="vt-echo">男性・若め</span></button>
+        <button class="voice-btn" data-voice="fable" onclick="setVoice(this)">Fable<span class="voice-tag" id="vt-fable">男性・中性</span></button>
+        <button class="voice-btn" data-voice="onyx" onclick="setVoice(this)">Onyx<span class="voice-tag" id="vt-onyx">男性・低音</span></button>
+      </div>
+    </div>
+
+    <!-- Mode -->
+    <div>
+      <div class="section-label">Mode</div>
+      <div class="mode-tabs">
+        <button class="mode-tab active speech" id="modeTabSpeech" onclick="setMode('speech')">🎙 <span id="modeLabelSpeech">スピーチ練習</span></button>
+        <button class="mode-tab roleplay" id="modeTabRoleplay" onclick="setMode('roleplay')">🎭 <span id="modeLabelRoleplay">ロールプレイ</span></button>
+      </div>
+      <div class="mode-hint" id="modeHint">一人で話して計測・フィードバックを受ける</div>
+    </div>
+
+    <!-- Scenarios -->
+    <div>
+      <div class="section-label" id="scenarioLabel">Topic / シナリオ</div>
+
+      <!-- Speech scenarios -->
+      <div id="speechScenarios">
+        <div class="topic-grid">
+          <button class="topic-btn active" data-topic="自己紹介（1分間）" onclick="selectTopic(this, 'speech')"><span id="t-intro">自己紹介</span><span class="topic-tag" id="tt-intro">1分間スピーチ</span></button>
+          <button class="topic-btn" data-topic="プロジェクト提案プレゼン（3分）" onclick="selectTopic(this, 'speech')"><span id="t-pres">提案プレゼン</span><span class="topic-tag" id="tt-pres">3分間</span></button>
+          <button class="topic-btn" data-topic="FOR ME NYのワークショップについて説明する" onclick="selectTopic(this, 'speech')"><span>FOR ME NY</span><span class="topic-tag" id="tt-fmny">ワークショップ説明</span></button>
+          <button class="topic-btn" data-topic="AIと人間の共存についての意見を述べる" onclick="selectTopic(this, 'speech')"><span id="t-ai">AI × 人間</span><span class="topic-tag" id="tt-ai">意見スピーチ</span></button>
+        </div>
+        <textarea class="custom-input" id="customTopicSpeech" placeholder="カスタムトピックを入力…" id="customTopicSpeechInput" oninput="onCustomTopic('speech')"></textarea>
+      </div>
+
+      <!-- Roleplay scenarios -->
+      <div id="roleplaysScenarios" style="display:none">
+        <div class="topic-grid">
+
+          <button class="topic-btn roleplay-btn"
+            data-role="採用面接官（人事部・中堅企業）"
+            data-situation="新卒または中途採用の一次面接。面接官は人事部のベテランで、丁寧な敬語を使いながらも鋭い質問をする。志望動機・自己PR・学生時代の経験などを確認する。圧迫ではなく、応募者の人となりを見たい。"
+            data-opener="本日はお越しいただきありがとうございます。では早速ですが、まず簡単に自己紹介をお願いできますか。"
+            onclick="selectRoleplay(this)">就職面接<span class="topic-tag">一次面接・自己PR</span></button>
+
+          <button class="topic-btn roleplay-btn"
+            data-role="直属の上司（課長・40代男性）"
+            data-situation="部下が業務改善のアイデアや新しい取り組みを上司に提案する場面。上司は忙しく最初は乗り気でないが、論理的に話せば聞いてくれる。社内の稟議を通すためにはコスト・工数・メリットを具体的に説明する必要がある。"
+            data-opener="あ、ちょうどよかった。何か話があるって聞いたけど、今ちょっとだけなら時間あるよ。"
+            onclick="selectRoleplay(this)">上司への提案<span class="topic-tag">業務改善・社内提案</span></button>
+
+          <button class="topic-btn roleplay-btn"
+            data-role="転職エージェント（キャリアアドバイザー）"
+            data-situation="転職を考えている候補者との初回面談。エージェントは候補者の経歴・希望条件・転職理由を丁寧にヒアリングし、強みを引き出そうとする。候補者は自分のキャリアを整理して伝える必要がある。"
+            data-opener="本日はご相談にいらしていただきありがとうございます。まず現在のお仕事と、転職をお考えになったきっかけを教えていただけますか。"
+            onclick="selectRoleplay(this)">転職相談<span class="topic-tag">キャリア面談</span></button>
+
+          <button class="topic-btn roleplay-btn"
+            data-role="初対面の取引先担当者（30代・やや警戒心あり）"
+            data-situation="初めての営業訪問または打ち合わせ。相手はまだ信頼関係がなく、話を聞く姿勢はあるが慎重。自社サービスや提案を分かりやすく説明し、相手の課題を引き出して信頼を築く必要がある。"
+            data-opener="本日はお時間いただきありがとうございます。御社のことは以前から存じておりまして。今日はどういったお話でしょうか。"
+            onclick="selectRoleplay(this)">初回営業訪問<span class="topic-tag">新規取引先・提案</span></button>
+
+          <button class="topic-btn roleplay-btn"
+            data-role="チームリーダー（同僚・30代）"
+            data-situation="プロジェクトの進め方について意見が食い違っている。あなた（AI）はアジャイルで小さく早く動くべきと考えており、すでにチームに根回し済み。ユーザーは慎重な計画重視派。感情的にはならないが、自分の意見をはっきり持っており、簡単には引かない。ユーザーに意見を聞きながらも、自分の立場をしっかり主張する。"
+            data-opener="ちょっとさ、今回のプロジェクトの進め方なんだけど、正直あなたとは考え方が違うと思っていて。私はもう小さく動いてフィードバックを取るべきだと思ってるし、チームにもそう話してる。あなたはどう考えてる？"
+            onclick="selectRoleplay(this)">意見の食い違い<span class="topic-tag">社内・チーム調整</span></button>
+
+          <button class="topic-btn roleplay-btn"
+            data-role="大学のゼミ担当教授（60代・厳格だが学生思い）"
+            data-situation="卒業論文・研究の中間報告や相談。教授は厳しい質問や指摘をするが、学生の成長を願っている。研究の目的・方法・進捗を論理的に説明し、指摘には誠実に答える必要がある。"
+            data-opener="先週提出したレポート、読みましたよ。いくつか気になる点があったんですが、今日はどんな相談でしたっけ。"
+            onclick="selectRoleplay(this)">ゼミ・研究相談<span class="topic-tag">教授・指導教員</span></button>
+
+        </div>
+        <textarea class="custom-input" id="customTopicRoleplay" placeholder="カスタムシナリオを入力（例：クレーム対応、病院での症状説明）…" oninput="onCustomTopic('roleplay')"></textarea>
+      </div>
+
+      <!-- Roleplay context display — editable -->
+      <div id="roleplaysInfoWrap" style="display:none;flex-direction:column;gap:4px;">
+        <div style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);">Scene Setting <span style="color:var(--text-3);font-size:9px;text-transform:none;letter-spacing:0;">（編集可能）</span></div>
+        <textarea id="roleplaysInfo" rows="3" style="width:100%;background:rgba(74,122,155,0.06);border:1px solid rgba(74,122,155,0.3);border-radius:6px;padding:9px 10px;font-size:11px;color:var(--text);font-family:'Nunito',sans-serif;line-height:1.6;resize:vertical;outline:none;" oninput="selectedRoleplay.situation=this.value"></textarea>
+      </div>
+
+      <!-- Start button — appears after scenario selection -->
+      <button class="roleplay-start-btn" id="roleplaysStartBtn" onclick="startRoleplaysFromButton()">
+        🎭 ロールプレイを開始する
+        <span class="start-btn-sub" id="startBtnSub">シナリオと難易度を確認してスタート</span>
+      </button>
+    </div>
+
+    <!-- Badges -->
+    <div id="badgeSection">
+      <div class="section-label">Badges</div>
+      <div class="badge-shelf" id="badgeShelf"></div>
+    </div>
+
+    <!-- Record -->
+    <!-- Analysis panel -->
+    <div class="metrics-panel" id="metricsRow">
+
+      <!-- Header -->
+      <div class="analysis-header">
+        <span class="analysis-title">📊 Analysis</span>
+        <span class="analysis-sub" id="analysisSub">Session Results</span>
+      </div>
+
+      <!-- Radar chart — centered, large -->
+      <div class="radar-center">
+        <svg id="radarSvg" width="220" height="220" viewBox="0 0 220 220">
+          <defs>
+            <linearGradient id="radarGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="var(--terracotta)" stop-opacity="0.9"/>
+              <stop offset="100%" stop-color="var(--sage)" stop-opacity="0.9"/>
+            </linearGradient>
+            <filter id="radarGlow">
+              <feGaussianBlur stdDeviation="3" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+          <!-- Grid rings -->
+          <polygon points="110,26 168,59 168,125 110,158 52,125 52,59" fill="none" stroke="var(--border)" stroke-width="1.5"/>
+          <polygon points="110,51 147,72 147,114 110,135 73,114 73,72"  fill="none" stroke="var(--border)" stroke-width="1"/>
+          <polygon points="110,76 126,85 126,103 110,112 94,103 94,85"  fill="none" stroke="var(--border)" stroke-width="1" stroke-dasharray="3,2"/>
+          <!-- Axis lines -->
+          <line x1="110" y1="110" x2="110" y2="26"  stroke="var(--border2)" stroke-width="1"/>
+          <line x1="110" y1="110" x2="168" y2="59"  stroke="var(--border2)" stroke-width="1"/>
+          <line x1="110" y1="110" x2="168" y2="125" stroke="var(--border2)" stroke-width="1"/>
+          <line x1="110" y1="110" x2="110" y2="158" stroke="var(--border2)" stroke-width="1"/>
+          <line x1="110" y1="110" x2="52"  y2="125" stroke="var(--border2)" stroke-width="1"/>
+          <line x1="110" y1="110" x2="52"  y2="59"  stroke="var(--border2)" stroke-width="1"/>
+          <!-- Data polygon -->
+          <polygon id="radarPoly" points="110,110 110,110 110,110 110,110 110,110 110,110"
+            fill="url(#radarGrad)" fill-opacity="0.2"
+            stroke="url(#radarGrad)" stroke-width="2.5"
+            filter="url(#radarGlow)"/>
+          <!-- Data dots -->
+          <circle id="rd0" cx="110" cy="110" r="4" fill="var(--terracotta)" opacity="0.9"/>
+          <circle id="rd1" cx="110" cy="110" r="4" fill="var(--terracotta)" opacity="0.9"/>
+          <circle id="rd2" cx="110" cy="110" r="4" fill="var(--sage)"       opacity="0.9"/>
+          <circle id="rd3" cx="110" cy="110" r="4" fill="var(--sage)"       opacity="0.9"/>
+          <circle id="rd4" cx="110" cy="110" r="4" fill="var(--gold)"       opacity="0.9"/>
+          <circle id="rd5" cx="110" cy="110" r="4" fill="var(--gold)"       opacity="0.9"/>
+          <!-- Axis labels -->
+          <text x="110" y="18"  text-anchor="middle" fill="var(--text-2)" font-size="11" font-family="Bebas Neue,sans-serif" letter-spacing="1">SPEED</text>
+          <text x="178" y="57"  text-anchor="start"  fill="var(--text-2)" font-size="11" font-family="Bebas Neue,sans-serif" letter-spacing="1">PAUSE</text>
+          <text x="178" y="130" text-anchor="start"  fill="var(--text-2)" font-size="11" font-family="Bebas Neue,sans-serif" letter-spacing="1">VOL</text>
+          <text x="110" y="176" text-anchor="middle" fill="var(--text-2)" font-size="11" font-family="Bebas Neue,sans-serif" letter-spacing="1">FILLER</text>
+          <text x="42"  y="130" text-anchor="end"    fill="var(--text-2)" font-size="11" font-family="Bebas Neue,sans-serif" letter-spacing="1">VOCAB</text>
+          <text x="42"  y="57"  text-anchor="end"    fill="var(--text-2)" font-size="11" font-family="Bebas Neue,sans-serif" letter-spacing="1">SILENCE</text>
+        </svg>
+      </div>
+
+      <!-- 6 metric cards full width -->
+      <div class="metrics-cards">
+        <div class="metric-card" id="cardSpeed">
+          <div class="mc-label">Speed</div>
+          <div class="mc-value" id="speedVal">—</div>
+          <div class="mc-unit" id="speedUnit">chars/min</div>
+          <div class="mc-bar-track"><div class="mc-bar-fill" id="speedBar" style="width:0%"></div></div>
+          <div class="mc-ref" id="speedHint">目安 300–400</div>
+        </div>
+        <div class="metric-card" id="cardPause">
+          <div class="mc-label">Pauses</div>
+          <div class="mc-value" id="pauseVal">—</div>
+          <div class="mc-unit">回</div>
+          <div class="mc-bar-track"><div class="mc-bar-fill" id="pauseBar" style="width:0%"></div></div>
+          <div class="mc-ref">有意な間</div>
+        </div>
+        <div class="metric-card" id="cardVol">
+          <div class="mc-label">Volume</div>
+          <div class="mc-value" id="volVal">—</div>
+          <div class="mc-unit">dB avg</div>
+          <div class="mc-bar-track"><div class="mc-bar-fill" id="volBar" style="width:0%"></div></div>
+          <div class="mc-ref">音量安定度</div>
+        </div>
+        <div class="metric-card" id="cardFiller">
+          <div class="mc-label">Fillers</div>
+          <div class="mc-value" id="fillerVal">—</div>
+          <div class="mc-unit">回</div>
+          <div class="mc-bar-track"><div class="mc-bar-fill" id="fillerBar" style="width:0%"></div></div>
+          <div class="mc-ref">あー・えー・なんか</div>
+        </div>
+        <div class="metric-card" id="cardVocab">
+          <div class="mc-label">Vocab</div>
+          <div class="mc-value" id="vocabVal">—</div>
+          <div class="mc-unit">% 多様性</div>
+          <div class="mc-bar-track"><div class="mc-bar-fill" id="vocabBar" style="width:0%"></div></div>
+          <div class="mc-ref">語彙の豊かさ</div>
+        </div>
+        <div class="metric-card" id="cardSilence">
+          <div class="mc-label">Silence</div>
+          <div class="mc-value" id="silenceVal">—</div>
+          <div class="mc-unit">%</div>
+          <div class="mc-bar-track"><div class="mc-bar-fill" id="silenceBar" style="width:0%"></div></div>
+          <div class="mc-ref">沈黙率 目安10–30%</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transcript -->
+    <div id="transcriptSection" style="display:none">
+      <div class="section-label">Transcript</div>
+      <div class="transcript-box placeholder" id="transcriptBox">録音後にここにテキストが表示されます</div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="right">
+    <div class="chat-header">
+      <div class="ai-avatar" id="aiAvatar">F</div>
+      <div class="chat-header-text" id="chatHeaderText">FOR ME NY AI Coach</div>
+
+    </div>
+    <!-- Avatar panel -->
+    <div class="avatar-panel" id="avatarPanel">
+      <div class="avatar-generating" id="avatarGenerating"><svg width="72" height="72" viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg"><circle cx="70" cy="70" r="70" fill="#fdf6ee"/><circle cx="70" cy="70" r="52" fill="none" stroke="#c9a84c" stroke-width="1.2" opacity="0.45"/><text x="70" y="66" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="38" letter-spacing="6" fill="#c4705a">FM</text><text x="70" y="102" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="38" letter-spacing="6" fill="#6a9b7e">NY</text><circle cx="70" cy="10" r="3.5" fill="#c9a84c"/><circle cx="70" cy="130" r="3.5" fill="#c9a84c"/><circle cx="10" cy="70" r="3.5" fill="#c9a84c" opacity="0.5"/><circle cx="130" cy="70" r="3.5" fill="#c9a84c" opacity="0.5"/></svg></div>
+      <img id="avatarImg" class="avatar-img" style="display:none" src="" alt="character"/>
+      <div class="avatar-name" id="avatarName">FOR ME NY Coach</div>
+      <div id="avatarSub" style="font-size:10px;color:var(--text-3);text-align:center;padding:0 12px;line-height:1.5;max-height:48px;overflow:hidden;">🎙 Voice Practice</div>
+
+    </div>
+    <div class="chat-messages" id="chatMessages"></div>
+    <div class="chat-input-area">
+      <input class="chat-input" id="chatInput" placeholder="ここに入力…" id="chatInputPlaceholder" onkeydown="if(event.key==='Enter')sendMessage()" />
+      <button class="send-btn" id="btnSend" onclick="sendMessage()">送信</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────
+let apiKey = localStorage.getItem('formeny_openai_key') || '';
+let lang = 'ja';
+
+const COACH_AVATAR_SVG = `<svg width="72" height="72" viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg"><circle cx="70" cy="70" r="70" fill="#fdf6ee"/><circle cx="70" cy="70" r="52" fill="none" stroke="#c9a84c" stroke-width="1.2" opacity="0.45"/><text x="70" y="66" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="38" letter-spacing="6" fill="#c4705a">FM</text><text x="70" y="102" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="38" letter-spacing="6" fill="#6a9b7e">NY</text><circle cx="70" cy="10" r="3.5" fill="#c9a84c"/><circle cx="70" cy="130" r="3.5" fill="#c9a84c"/><circle cx="10" cy="70" r="3.5" fill="#c9a84c" opacity="0.5"/><circle cx="130" cy="70" r="3.5" fill="#c9a84c" opacity="0.5"/></svg>`;
+let mode = 'speech'; // 'speech' | 'roleplay'
+let selectedTopic = '自己紹介（1分間）';
+let selectedRoleplay = null; // { role, situation, opener }
+
+let isRecording = false;
+let isStarting = false;
+let mediaRecorder = null;   // for Whisper audio capture
+let audioChunks = [];       // recorded audio chunks
+let recognition = null;
+let timerInterval = null;
+let startTime = null;
+let fullTranscript = '';
+let lastSpeechTime = null;
+let silenceEvents = [];
+let currentSilenceStart = null;
+const SILENCE_THRESHOLD = 0.8;
+let volumeSamples = [];
+let audioContext = null, analyser = null, micStream = null;
+let animFrameId = null;
+let pendingComputeTimer = null;
+
+let chatHistory = []; // coach conversation
+let roleplaysHistory = []; // roleplay conversation (separate)
+let lastMetrics = null;
+let phase = 'prepare'; // 'prepare' | 'rehearse' | 'roleplay' | 'reflect'
+let prepareAnswered = false;
+let roleplaysRoundCount = 0;
+let roleplaysTimeoutCount = 0;
+let roleplaysRecordingMins = 0;
+let moodLevel = 0;
+let roleplaysdifficulty = 'normal'; // 'easy' | 'normal' | 'hard' // tracks how many turns user timed out
+
+// ── Game System ──────────────────────────────────────────
+const BADGES = [
+  // ── Basic badges ──
+  { id: 'first_rec',    icon: '🎙', name: '初めての録音',       desc: '最初の録音を完了',                    check: (s) => s.totalSessions >= 1 },
+  { id: 'first_role',   icon: '🎭', name: 'ロールプレイ初挑戦', desc: 'ロールプレイを初めて完了',             check: (s) => s.roleplaySessions >= 1 },
+  { id: 'five_role',    icon: '🌟', name: 'ロールプレイ5回',    desc: 'ロールプレイを5回完了',               check: (s) => s.roleplaySessions >= 5 },
+  { id: 'no_filler',    icon: '⚡', name: 'フィラーゼロ',       desc: '1回の練習でフィラーなし',              check: (s) => s.bestFillerCount === 0 && s.totalSessions >= 1 },
+  { id: 'streak3',      icon: '🔥', name: '3日連続',            desc: '3日連続で練習',                       check: (s) => s.streak >= 3 },
+  { id: 'streak7',      icon: '💎', name: '1週間連続',          desc: '7日連続で練習',                       check: (s) => s.streak >= 7 },
+  { id: 'ten_sessions', icon: '🏆', name: '練習10回',           desc: '合計10回練習を完了',                   check: (s) => s.totalSessions >= 10 },
+  { id: 'long_talk',    icon: '💬', name: '10往復達成',         desc: 'ロールプレイで10往復',                 check: (s) => s.maxRoleplaysRounds >= 10 },
+  // ── Difficulty badges ──
+  { id: 'easy_clear',   icon: '🌱', name: '第一歩',             desc: 'Easyモードをクリア（3往復・TO 2回以下）', check: (s) => s.easyClear >= 1 },
+  { id: 'normal_clear', icon: '🎯', name: '本番力',             desc: 'Normalモードを3回クリア',               check: (s) => s.normalClear >= 3 },
+  { id: 'hard_clear',   icon: '💪', name: '圧力突破',           desc: 'Hardモードをクリア（3往復・TO 1回以下）', check: (s) => s.hardClear >= 1 },
+  { id: 'hard_perfect', icon: '🔱', name: '無敵',              desc: 'HardモードをTO 0回でクリア',             check: (s) => s.hardPerfect >= 1 },
+];
+
+const GS = {
+  key: 'formeny_game',
+  load() {
+    try { return JSON.parse(localStorage.getItem(this.key)) || this.defaults(); }
+    catch(e) { return this.defaults(); }
+  },
+  defaults() {
+    return { streak:0, lastDate:'', totalSessions:0, roleplaySessions:0,
+             bestFillerCount:999, maxRoleplaysRounds:0, earnedBadges:[],
+             easyClear:0, normalClear:0, hardClear:0, hardPerfect:0 };
+  },
+  save(s) { localStorage.setItem(this.key, JSON.stringify(s)); },
+
+  // Check and update streak on app load
+  checkStreak() {
+    const s = this.load();
+    const today = new Date().toDateString();
+    const yesterday = new Date(Date.now() - 86400000).toDateString();
+    if (s.lastDate === today) {
+      // already checked today
+    } else if (s.lastDate === yesterday) {
+      s.streak += 1;
+      s.lastDate = today;
+    } else if (s.lastDate !== today) {
+      s.streak = 1;
+      s.lastDate = today;
+    }
+    this.save(s);
+    return s;
+  },
+
+  // Called after each speech session
+  recordSpeech(fillerCount) {
+    const s = this.load();
+    s.totalSessions += 1;
+    if (fillerCount < s.bestFillerCount) s.bestFillerCount = fillerCount;
+    this.save(s);
+    this.checkNewBadges(s);
+  },
+
+  // Called after each roleplay session
+  recordRoleplay(rounds, difficulty, timeouts) {
+    const s = this.load();
+    s.totalSessions += 1;
+    s.roleplaySessions += 1;
+    if (rounds > s.maxRoleplaysRounds) s.maxRoleplaysRounds = rounds;
+    // Difficulty clears
+    const cleared = rounds >= 3;
+    if (difficulty === 'easy'   && cleared && timeouts <= 2) s.easyClear = (s.easyClear||0) + 1;
+    if (difficulty === 'normal' && cleared && timeouts <= 1) s.normalClear = (s.normalClear||0) + 1;
+    if (difficulty === 'hard'   && cleared && timeouts <= 1) s.hardClear = (s.hardClear||0) + 1;
+    if (difficulty === 'hard'   && cleared && timeouts === 0) s.hardPerfect = (s.hardPerfect||0) + 1;
+    this.save(s);
+    this.checkNewBadges(s);
+  },
+
+  checkNewBadges(s) {
+    const newBadges = BADGES.filter(b => !s.earnedBadges.includes(b.id) && b.check(s));
+    newBadges.forEach(b => {
+      s.earnedBadges.push(b.id);
+      showBadgePopup(b);
+    });
+    if (newBadges.length > 0) this.save(s);
+    renderBadgeShelf(s);
+  },
+
+  getState() { return this.load(); }
+};
+
+function showBadgePopup(badge) {
+  const isSpecial = ['hard_clear','hard_perfect'].includes(badge.id);
+  const el = document.createElement('div');
+  el.className = 'badge-popup';
+  if (isSpecial) el.style.cssText += ';border-color:#c49a3c;box-shadow:0 8px 40px rgba(196,154,60,0.5),0 0 60px rgba(196,154,60,0.2);';
+  el.innerHTML = `
+    <div class="badge-icon" style="${isSpecial ? 'animation:badgeIconBounce 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.3s both;filter:drop-shadow(0 0 10px gold)' : ''}">${badge.icon}</div>
+    <div class="badge-text">
+      <div class="badge-got">${isSpecial ? '🏅✨ 特別バッジ獲得！' : '🏅 バッジ獲得！'}</div>
+      <div class="badge-name">${badge.name}</div>
+      <div class="badge-desc">${badge.desc}</div>
+    </div>`;
+  document.body.appendChild(el);
+  setTimeout(() => {
+    el.classList.add('out');
+    setTimeout(() => el.remove(), 450);
+  }, 3500);
+}
+
+function renderBadgeShelf(s) {
+  const shelf = document.getElementById('badgeShelf');
+  if (!shelf) return;
+  shelf.innerHTML = '';
+  BADGES.forEach(b => {
+    const earned = s.earnedBadges.includes(b.id);
+    const item = document.createElement('div');
+    item.className = 'badge-item' + (earned ? ' earned' : ' locked') + (b.id.startsWith('hard') ? ' hard-badge' : '');
+    item.innerHTML = `<div class="bdg-emoji">${b.icon}</div><div class="bdg-name">${b.name}</div><span class="bdg-tip">${b.desc}</span>`;
+    shelf.appendChild(item);
+  });
+}
+
+function updateStreakDisplay(s) {
+  const el = document.getElementById('streakDisplay');
+  const cnt = document.getElementById('streakCount');
+  if (!el || !cnt) return;
+  if (s.streak >= 1) {
+    cnt.textContent = s.streak;
+    el.style.display = 'flex';
+  }
+}
+
+// ── Init ──────────────────────────────────────────
+// Initialize game system
+const _gs = GS.checkStreak();
+updateStreakDisplay(_gs);
+renderBadgeShelf(_gs);
+if (apiKey) {
+  document.getElementById('apiKeyInput').value = '••••••••';
+  document.getElementById('keyStatus').textContent = t('設定済み ✓', 'Saved ✓');
+  document.getElementById('keyStatus').className = 'key-status ok';
+}
+if (localStorage.getItem('formeny_eleven_key')) {
+  document.getElementById('elevenKeyInput').value = '••••••••';
+  document.getElementById('elevenKeyStatus').textContent = t('保存済み（現在未使用）', 'Saved (not active yet)');
+}
+
+setTimeout(() => startPrepare(), 400);
+
+// Show default avatar state on load
+(function initAvatarDisplay() {
+  const gen = document.getElementById('avatarGenerating');
+  const name = document.getElementById('avatarName');
+  const badge = document.getElementById('avatarDiffBadge');
+  const img = document.getElementById('avatarImg');
+  if (gen) gen.style.display = 'flex';
+  if (img) img.style.display = 'none';
+  if (name) name.textContent = 'FOR ME NY Coach';
+  const sub = document.getElementById('avatarSub');
+  if (sub) sub.textContent = '🎙 Voice Practice';
+})();
+
+// ── Mode switching ──────────────────────────────────────────
+function setMode(m) {
+  mode = m;
+  document.getElementById('modeTabSpeech').className = 'mode-tab' + (m === 'speech' ? ' active speech' : '');
+  document.getElementById('modeTabRoleplay').className = 'mode-tab' + (m === 'roleplay' ? ' active roleplay' : '');
+  document.getElementById('speechScenarios').style.display = m === 'speech' ? 'block' : 'none';
+  document.getElementById('roleplaysScenarios').style.display = m === 'roleplay' ? 'block' : 'none';
+  document.getElementById('roleplaysInfo').classList.remove('visible');
+  const infoWrap = document.getElementById('roleplaysInfoWrap');
+  if (infoWrap) infoWrap.style.display = 'none';
+  const sb = document.getElementById('roleplaysStartBtn');
+  if (sb) sb.classList.remove('visible');
+  // Show voice selector only in roleplay mode
+  document.getElementById('voiceSelectorSection').style.display = m === 'roleplay' ? 'block' : 'none';
+  document.getElementById('difficultySelectorSection').style.display = m === 'roleplay' ? 'block' : 'none';
+  // Show countdown hint in roleplay mode
+  // Hint shown after AI speaks, not on mode switch
+  const hint = document.getElementById('countdownHint');
+  if (hint) hint.style.display = 'none';
+
+  document.getElementById('modeHint').textContent = m === 'speech'
+    ? t('一人で話して計測・フィードバックを受ける', 'Speak alone — get metrics & feedback')
+    : t('AIが相手役になりきってリアルな対話を練習する', 'AI plays a role for realistic conversation practice');
+  document.getElementById('scenarioLabel').textContent = m === 'speech'
+    ? t('Topic / シナリオ', 'Topic / Scenario')
+    : t('ロールプレイ シナリオ', 'Roleplay Scenario');
+
+  const btn = document.getElementById('recordBtn');
+  if (m === 'roleplay') {
+    document.getElementById('dot').style.background='var(--sage)'; document.getElementById('dot').style.boxShadow='0 2px 8px rgba(106,155,126,0.4)';
+    document.getElementById('recordLabel').textContent = t('クリックして話す（録音）', 'Click to speak (record)');
+  } else {
+    document.getElementById('dot').style.background='var(--terracotta)'; document.getElementById('dot').style.boxShadow='0 2px 8px rgba(196,112,90,0.4)';
+    document.getElementById('recordLabel').textContent = t('クリックして録音開始', 'Click to start recording');
+  }
+}
+
+function selectTopic(btn, m) {
+  document.querySelectorAll('#speechScenarios .topic-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  selectedTopic = btn.dataset.topic;
+  document.getElementById('customTopicSpeech').value = '';
+}
+
+function selectRoleplay(btn) {
+  document.querySelectorAll('#roleplaysScenarios .topic-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  selectedRoleplay = {
+    role: btn.dataset.role,
+    situation: btn.dataset.situation,
+    opener: btn.dataset.opener
+  };
+  document.getElementById('customTopicRoleplay').value = '';
+  const infoWrap = document.getElementById('roleplaysInfoWrap');
+  const infoTA = document.getElementById('roleplaysInfo');
+  infoWrap.style.display = 'flex';
+  infoTA.value = selectedRoleplay.situation;
+  // Show start button
+  const startBtn = document.getElementById('roleplaysStartBtn');
+  if (startBtn) {
+    startBtn.classList.add('visible');
+    startBtn.classList.toggle('hard-mode', roleplaysdifficulty === 'hard');
+    const diffEmoji = {easy:'🌱 Easy',normal:'🔥 Normal',hard:'⚡ Hard'}[roleplaysdifficulty] || '';
+    document.getElementById('startBtnSub').textContent = `${diffEmoji} — ${selectedRoleplay.role} 役 との対話を開始`;
+    scrollLeftTo(startBtn, 20);
+  }
+  // Reset roleplay state so new scenario starts fresh
+  roleplaysRoundCount = 0;
+  roleplaysHistory = [];
+  roleplaysTimeoutCount = 0;
+  roleplaysRecordingMins = 0;
+  moodLevel = 0;
+  // Reset avatar cache for new scenario
+  Object.keys(avatarCache).forEach(k => { if (!k.includes(selectedRoleplay?.role?.slice(0,10))) delete avatarCache[k]; });
+}
+
+function onCustomTopic(m) {
+  if (m === 'speech') {
+    const v = document.getElementById('customTopicSpeech').value.trim();
+    if (v) { document.querySelectorAll('#speechScenarios .topic-btn').forEach(b => b.classList.remove('active')); selectedTopic = v; }
+  } else {
+    const v = document.getElementById('customTopicRoleplay').value.trim();
+    if (v) {
+      document.querySelectorAll('#roleplaysScenarios .topic-btn').forEach(b => b.classList.remove('active'));
+      selectedRoleplay = { role: 'カスタム相手', situation: v, opener: 'では始めましょう。' };
+      roleplaysRoundCount = 0;
+      roleplaysHistory = [];
+      const info = document.getElementById('roleplaysInfo');
+      info.textContent = `シナリオ：${v}`;
+      info.classList.add('visible');
+    }
+  }
+}
+
+// ── Phase management ──────────────────────────────────────────
+function startPrepare() {
+  setPhase('prepare');
+  const q = t(
+    `ようこそ。ここはあなたが自分の声を、安心して探求できる場所です。\n\n今日はどちらで練習しますか？スピーチ練習なら左上のトピックを選んで、ロールプレイなら「ロールプレイ」タブからシナリオを選んでください。\n\n録音を始める前に、今この瞬間の気持ちを少し聞かせてください。`,
+    `Welcome. This is a safe space to explore your voice.\n\nChoose a mode: Speech Practice for solo speaking, or Role Play for conversation practice.\n\nBefore you begin, how are you feeling right now?`
+  );
+  addCoachMessage(q);
+  document.getElementById('chatInput').placeholder = t('気持ちを教えてください…', 'Share how you feel…');
+}
+
+function setPhase(p) {
+  phase = p;
+  const badge = document.getElementById('phaseBadge');
+  if (badge) {
+    const labels = { prepare: 'Prepare', rehearse: 'Rehearse', roleplay: 'Role Play', reflect: 'Reflect' };
+    badge.textContent = labels[p] || '—';
+    badge.className = 'phase-badge ' + p;
+  }
+}
+
+// ── Recording ──────────────────────────────────────────
+async function toggleRecord() {
+  if (isRecording) {
+    stopRecording();
+  } else {
+    if (mode === 'roleplay' && !selectedRoleplay) {
+      addCoachMessage(t('まずロールプレイのシナリオを選んでください。', 'Please select a roleplay scenario first.'));
+      return;
+    }
+    if (currentAudio && !currentAudio.paused) {
+      addCoachMessage(t('相手が話し終わるまでお待ちください。', 'Please wait until the other person finishes speaking.'));
+      return;
+    }
+    stopResponseCountdown(); // hide overlay immediately on button press
+    if (isStarting) return;
+    isStarting = true;
+    try { await startRecording(); } finally { isStarting = false; }
+  }
+}
+
+async function startRecording() {
+  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    alert('このブラウザはWeb Speech APIに対応していません。Chromeをお使いください。');
+    return;
+  }
+
+  // Wait briefly to ensure previous audioContext/micStream are fully released
+  await new Promise(r => setTimeout(r, 150));
+
+  fullTranscript = '';
+  silenceEvents = [];
+  volumeSamples = [];
+  lastSpeechTime = null;
+  currentSilenceStart = null;
+  animFrameId = null;
+  recognition = null; // ensure clean slate
+
+  if (mode === 'speech') {
+    setPhase('rehearse');
+    if (!prepareAnswered) {
+      addCoachMessage(t(`「${selectedTopic}」について、自由に話してください。正解はありません。`, `Speak freely about "${selectedTopic}". There are no right answers.`));
+    } else {
+      addCoachMessage(t(`「${selectedTopic}」について話してください。自分のペースで。`, `Speak about "${selectedTopic}". Take your time.`));
+    }
+    document.getElementById('transcriptSection').style.display = 'block';
+  } else {
+    setPhase('roleplay');
+    if (roleplaysRoundCount === 0) {
+      isStarting = false;
+      await startRoleplaysScene();
+      return;
+    }
+    // Show transcript so user can confirm speech is being captured
+    document.getElementById('transcriptSection').style.display = 'block';
+    document.getElementById('transcriptBox').textContent = t('（話しかけてください…）', '(Start speaking…)');
+    document.getElementById('transcriptBox').className = 'transcript-box placeholder';
+  }
+
+  try {
+    micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    analyser = audioContext.createAnalyser();
+    analyser.fftSize = 256;
+    audioContext.createMediaStreamSource(micStream).connect(analyser);
+    startVolumeTracking();
+
+    // ── MediaRecorder for Whisper ──
+    audioChunks = [];
+    const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+      ? 'audio/webm;codecs=opus'
+      : MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4';
+    mediaRecorder = new MediaRecorder(micStream, { mimeType });
+    mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) audioChunks.push(e.data); };
+    mediaRecorder.start(1000); // collect chunks every 1s
+  } catch(e) { console.warn('mic setup:', e); }
+
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SR();
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  recognition.lang = lang === 'ja' ? 'ja-JP' : 'en-US';
+
+  recognition.onresult = (e) => {
+    const now = Date.now();
+    if (currentSilenceStart !== null) {
+      const dur = (now - currentSilenceStart) / 1000;
+      if (dur >= SILENCE_THRESHOLD) silenceEvents.push({ duration: dur });
+      currentSilenceStart = null;
+    }
+    lastSpeechTime = now;
+    // Speech detected — stop countdown
+    if (!speechDetectedInTurn && mode === 'roleplay') {
+      speechDetectedInTurn = true;
+      stopResponseCountdown();
+    }
+    let interim = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) fullTranscript += e.results[i][0].transcript + ' ';
+      else interim = e.results[i][0].transcript;
+    }
+    updateTranscriptDisplay(fullTranscript + interim);
+  };
+  recognition.onspeechend = () => { currentSilenceStart = Date.now(); };
+  recognition.onerror = (e) => {
+    console.warn('SR error:', e.error);
+    if (e.error === 'not-allowed') {
+      addCoachMessage(t('マイクのアクセスが拒否されました。ブラウザの設定でマイクを許可してください。', 'Microphone access denied. Please allow microphone access in browser settings.'));
+      stopRecording();
+    } else if (e.error === 'audio-capture') {
+      addCoachMessage(t('マイクが見つかりません。接続を確認してください。', 'No microphone found. Please check your connection.'));
+      stopRecording();
+    }
+  };
+  recognition.onend = () => {
+    if (isRecording && recognition) {
+      try { recognition.start(); } catch(e) { console.warn('SR restart failed:', e); }
+    }
+  };
+  recognition.start();
+
+  isRecording = true;
+  // Hide countdown hint + overlay once user starts recording
+  const hint = document.getElementById('countdownHint');
+  if (hint) hint.style.display = 'none';
+  stopResponseCountdown(); // hide overlay when recording starts
+  pendingComputeTimer = null;
+  startTime = Date.now();
+
+  const btn = document.getElementById('recordBtn');
+  btn.classList.add('recording');
+  // dot shape handled by CSS
+  document.getElementById('recordLabel').textContent = mode === 'roleplay' ? 'クリックして停止（相手に渡す）' : 'クリックして停止';
+  document.getElementById('waveform').classList.add('visible');
+
+  timerInterval = setInterval(() => {
+    const el = Math.floor((Date.now() - startTime) / 1000);
+    document.getElementById('timer').textContent = `${Math.floor(el/60)}:${(el%60).toString().padStart(2,'0')}`;
+    document.getElementById('timer').classList.add('active');
+    if (lastSpeechTime && currentSilenceStart === null && (Date.now() - lastSpeechTime) / 1000 > SILENCE_THRESHOLD) {
+      currentSilenceStart = lastSpeechTime + SILENCE_THRESHOLD * 1000;
+    }
+  }, 500);
+}
+
+function stopRecording() {
+  isRecording = false;
+  stopResponseCountdown(); // always clear countdown
+
+  // Stop Speech Recognition
+  if (recognition) {
+    recognition.onend = null;
+    recognition.onerror = null;
+    recognition.onspeechend = null;
+    try { recognition.stop(); } catch(e) {}
+    const r = recognition;
+    setTimeout(() => { if (r) r.onresult = null; }, 600);
+    recognition = null;
+  }
+  if (timerInterval) clearInterval(timerInterval);
+  if (animFrameId !== null) { cancelAnimationFrame(animFrameId); animFrameId = -1; }
+
+  // Stop MediaRecorder — collect final chunk then send to Whisper
+  const snapStart = startTime;
+  const snapDuration = (Date.now() - startTime) / 1000 / 60; // minutes
+  const snapMode = mode;
+
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+    mediaRecorder.onstop = async () => {
+      // Now safe to stop mic (after final chunk captured)
+      if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
+      if (audioContext) { audioContext.close(); audioContext = null; }
+      await transcribeWithWhisper(audioChunks, snapStart, snapMode);
+    };
+    // Request final data chunk before stopping
+    mediaRecorder.requestData();
+    setTimeout(() => mediaRecorder.stop(), 200);
+  } else {
+    if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
+    if (audioContext) { audioContext.close(); audioContext = null; }
+    onTranscriptReady(fullTranscript.trim(), snapStart, snapMode);
+  }
+
+  const _rb2 = document.getElementById('recordBtn');
+  if (_rb2) { _rb2.classList.remove('is-recording', 'roleplay-wait'); }
+  // dot shape handled by CSS
+  document.getElementById('timer').classList.remove('active');
+  document.getElementById('waveform').classList.remove('visible');
+
+  if (snapMode === 'speech') {
+    document.getElementById('recordLabel').textContent = t('文字起こし中…', 'Transcribing…');
+  } else {
+    document.getElementById('recordLabel').textContent = t('文字起こし中…', 'Transcribing…');
+    document.getElementById('recordBtn').disabled = true;
+  }
+}
+
+// ── Whisper transcription ──────────────────────────────────────────
+async function transcribeWithWhisper(chunks, snapStart, snapMode) {
+  if (!chunks || chunks.length === 0) {
+    onTranscriptReady(fullTranscript.trim(), snapStart, snapMode);
+    return;
+  }
+
+  // Show interim transcript from Web Speech while Whisper processes
+  updateTranscriptDisplay(fullTranscript.trim() || t('（文字起こし中…）', '(Transcribing…)'));
+
+  try {
+    const mimeType = chunks[0].type || 'audio/webm';
+    const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
+    const audioBlob = new Blob(chunks, { type: mimeType });
+
+    const formData = new FormData();
+    formData.append('file', audioBlob, `audio.${ext}`);
+    formData.append('model', 'whisper-1');
+    formData.append('language', lang === 'ja' ? 'ja' : 'en');
+    formData.append('response_format', 'text');
+    // Prompt Whisper to transcribe fillers accurately
+    if (lang === 'ja') {
+      formData.append('prompt', 'あー、えー、えーと、あのー、うーん、まあ、なんか、ちょっと、えっと');
+    } else {
+      formData.append('prompt', 'Um, uh, like, you know, I mean, basically, actually, so, well');
+    }
+
+    const resp = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + apiKey },
+      body: formData
+    });
+
+    if (!resp.ok) throw new Error('Whisper ' + resp.status);
+    const whisperText = (await resp.text()).trim();
+
+    // Update transcript display with Whisper result
+    updateTranscriptDisplay(whisperText);
+    onTranscriptReady(whisperText, snapStart, snapMode);
+
+  } catch(e) {
+    console.warn('Whisper error:', e);
+    // Fallback to Web Speech transcript
+    onTranscriptReady(fullTranscript.trim(), snapStart, snapMode);
+  }
+}
+
+// ── After transcript is ready (from Whisper or Web Speech) ──────────────────
+function onTranscriptReady(transcript, snapStart, snapMode) {
+  if (snapMode === 'speech') {
+    document.getElementById('recordLabel').textContent = t('クリックして再録音', 'Click to record again');
+    pendingComputeTimer = null;
+    computeMetrics(snapStart, transcript);
+    setTimeout(() => {
+      const el = document.getElementById('metricsRow');
+      if (el) scrollLeftTo(el, 20);
+    }, 150);
+    setTimeout(() => startReflect(), 600);
+  } else {
+    document.getElementById('recordLabel').textContent = t('AIが返答しています…', 'AI is responding…');
+    pendingComputeTimer = null;
+    const turnDurationMins = snapStart ? (Date.now() - snapStart) / 1000 / 60 : 0;
+    handleRoleplaysUserTurn(transcript || t('（沈黙）', '(silence)'), turnDurationMins);
+  }
+}
+
+// ── Roleplay logic ──────────────────────────────────────────
+
+// ── Mood System ─────────────────────────────────
+function getMoodInstruction() {
+  const moods = [
+    '0（普通）— 通常通り自然に対応する',
+    '1（少し苛立ち）— 少し冷たい。返答が短くなる。「…そうですか」「はあ」など短い反応を使う。笑顔が消える',
+    '2（明らかに不機嫌）— 返答がぶっきらぼうになる。「それで？」「もう少しはっきり言ってもらえますか」「少し困っています」など直接的に不満を示す',
+    '3（強い苛立ち）— 明確に不満を表現する。「正直、少し失礼だと思います」「もし本気でないなら、今日はここまでにしましょうか」など圧力をかける',
+    '4（怒り・限界）— 非常に冷淡。「申し訳ありませんが、これ以上続けるのは難しいですね」「次回、きちんと準備してからお越しください」などで場を終わらせようとする'
+  ];
+  return moods[Math.min(moodLevel, moods.length - 1)];
+}
+
+function getMoodInstructionEN() {
+  const moods = [
+    '0 (Neutral) — Respond naturally and professionally',
+    '1 (Slightly annoyed) — Become a bit cooler. Use shorter responses. Smile disappears. "I see..." "Hmm..."',
+    "2 (Visibly irritated) — More blunt. Could you be clearer? I am a bit lost here. Show subtle frustration",
+    "3 (Clearly angry) — Express dissatisfaction directly. I am finding this quite difficult. Apply pressure to get a real answer",
+    "4 (Furious) — Very cold. Perhaps we should reschedule when you are better prepared. Try to end the conversation" 
+  ];
+  return moods[Math.min(moodLevel, moods.length - 1)];
+}
+
+// ── Avatar & Difficulty System ─────────────────────────────────
+const avatarCache = {}; // key: "roleId_difficulty" → image URL
+
+// Difficulty-aware atmosphere
+function applyDifficultyAtmosphere(diff) {
+  const app = document.querySelector('.app');
+  if (!app) return;
+  app.classList.remove('diff-easy','diff-normal','diff-hard');
+  app.classList.add('diff-' + diff);
+}
+
+// Generate avatar via DALL-E 3
+async function generateAvatar(scenario, difficulty, voice) {
+  const cacheKey = scenario.role.slice(0,10) + '_' + difficulty + '_' + (voice||'nova');
+  if (avatarCache[cacheKey]) return avatarCache[cacheKey];
+
+  const diffDesc = {
+    easy:   '穏やかで親切そうな表情、柔らかい笑顔、温かみのある雰囲気',
+    normal: '真剣で集中した表情、プロフェッショナルな雰囲気、中立的',
+    hard:   '厳しい目つき、腕を組んで警戒した表情、プレッシャーを与える雰囲気'
+  }[difficulty];
+
+  // Determine gender from selected voice
+  const voiceGenderMap = {
+    nova: 'female', shimmer: 'female', alloy: 'female',
+    echo: 'male', fable: 'male', onyx: 'male'
+  };
+  const voiceGender = voiceGenderMap[voice || selectedVoice || 'nova'] || 'female';
+  const genderDesc = voiceGender === 'female' ? 'woman' : 'man';
+
+  const roleDesc = {
+    '採用面接官': `Japanese ${genderDesc}, corporate HR interviewer in formal suit, sitting at a desk`,
+    '直属の上司': `Japanese ${genderDesc}, middle-aged manager in business casual, busy and slightly impatient`,
+    '転職エージェント': `Japanese ${genderDesc}, career consultant, professional and attentive expression`,
+    '初対面の取引先': `Japanese ${genderDesc} in their 30s, business person, cautious and evaluating expression`,
+    'チームリーダー': `Japanese ${genderDesc}, team leader in casual business wear, assertive posture`,
+    '大学のゼミ': `Japanese ${genderDesc}, professor with glasses, scholarly and stern`
+  };
+
+  let baseDesc = 'Professional Japanese ' + genderDesc + ', business professional';
+  for (const [key, val] of Object.entries(roleDesc)) {
+    if (scenario.role.includes(key)) { baseDesc = val; break; }
+  }
+
+  const prompt = `Portrait illustration of a ${baseDesc}. ${diffDesc}. Clean vector art style, warm color palette, professional business setting background, face and upper body, square crop. Studio Ghibli influenced soft illustration style.`;
+
+  try {
+    const resp = await fetch('https://api.openai.com/v1/images/generations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
+      body: JSON.stringify({ model: 'gpt-image-1', prompt, n: 1, size: '1024x1024', quality: 'medium' })
+    });
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error.message);
+    // gpt-image-1 returns base64, dall-e-3 returned URL
+    const imgData = data.data[0];
+    const url = imgData.url || ('data:image/png;base64,' + imgData.b64_json);
+    avatarCache[cacheKey] = url;
+    return url;
+  } catch(e) {
+    console.warn('Avatar gen failed:', e);
+    return null;
+  }
+}
+
+function showAvatar(url, roleName, difficulty) {
+  const panel = document.getElementById('avatarPanel');
+  const gen   = document.getElementById('avatarGenerating');
+  const img   = document.getElementById('avatarImg');
+  const name  = document.getElementById('avatarName');
+  const sub   = document.getElementById('avatarSub');
+
+  // 役割名を表示
+  if (name) name.textContent = roleName;
+
+  // サブテキスト：難易度 ＋ シナリオ説明（先頭40文字）
+  if (sub && selectedRoleplay) {
+    const diffLabels = { easy: '🌱 Easy', normal: '🔥 Normal', hard: '⚡ Hard' };
+    const diffLabel = diffLabels[difficulty] || '';
+    const situationShort = selectedRoleplay.situation
+      ? selectedRoleplay.situation.slice(0, 50) + (selectedRoleplay.situation.length > 50 ? '…' : '')
+      : '';
+    sub.textContent = [diffLabel, situationShort].filter(Boolean).join('  ');
+  }
+
+  if (url) {
+    gen.classList.remove('generating');
+    gen.style.display = 'none';
+    img.style.display = 'block';
+    img.src = url;
+  } else {
+    gen.classList.add('generating');
+    gen.style.display = 'flex';
+    img.style.display = 'none';
+    gen.textContent = '🎭';
+  }
+}
+
+function hideAvatar() {
+  document.getElementById('avatarPanel').classList.remove('visible');
+}
+
+// Difficulty mode entrance banner
+function showDifficultyBanner(difficulty) {
+  const msgs = {
+    easy:   '🌱 Easy モード — リラックスして練習しましょう',
+    normal: '🔥 Normal モード — 現実の場面を想定して挑もう',
+    hard:   '⚡ Hard モード — 本番さながらのプレッシャーへ。覚悟して！'
+  };
+  const el = document.createElement('div');
+  el.className = 'diff-mode-banner ' + difficulty;
+  el.textContent = msgs[difficulty] || msgs.normal;
+  document.getElementById('chatMessages').appendChild(el);
+  scrollRightTo(el);
+}
+
+function startRoleplaysFromButton() {
+  if (!selectedRoleplay) return;
+  // Scroll to record area
+  const recWrap = document.getElementById('recordBtn');
+  if (recWrap) scrollLeftTo(recWrap, 20);
+  // Kick off the scene (same as pressing record at round 0)
+  setTimeout(() => {
+    if (roleplaysRoundCount === 0) {
+      startRoleplaysScene();
+    }
+  }, 300);
+}
+
+async function startRoleplaysScene() {
+  roleplaysHistory = [];
+  roleplaysRoundCount = 0;
+  roleplaysTimeoutCount = 0;
+  roleplaysRecordingMins = 0;
+  moodLevel = 0;
+
+  document.getElementById('aiAvatar').textContent = selectedRoleplay.role[0];
+  document.getElementById('aiAvatar').className = 'ai-avatar roleplay';
+  document.getElementById('chatHeaderText').textContent = selectedRoleplay.role + ' 役';
+  updateMoodDisplay();
+  document.getElementById('endRoleplaysBtn').style.display = 'block';
+  // Hide start button now that scene has begun
+  const sb2 = document.getElementById('roleplaysStartBtn');
+  if (sb2) sb2.classList.remove('visible');
+
+  // Apply difficulty atmosphere + show banner
+  applyDifficultyAtmosphere(roleplaysdifficulty);
+  showDifficultyBanner(roleplaysdifficulty);
+
+  // Generate avatar (non-blocking)
+  showAvatar(null, selectedRoleplay.role, roleplaysdifficulty);
+  generateAvatar(selectedRoleplay, roleplaysdifficulty, selectedVoice).then(url => {
+    showAvatar(url, selectedRoleplay.role, roleplaysdifficulty);
+  });
+
+  addCoachMessage(t(`シナリオ：${selectedRoleplay.role}\n\n${selectedRoleplay.situation}\n\nAIが最初に話しかけます。話し終わったら録音ボタンを押して返答してください。`, `Scenario: ${selectedRoleplay.role}\n\n${selectedRoleplay.situation}\n\nThe AI will speak first. When they finish, press the record button to respond.`));
+
+  showTyping();
+  try {
+    const opener = await callOpenAI([
+      { role: 'user', content: t(
+        'シーンを始めてください。最初の一言を、自然な話し言葉で短く言ってください。毎回少し違う状況・切り口・雰囲気で始めること（同じ言い回しを繰り返さない）。',
+        'Please start the scene. Say your opening line naturally and briefly. Vary the situation, angle, or mood slightly each time — never repeat the same phrasing.'
+      )}
+    ], buildRoleplaysSystemPrompt());
+    hideTyping();
+    addRoleMessage(opener);
+    roleplaysHistory.push({ role: 'assistant', content: opener });
+    roleplaysRoundCount++;
+    // Speak opener — after speech ends, user can record
+    speakAsRole(opener, () => {
+      document.getElementById('recordLabel').textContent = t('クリックして返答（録音）', 'Click to respond (record)');
+      const _rwBtn = document.getElementById('recordBtn');
+      if (_rwBtn) _rwBtn.classList.add('roleplay-wait');
+      startResponseCountdown();
+    });
+  } catch(e) {
+    hideTyping();
+    addRoleMessage(selectedRoleplay.opener);
+    roleplaysHistory.push({ role: 'assistant', content: selectedRoleplay.opener });
+    roleplaysRoundCount++;
+    speakAsRole(selectedRoleplay.opener, () => {
+      document.getElementById('recordLabel').textContent = t('クリックして返答（録音）', 'Click to respond (record)');
+      const _rwBtn = document.getElementById('recordBtn');
+      if (_rwBtn) _rwBtn.classList.add('roleplay-wait');
+      startResponseCountdown();
+    });
+  }
+}
+
+async function handleRoleplaysUserTurn(userSpeech, turnDuration) {
+  // Accumulate per-turn duration for pace calculation
+  if (turnDuration && userSpeech !== '__TIMEOUT__') roleplaysRecordingMins = (roleplaysRecordingMins||0) + turnDuration;
+  // Don't show __TIMEOUT__ as a user message bubble
+  if (userSpeech !== '__TIMEOUT__') {
+    addUserMessage(userSpeech);
+  }
+  // Push user speech to history（タイムアウトの場合はマーカーを使う）
+  roleplaysHistory.push({ role: 'user', content: userSpeech === '__TIMEOUT__' ? '__TIMEOUT__' : userSpeech });
+  // But send Japanese explanation to AI as the actual message
+  const histContent = userSpeech === '__TIMEOUT__'
+    ? t('（タイムオーバー：ユーザーは返答しませんでした。自然に場を進めてください）',
+        '(Time over: user did not respond. Please move the scene forward naturally)')
+    : userSpeech;
+  roleplaysRoundCount++;
+
+  // Build AI messages: replace __TIMEOUT__ with explanatory text for the AI
+  const aiMessages = roleplaysHistory.map(m => ({
+    role: m.role,
+    content: m.content === '__TIMEOUT__'
+      ? t('（タイムオーバー：ユーザーは返答しませんでした。自然に場を進めてください）',
+          '(Time over: user did not respond. Please move the scene forward naturally)')
+      : m.content
+  }));
+  showTyping();
+  try {
+    const reply = await callOpenAI(aiMessages, buildRoleplaysSystemPrompt());
+    hideTyping();
+    addRoleMessage(reply);
+    roleplaysHistory.push({ role: 'assistant', content: reply });
+    updateMoodDisplay();
+    // Auto-end if AI mood is angry and said goodbye keywords
+    const _endings = ['失礼します', '終わりにしましょう', '本日はここまで', 'またの機会に', '終了させていただき', 'end our session', 'end this here', 'reschedule'];
+    const _aiGoodbye = moodLevel >= 3 && _endings.some(p => reply.includes(p));
+    if (_aiGoodbye) {
+      speakAsRole(reply, () => {
+        const toEl = document.createElement('div');
+        toEl.style.cssText = 'text-align:center;padding:10px;margin:8px 0;background:rgba(196,112,90,0.1);border-radius:10px;font-size:12px;color:var(--terracotta);font-weight:700;';
+        toEl.textContent = '🚪 相手がロールプレイを終了しました';
+        document.getElementById('chatMessages').appendChild(toEl);
+        setTimeout(() => endRoleplay(), 1000);
+      });
+      return;
+    }
+    // Speak reply — after speech ends, enable recording again
+    speakAsRole(reply, () => {
+      document.getElementById('recordLabel').textContent = t('クリックして返答（録音）', 'Click to respond (record)');
+      const _rwBtn = document.getElementById('recordBtn');
+      if (_rwBtn) _rwBtn.classList.add('roleplay-wait');
+      startResponseCountdown();
+    });
+  } catch(e) {
+    hideTyping();
+    addCoachMessage(t('通信エラーが発生しました。もう一度お試しください。', 'Connection error. Please try again.'));
+    document.getElementById('recordBtn').disabled = false;
+  }
+}
+
+function setDifficulty(d) {
+  roleplaysdifficulty = d;
+  ['easy','normal','hard'].forEach(x => {
+    document.getElementById('diff' + x.charAt(0).toUpperCase() + x.slice(1))
+      .classList.toggle('active', x === d);
+  });
+  // Update start button color
+  const startBtn = document.getElementById('roleplaysStartBtn');
+  if (startBtn && startBtn.classList.contains('visible')) {
+    startBtn.classList.toggle('hard-mode', d === 'hard');
+    if (selectedRoleplay) {
+      const diffEmoji = {easy:'🌱 Easy',normal:'🔥 Normal',hard:'⚡ Hard'}[d] || '';
+      document.getElementById('startBtnSub').textContent = `${diffEmoji} — ${selectedRoleplay.role} 役 との対話を開始`;
+    }
+  }
+}
+
+function buildRoleplaysSystemPrompt() {
+  const diff = roleplaysdifficulty || 'normal';
+  const role = selectedRoleplay.role;
+
+  // ── Difficulty modifiers ──────────────────────────────────
+  const diffConfig = {
+    easy: {
+      attitude: 'あなたは協力的で親切。相手が言葉に詰まっても待ってあげる。質問は柔らかく、圧力は一切かけない。',
+      pressure: 'なし',
+      interrupt: 'しない',
+      silence: '自然に待つ',
+      examples: '「なるほどですね。もう少し聞かせていただけますか？」\n「ゆっくりで大丈夫ですよ。」'
+    },
+    normal: {
+      attitude: 'あなたはプロフェッショナルで現実的。親切ではあるが甘くない。適度なプレッシャーをかける。',
+      pressure: '中程度',
+      interrupt: '的外れな答えには「少し違う観点で」と促す',
+      silence: '3秒ほど待ってから「どうですか？」と促す',
+      examples: '「具体的にはどういう意味ですか？」\n「なるほど、ただそれだと少し心配なのですが。」'
+    },
+    hard: {
+      attitude: 'あなたは厳しく懐疑的。簡単には納得しない。沈黙や鋭い切り返しでプレッシャーをかける。相手の弱点を突く。',
+      pressure: '高い',
+      interrupt: '抽象的・曖昧な答えには即座に切り返す',
+      silence: '答えをじっくり待つが、不十分なら「それだけですか？」と追い打ち',
+      examples: '「それで？具体的な数字は？」\n「以前も同じようなことを言う人がいましたが、うまくいきませんでした。何が違うんですか？」\n「（沈黙）……続けてください。」'
+    }
+  }[diff];
+
+  // ── Character-specific settings ──────────────────────────────
+  let character = '';
+  if (role.includes('採用面接官')) {
+    character = `
+【キャラクター：採用面接官 田中部長 / 人事部 15年ベテラン】
+背景：大手メーカー人事部長。年間100人以上の面接を担当。見た目は温和だが本質を見抜く目を持つ。
+動機：会社に本当に貢献できる人材を見極めたい。表面だけの答えには騙されない。
+口調：丁寧な敬語。「〜でしょうか」「〜いただけますか」
+よく使う技：「それは具体的にどういう状況でしたか？」「その結果、何が変わりましたか？」
+${diff === 'hard' ? '圧迫時：長い沈黙。「本当にそれだけですか？」。矛盾を突く。' : ''}`;
+  } else if (role.includes('上司') || role.includes('課長')) {
+    character = `
+【キャラクター：上司 鈴木課長 / 営業2課 課長 43歳】
+背景：現場叩き上げで課長に昇進。多忙で細かい説明は嫌い。成果主義。
+動機：チームの数字を守りたい。余計な仕事は増やしたくない。
+口調：「〜だけど」「〜なの？」「で、結局どうしたいの？」
+よく使う技：話を途中で「要するに何が言いたいの？」と遮る。
+${diff === 'hard' ? '圧迫時：「前も同じ失敗してたよね」「それ、本当に効果あるの？」' : ''}`;
+  } else if (role.includes('転職エージェント')) {
+    character = `
+【キャラクター：転職エージェント 山田さん / キャリアアドバイザー 5年目】
+背景：年間200件の転職支援。候補者の本音を引き出すプロ。
+動機：本当に合った仕事に転職させたい。建前だけの答えには踏み込む。
+口調：丁寧で温かみがある。「〜なんですね」「それはどういう意味でしょうか？」
+よく使う技：「本当のところは何が不満だったんですか？」「5年後どうなりたいですか？」
+${diff === 'hard' ? '圧迫時：「正直に言うと、今の経歴では厳しい会社が多いんですが…」' : ''}`;
+  } else if (role.includes('取引先')) {
+    character = `
+【キャラクター：取引先担当 佐々木さん 32歳 / 購買部】
+背景：複数のベンダーと取引経験あり。飛び込み営業には慣れていて、大半は断ってきた。
+動機：コスト削減と安定供給が最優先。信頼できない業者に時間を使いたくない。
+口調：「うちは今のところ別のところとうまくやってるので」「で、他社と何が違うんですか？」
+よく使う技：時間を区切る。「5分だけですよ」。競合他社を引き合いに出す。
+${diff === 'hard' ? '圧迫時：「正直、今すぐ変える気はないんですよね」「価格は他社より高いですよね？」' : ''}
+
+【重要】あなたは話を"聞く側・評価する側"です。自分からサービスの説明や提案を一切しないこと。相手（ユーザー）に説明させ、質問や反応で返すだけ。`;
+  } else if (role.includes('チームリーダー') || role.includes('意見')) {
+    character = `
+【キャラクター：チームリーダー 中村さん 28歳 / エンジニア】
+背景：優秀なエンジニア上がりのリーダー。アジャイル推進派で、小さく早く動いてフィードバックを取るのが正しいと確信している。すでにチームの何人かに根回し済み。
+動機：チームを自分の考える方向に動かしたい。ただし感情的にはならない。論理で勝ちたい。
+口調：「それって根拠あるの？」「でも実際、慎重にやって間に合った試しある？」「私はこう思う」
+よく使う技：自分の立場を明確に主張してから相手の意見を聞く。同意しない点はすぐ指摘。「他のメンバーはどう思ってるの？」
+シナリオ補足：${selectedRoleplay?.situation || ''}
+${diff === 'hard' ? '圧迫時：「正直、あなたのやり方だと遅すぎる。もう動き始めないと間に合わない」' : ''}
+
+【重要】あなたはすでに自分の意見を持っており、最初から主張する。相手の話をまず聞くのではなく、自分の立場を先に示してから問い返す。ただし怒鳴ったり感情的にはならない。`;  } else if (role.includes('教授') || role.includes('ゼミ')) {
+    character = `
+【キャラクター：田村教授 62歳 / 社会学専攻】
+背景：40年のキャリア。論文200本以上。学生には厳しいが愛情がある。曖昧さを嫌う。
+動機：本当に研究を理解しているか確かめたい。表面的な答えでは認めない。
+口調：「それはどういう意味ですか」「先行研究は読みましたか」「もう少し精緻に」
+よく使う技：沈黙。「それは私の質問に答えていません」。
+${diff === 'hard' ? '圧迫時：「この程度の理解では卒論は通りません」「根本から考え直しなさい」' : ''}`;
+  } else {
+    // Custom scenario
+    character = `【キャラクター：${role}】\nシナリオ：${selectedRoleplay.situation}`;
+  }
+
+  if (lang === 'en') {
+    const diffEN = {
+      easy:   'Be supportive and patient. Use gentle questions. No pressure.',
+      normal: 'Be professional and realistic. Apply moderate pressure. Push back on vague answers.',
+      hard:   'Be demanding and skeptical. Use silence and sharp comebacks. Apply strong pressure.'
+    }[diff];
+    return `You are playing the role of "${role}". This is an immersive roleplay for communication training.
+
+${character}
+
+DIFFICULTY: ${diff.toUpperCase()} — ${diffEN}
+
+CORE RULES (演劇的ロールプレイ):
+- Stay 100% in character. Never break role to coach or comment.
+- React to what was actually said — don't ignore or rush past it.
+- Use silences, interruptions, and pressure appropriate to difficulty.
+- 1–3 short sentences. Natural spoken language only.
+- End with a question or reaction that moves the scene forward.
+- You are always the listener/evaluator. Never explain, pitch, or propose anything yourself.
+
+CURRENT MOOD: ` + getMoodInstructionEN() + `\n`;
+  }
+
+  return `あなたは今から「${role}」という人物を完全に演じます。これはコミュニケーション訓練のための演劇的ロールプレイです。
+
+${character}
+
+【難易度：${diff.toUpperCase()}】
+${diffConfig.attitude}
+プレッシャー：${diffConfig.pressure}
+割り込み：${diffConfig.interrupt}
+沈黙時：${diffConfig.silence}
+セリフ例：
+${diffConfig.examples}
+
+【演劇ルール — 絶対に守ること】
+- キャラクターを完全に維持する。コーチや評価者としてのコメントは一切しない
+- 相手が言ったことに必ず反応してから次に進む
+- 記号・括弧・箇条書きは一切使わない（音声で読まれる）
+- 1〜3文で短くテンポよく返す
+- 必ず次の会話につながる反応や問いかけで締める
+- 必要なら沈黙を使う：「（沈黙）……続けてください」
+- あなたは常に「聞く・評価する・反応する」側。自分から説明・提案・サービス紹介をすることは絶対にしない
+
+【シーン設定（ユーザーが指定）】
+${selectedRoleplay.situation}
+
+【バリエーション指示】
+毎回少し違う入り方・展開にすること。同じ言い回し・同じ質問の順番を繰り返さない。気分・状況・話の切り口を毎回少しずらす。
+
+【現在の機嫌レベル：` + getMoodInstruction() + `】`;
+}
+
+async function startRoleplaysReflect() {
+  setPhase('reflect');
+  document.getElementById('recordLabel').textContent = t('クリックして録音開始', 'Click to start recording');
+
+  // ── ロールプレイの分析 ──
+  // ユーザーの発言だけを抽出して分析
+  // Filter out timeout markers from real user turns
+  const userTurns = roleplaysHistory.filter(m => m.role === 'user' && m.content !== '__TIMEOUT__').map(m => m.content);
+  const userTranscript = userTurns.join(' ');
+
+  if (!userTranscript.trim()) {
+    // No real speech — show message but continue to reflect
+    const panel = document.getElementById('metricsRow');
+    panel.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-3);font-size:13px;">📊 発話データがありません。ロールプレイで返答してから分析できます。</div>';
+    panel.classList.add('visible');
+    // fall through to addCoachMessage below
+  } else {
+    // フィラーワード
+    const fillerPatterns = /(えーと|えっと|えー+|あー+|あのー?|あのう|うーん|まあ|なんか|なんかこう|ちょっと|そのー|なんていうか|要するに|つまり)/gi;
+    const fillerMatches = userTranscript.match(fillerPatterns) || [];
+    const fillerCount = fillerMatches.length;
+    const fillerList = [...new Set(fillerMatches.map(f => f.toLowerCase()))].slice(0, 5);
+    const fillerPct = Math.min(100, (fillerCount / 15) * 100);
+    const fillerClass = fillerCount <= 3 ? 'ok' : fillerCount <= 8 ? 'warn' : 'bad';
+
+    // 語彙の多様性
+    const words = userTranscript.replace(/[、。！？\s]/g, ' ').split(/\s+/).filter(w => w.length > 1);
+    const uniqueWords = new Set(words.map(w => w.toLowerCase()));
+    // Need at least 20 words for meaningful vocab diversity
+    const vocabScore = words.length >= 20
+      ? Math.round((uniqueWords.size / words.length) * 100)
+      : words.length >= 5 ? Math.round((uniqueWords.size / words.length) * 100) : -1;
+    const vocabClass = vocabScore < 0 ? 'warn' : vocabScore >= 70 ? 'ok' : vocabScore >= 50 ? 'warn' : 'bad';
+
+    // 発話量（文字数）
+    const totalChars = userTranscript.replace(/\s/g, '').length;
+    const avgCharsPerTurn = userTurns.length > 0 ? Math.round(totalChars / userTurns.length) : 0;
+
+    // Transcriptに最後のユーザー発言を表示
+    document.getElementById('transcriptSection').style.display = 'block';
+    document.getElementById('transcriptBox').textContent = userTurns[userTurns.length - 1] || '';
+    document.getElementById('transcriptBox').className = 'transcript-box';
+
+    // 分析パネルを表示（スピード・ポーズ・音量はロールプレイでは計測不可なのでN/A）
+    // Pace（話速：字/分） — actual recording time based
+    const paceVal = roleplaysRecordingMins > 0 ? Math.round(totalChars / roleplaysRecordingMins) : 0;
+    const paceClass = paceVal >= 200 && paceVal <= 400 ? 'ok' : paceVal >= 100 ? 'warn' : 'bad';
+    document.getElementById('speedVal').textContent = paceVal > 0 ? paceVal : '—';
+    document.getElementById('speedUnit').textContent = '字/分';
+    document.getElementById('speedHint').textContent = '目安 200〜400字/分';
+    document.getElementById('speedBar').style.width = Math.min(100, (paceVal / 500) * 100) + '%';
+    document.getElementById('speedBar').className = 'mc-bar-fill ' + (paceVal > 0 ? paceClass : 'warn');
+    document.getElementById('cardSpeed').className = 'metric-card ' + (paceVal > 0 ? paceClass : 'warn');
+    document.querySelector('#cardSpeed .mc-label').textContent = 'Pace';
+
+    // Turns（返答回数）
+    const turnsClass = userTurns.length >= 3 ? 'ok' : 'warn';
+    document.getElementById('pauseVal').textContent = userTurns.length;
+    document.getElementById('pauseBar').style.width = Math.min(100, userTurns.length * 12) + '%';
+    document.getElementById('pauseBar').className = 'mc-bar-fill ' + turnsClass;
+    document.getElementById('cardPause').className = 'metric-card ' + turnsClass;
+    document.querySelector('#cardPause .mc-label').textContent = 'Turns';
+    document.querySelector('#cardPause .mc-unit').textContent = '回';
+    document.querySelector('#cardPause .mc-ref').textContent = '返答した回数';
+
+    document.getElementById('volVal').textContent = totalChars;
+    document.getElementById('volBar').style.width = Math.min(100, totalChars / 5) + '%';
+    document.getElementById('volBar').className = 'mc-bar-fill ok';
+    document.getElementById('cardVol').className = 'metric-card ok';
+    document.querySelector('#cardVol .mc-label').textContent = 'Volume';
+    document.querySelector('#cardVol .mc-unit').textContent = '総文字数';
+    document.querySelector('#cardVol .mc-ref').textContent = '発話の総量';
+
+    document.getElementById('fillerVal').textContent = fillerCount;
+    document.getElementById('fillerBar').style.width = fillerPct + '%';
+    document.getElementById('fillerBar').className = 'mc-bar-fill ' + fillerClass;
+    document.getElementById('cardFiller').className = 'metric-card ' + fillerClass;
+
+    const vocabDisplay = vocabScore < 0 ? '—' : vocabScore;
+    const vocabBarWidth = vocabScore < 0 ? 0 : vocabScore;
+    document.getElementById('vocabVal').textContent = vocabDisplay;
+    document.getElementById('vocabBar').style.width = vocabBarWidth + '%';
+    document.getElementById('vocabBar').className = 'mc-bar-fill ' + vocabClass;
+    document.getElementById('cardVocab').className = 'metric-card ' + (vocabScore < 0 ? 'warn' : vocabClass);
+    if (vocabScore < 0) document.querySelector('#cardVocab .mc-ref').textContent = '発話量が少なすぎます';
+
+    // 沈黙率はロールプレイでは「相手の発言数との比率」で代替
+    const aiTurns = roleplaysHistory.filter(m => m.role === 'assistant').length;
+    // Balance only meaningful with 3+ exchanges
+    const totalTurns = aiTurns + userTurns.length;
+    const turnRatio = totalTurns >= 4
+      ? Math.round((userTurns.length / totalTurns) * 100) : -1;
+    const turnRatioClass = turnRatio < 0 ? 'warn' : turnRatio >= 35 && turnRatio <= 65 ? 'ok' : 'warn';
+    const balanceDisplay = turnRatio < 0 ? '—' : turnRatio;
+    const balanceBarWidth = turnRatio < 0 ? 0 : turnRatio;
+    document.getElementById('silenceVal').textContent = balanceDisplay;
+    document.getElementById('silenceBar').style.width = balanceBarWidth + '%';
+    document.getElementById('silenceBar').className = 'mc-bar-fill ' + turnRatioClass;
+    document.getElementById('cardSilence').className = 'metric-card ' + turnRatioClass;
+    document.querySelector('#cardSilence .mc-label').textContent = 'Balance';
+    document.querySelector('#cardSilence .mc-unit').textContent = turnRatio < 0 ? '' : '%発話比率';
+    document.querySelector('#cardSilence .mc-ref').textContent = turnRatio < 0 ? '往復が少なすぎます' : '自分の発話割合';
+
+    // Timeout card — replace Pauses metric with timeout count
+    const toCount = roleplaysTimeoutCount;
+    const toClass = toCount === 0 ? 'ok' : toCount <= 2 ? 'warn' : 'bad';
+    document.getElementById('pauseVal').textContent = toCount;
+    document.getElementById('pauseBar').style.width = Math.min(100, toCount * 33) + '%';
+    document.getElementById('pauseBar').className = 'mc-bar-fill ' + toClass;
+    document.getElementById('cardPause').className = 'metric-card ' + toClass;
+    document.querySelector('#cardPause .mc-label').textContent = 'Timeout';
+    document.querySelector('#cardPause .mc-unit').textContent = '回';
+    document.querySelector('#cardPause .mc-ref').textContent = toCount === 0 ? '完璧！全ターン応答' : 'タイムオーバー回数';
+
+    // レーダーチャート更新
+    const timeoutPenalty = Math.min(100, roleplaysTimeoutCount * 33);
+    updateRadar(
+      Math.min(100, avgCharsPerTurn / 1.5),
+      100 - timeoutPenalty,  // Timeout: 0回=100%, 1回=67%, 2回=33%, 3回+=0%
+      Math.min(100, totalChars / 4),
+      100 - fillerPct,
+      vocabScore,
+      100 - Math.abs(turnRatio - 50) * 2
+    );
+
+    const panel = document.getElementById('metricsRow');
+    panel.classList.add('visible');
+    setTimeout(() => scrollLeftTo(panel, 20), 300);
+  }
+
+  const roundsText = ['', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'][roleplaysRoundCount] || String(roleplaysRoundCount);
+
+  // Record roleplay session in game system
+  GS.recordRoleplay(roleplaysRoundCount, roleplaysdifficulty, roleplaysTimeoutCount);
+  updateStreakDisplay(GS.getState());
+
+  const q = t(
+    `ロールプレイお疲れ様でした。${roundsText}往復の対話でした。\n\nまず、やってみてどうでしたか？どんな瞬間が難しかったですか、あるいは手応えを感じましたか？`,
+    `Good work on the roleplay — ${roundsText} exchange${roleplaysRoundCount > 1 ? 's' : ''} completed.\n\nFirst, how did it feel? What moments were challenging, or where did you feel confident?`
+  );
+  addCoachMessage(q);
+  document.getElementById('chatInput').placeholder = t('感じたことを教えてください…', 'Share what you noticed…');
+
+  // Store for reflect
+  lastMetrics = {
+    roleplaysHistory: roleplaysHistory,
+    roleplaysRole: selectedRoleplay.role,
+    roleplaysRounds: roleplaysRoundCount,
+    timeoutCount: roleplaysTimeoutCount,
+    isRoleplay: true,
+    fillerCount: typeof fillerCount !== 'undefined' ? fillerCount : 0,
+    fillerList: typeof fillerList !== 'undefined' ? fillerList : [],
+    vocabScore: typeof vocabScore !== 'undefined' ? vocabScore : 0,
+    userTurns: userTurns.length,
+    totalChars: typeof totalChars !== 'undefined' ? totalChars : 0
+  };
+}
+
+// ── Speech Synthesis — ElevenLabs TTS (highest quality Japanese) ──────────────────────────────────────────
+let currentAudio = null;
+let onSpeechEndCallback = null;
+
+// ── Response countdown (roleplay) ──────────────────────────────────────────
+const RESPONSE_LIMIT_SEC = 5;
+let countdownInterval = null;
+let countdownRemaining = 0;
+let speechDetectedInTurn = false;
+
+function startResponseCountdown() {
+  stopResponseCountdown();
+  speechDetectedInTurn = false;
+  countdownRemaining = RESPONSE_LIMIT_SEC;
+
+  // Small ring disabled — using overlay ring only
+  const ring = null; // deprecated
+  const num  = null; // deprecated
+
+  // Large overlay — create dynamically if not exists
+  if (!document.getElementById('countdownOverlay')) {
+    const ov = document.createElement('div');
+    ov.id = 'countdownOverlay';
+    ov.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:180px;z-index:9990;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:170px;gap:12px;opacity:0;transition:opacity 0.2s;background:rgba(250,248,244,0.97);pointer-events:none;';
+    ov.innerHTML = `
+      <div style="font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;color:#c4705a;background:#fdf0ec;border:1.5px solid #e8a896;border-radius:12px;padding:10px 20px;text-align:center;line-height:1.6;">
+        ⏱ AIが話し終えてから<span style="font-size:15px;color:#c4705a;">5秒以内</span>に<br>ボタンを押して話し始めてください
+      </div>
+      <div id="_cdWrap" style="display:flex;flex-direction:column;align-items:center;gap:14px;">
+        <div style="position:relative;width:200px;height:200px;">
+          <svg width="200" height="200" viewBox="0 0 200 200" style="position:absolute;top:0;left:0;transform:rotate(-90deg)">
+            <circle cx="100" cy="100" r="88" fill="none" stroke="#e8dfd0" stroke-width="6"/>
+            <circle id="countdownBigRing" cx="100" cy="100" r="88" fill="none" stroke="#6a9b7e" stroke-width="6" stroke-linecap="round" stroke-dasharray="553" stroke-dashoffset="553" style="transition:stroke-dashoffset 0.9s linear,stroke 0.3s;filter:drop-shadow(0 0 8px rgba(106,155,126,0.5))"/>
+          </svg>
+          <div id="countdownBigNum" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:110px;line-height:1;color:#6a9b7e;transition:color 0.2s;">5</div>
+        </div>
+        
+      </div>`;
+    document.body.appendChild(ov);
+  }
+  const overlay   = document.getElementById('countdownOverlay');
+  const bigRing   = document.getElementById('countdownBigRing');
+  const bigNum    = document.getElementById('countdownBigNum');
+  const bigCirc   = 2 * Math.PI * 88; // 553
+  let lastCeil    = RESPONSE_LIMIT_SEC + 1;
+  // Set overlay bottom to footer height so it never covers the record button
+  const _footer = document.getElementById('recFooter');
+  if (_footer) {
+    const _fh = _footer.getBoundingClientRect().height || 180;
+    overlay.style.bottom = _fh + 'px';
+  }
+  overlay.classList.add('visible');
+  // Record button stays visible — user clicks it to respond
+
+  function updateRing() {
+    const pct    = countdownRemaining / RESPONSE_LIMIT_SEC;
+    const urgent = countdownRemaining <= 2;
+
+    // Small ring disabled
+
+    // Large overlay
+    bigRing.style.strokeDashoffset = bigCirc * (1 - pct);
+    bigRing.style.stroke = urgent ? 'var(--terracotta)' : 'var(--sage)';
+    bigRing.style.filter = urgent
+      ? 'drop-shadow(0 0 12px rgba(196,112,90,0.8))'
+      : 'drop-shadow(0 0 8px rgba(106,155,126,0.5))';
+    const ceil = Math.ceil(countdownRemaining);
+    bigNum.textContent = ceil;
+    bigNum.style.color = urgent ? 'var(--terracotta)' : 'var(--sage)';
+    // Tick animation on each second
+    if (ceil !== lastCeil) {
+      lastCeil = ceil;
+      bigNum.classList.remove('tick');
+      void bigNum.offsetWidth; // reflow
+      bigNum.classList.add('tick');
+    }
+    bigNum.classList.toggle('urgent', urgent);
+  }
+
+  updateRing();
+
+  countdownInterval = setInterval(() => {
+    countdownRemaining -= 0.1;
+    if (countdownRemaining <= 0) {
+      stopResponseCountdown();
+      // Time's up — don't stop recording (not started), send timeout turn to AI
+      roleplaysTimeoutCount++;
+      // Mood deteriorates on timeout
+      if (roleplaysdifficulty === 'easy') {
+        moodLevel = Math.min(2, moodLevel + 1);
+      } else if (roleplaysdifficulty === 'normal') {
+        moodLevel = Math.min(3, moodLevel + 1);
+      } else {
+        moodLevel = Math.min(4, moodLevel + 1);
+      }
+      stopResponseCountdown();
+      const timeoutMsg = t('（タイムオーバー — 返答なし）', '(Time over — no response)');
+      // Show timeout notice in chat
+      const toEl = document.createElement('div');
+      toEl.style.cssText = 'text-align:center;padding:8px;margin:4px 0;background:rgba(196,112,90,0.08);border-radius:10px;font-size:12px;color:var(--terracotta);font-weight:700;';
+      toEl.textContent = '⏱ タイムオーバー — 次はもっと素早く！';
+      document.getElementById('chatMessages').appendChild(toEl);
+      // Tell AI that user didn't respond and ask it to move forward
+      handleRoleplaysUserTurn('__TIMEOUT__');
+    } else {
+      updateRing();
+    }
+  }, 100);
+}
+
+function stopResponseCountdown() {
+  if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
+  // Small ring disabled
+  // Large overlay — fade out
+  const overlay = document.getElementById('countdownOverlay');
+  if (overlay) overlay.classList.remove('visible');
+  // Reset big ring
+  const bigRing = document.getElementById('countdownBigRing');
+  if (bigRing) { bigRing.style.strokeDashoffset = 553; }
+  // Record button already visible
+  const _rcBtn = document.getElementById('recordBtn');
+  if (_rcBtn) _rcBtn.classList.remove('roleplay-wait');
+}
+
+let selectedVoice = 'nova'; // default: 日本語に最適
+
+async function speakAsRole(text, onEnd) {
+  onSpeechEndCallback = onEnd || null;
+  if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+
+  const ind = document.getElementById('aiSpeakingIndicator');
+  const label = document.getElementById('aiSpeakingLabel');
+  const recordBtn = document.getElementById('recordBtn');
+  if (ind) { ind.style.display = 'flex'; label.textContent = (selectedRoleplay?.role || 'AI') + 'が話しています…'; }
+  recordBtn.disabled = true;
+
+  try {
+    const resp = await fetch('https://api.openai.com/v1/audio/speech', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
+      body: JSON.stringify({
+        model: 'tts-1-hd',
+        input: text,
+        voice: selectedVoice,
+        speed: lang === 'ja' ? 0.92 : 1.0
+      })
+    });
+
+    if (!resp.ok) throw new Error('TTS ' + resp.status);
+    const blob = await resp.blob();
+    const url = URL.createObjectURL(blob);
+    const audio = new Audio(url);
+    currentAudio = audio;
+
+    audio.onended = () => {
+      URL.revokeObjectURL(url); currentAudio = null;
+      if (ind) ind.style.display = 'none';
+      recordBtn.disabled = false;
+      if (onSpeechEndCallback) { onSpeechEndCallback(); onSpeechEndCallback = null; }
+    };
+    audio.onerror = () => {
+      URL.revokeObjectURL(url); currentAudio = null;
+      if (ind) ind.style.display = 'none';
+      recordBtn.disabled = false;
+      if (onSpeechEndCallback) { onSpeechEndCallback(); onSpeechEndCallback = null; }
+    };
+    audio.play();
+
+  } catch(e) {
+    console.warn('TTS error:', e);
+    if (ind) ind.style.display = 'none';
+    recordBtn.disabled = false;
+    if (onSpeechEndCallback) { onSpeechEndCallback(); onSpeechEndCallback = null; }
+  }
+}
+
+// ── End roleplay button ──────────────────────────────────────────
+function updateMoodDisplay() {
+  const moodEmojis = ['😊', '😐', '😤', '😠', '😡'];
+  const badge = document.getElementById('phaseBadge');
+  if (badge && mode === 'roleplay') {
+    const emoji = moodEmojis[Math.min(moodLevel, moodEmojis.length - 1)];
+    badge.textContent = emoji + ' ' + (badge.textContent.replace(/^[😊😐😤😠😡]\s*/, '') || 'Role Play');
+  }
+}
+
+function endRoleplay() {
+  stopResponseCountdown();
+  applyDifficultyAtmosphere('normal');
+  if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+  onSpeechEndCallback = null;
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+    mediaRecorder.onstop = null;
+    mediaRecorder.stop();
+  }
+  if (isRecording) stopRecording();
+
+  document.getElementById('endRoleplaysBtn').style.display = 'none';
+  document.getElementById('aiSpeakingIndicator').style.display = 'none';
+  // 録音ボタンを無効化（ロールプレイ終了後は録音させない）
+  const recBtn = document.getElementById('recordBtn');
+  recBtn.disabled = true;
+  recBtn.style.opacity = '0.4';
+  document.getElementById('recordLabel').textContent = t('セッション終了', 'Session ended');
+
+  document.getElementById('aiAvatar').textContent = 'F';
+  document.getElementById('aiAvatar').className = 'ai-avatar';
+  document.getElementById('chatHeaderText').textContent = 'FOR ME NY AI Coach';
+  const _gen = document.getElementById('avatarGenerating');
+  const _img = document.getElementById('avatarImg');
+  const _name = document.getElementById('avatarName');
+  const _sub = document.getElementById('avatarSub');
+  if (_gen) { _gen.classList.remove('generating'); _gen.style.display='flex'; _gen.innerHTML = COACH_AVATAR_SVG; }
+  if (_img) _img.style.display='none';
+  if (_name) _name.textContent = 'FOR ME NY Coach';
+  if (_sub) _sub.textContent = '📊 Reflect';
+
+  setTimeout(() => startRoleplaysReflect(), 200);
+}
+function startReflect() {
+  setPhase('reflect');
+  // Record speech session in game system
+  const fillerCount = lastMetrics?.fillerCount ?? 999;
+  GS.recordSpeech(fillerCount);
+  updateStreakDisplay(GS.getState());
+  addCoachMessage(t(`話し終えました。\n\nまず聞かせてください。今、どんな感覚がありますか？話してみてどうでしたか？`, `You've finished speaking.\n\nFirst, I'd like to hear from you — how did that feel? What did you notice?`));
+  document.getElementById('chatInput').placeholder = t('感じたことを教えてください…', 'Share what you noticed…');
+}
+
+// ── Volume tracking ──────────────────────────────────────────
+function startVolumeTracking() {
+  const buf = new Uint8Array(analyser.frequencyBinCount);
+  function tick() {
+    if (animFrameId === -1) return;
+    analyser.getByteFrequencyData(buf);
+    const avg = buf.reduce((a,b) => a+b, 0) / buf.length;
+    volumeSamples.push(avg);
+    for (let i = 0; i < 8; i++) document.getElementById('wb'+i).style.height = (4 + Math.random() * avg * 0.5) + 'px';
+    animFrameId = requestAnimationFrame(tick);
+  }
+  animFrameId = 0;
+  tick();
+}
+
+// ── Metrics (speech mode) ──────────────────────────────────────────
+function computeMetrics(snapStart, snapTranscript) {
+  const usedStart = snapStart !== undefined ? snapStart : startTime;
+  const usedTranscript = (snapTranscript !== undefined ? snapTranscript : fullTranscript).trim();
+  const elapsedMin = (Date.now() - usedStart) / 1000 / 60;
+  const elapsedSec = elapsedMin * 60;
+
+  if (!usedTranscript) {
+    document.getElementById('transcriptBox').textContent = t('（音声が認識されませんでした。マイクの許可を確認してください）', '(No speech detected. Please check microphone permissions.)');  
+    document.getElementById('transcriptBox').className = 'transcript-box placeholder';
+    return;
+  }
+
+  // ── Speed ──
+  let speed, speedPct, speedClass;
+  if (lang === 'ja') {
+    speed = Math.round(usedTranscript.replace(/\s/g,'').length / elapsedMin);
+    speedPct = Math.min(100, (speed / 500) * 100);
+    speedClass = speed >= 300 && speed <= 400 ? 'ok' : speed < 200 || speed > 480 ? 'bad' : 'warn';
+  } else {
+    speed = Math.round(usedTranscript.split(/\s+/).filter(w=>w).length / elapsedMin);
+    speedPct = Math.min(100, (speed / 200) * 100);
+    speedClass = speed >= 130 && speed <= 150 ? 'ok' : speed < 100 || speed > 180 ? 'bad' : 'warn';
+  }
+
+  // ── Pauses ──
+  const pauseCount = silenceEvents.filter(s => s.duration >= SILENCE_THRESHOLD).length;
+  const pausePct = Math.min(100, (pauseCount / 10) * 100);
+  const pauseClass = pauseCount >= 2 && pauseCount <= 8 ? 'ok' : pauseCount < 2 ? 'warn' : 'bad';
+
+  // ── Volume ──
+  let volDB = 0, volClass = 'ok', volNorm = 0;
+  if (volumeSamples.length > 0) {
+    const va = volumeSamples.reduce((a,b)=>a+b,0) / volumeSamples.length;
+    volNorm = Math.min(100, (va / 80) * 100);
+    const vv = volumeSamples.reduce((a,b)=>a+Math.pow(b-va,2),0)/volumeSamples.length;
+    volClass = volNorm > 30 && vv < 800 ? 'ok' : volNorm < 20 ? 'warn' : 'bad';
+    volDB = va > 0 ? Math.round(20 * Math.log10(va / 255) + 60) : 0;
+  }
+
+  // ── Filler words ──
+  const fillerPatterns = lang === 'ja'
+    ? /(えーと|えっと|えー+|あー+|あのー?|あのう|うーん|まあ|なんか|なんかこう|ちょっと|そのー|なんていうか|要するに|つまり)/gi
+    : /\b(um+|uh+|er+|like|you know|i mean|basically|literally|actually|so+|well+|right)\b/gi;
+  const fillerMatches = usedTranscript.match(fillerPatterns) || [];
+  const fillerCount = fillerMatches.length;
+  const fillerList = [...new Set(fillerMatches.map(f => f.toLowerCase()))].slice(0, 5);
+  const fillerPct = Math.min(100, (fillerCount / 15) * 100);
+  const fillerClass = fillerCount <= 3 ? 'ok' : fillerCount <= 8 ? 'warn' : 'bad';
+
+  // ── Vocabulary diversity ──
+  const words = usedTranscript.replace(/[、。！？\s]/g, ' ').split(/\s+/).filter(w => w.length > 1);
+  const uniqueWords = new Set(words.map(w => w.toLowerCase()));
+  const vocabScore = words.length > 0 ? Math.round((uniqueWords.size / words.length) * 100) : 0;
+  const vocabClass = vocabScore >= 70 ? 'ok' : vocabScore >= 50 ? 'warn' : 'bad';
+
+  // ── Silence rate ──
+  const totalSilenceSec = silenceEvents.reduce((a, s) => a + s.duration, 0);
+  const silenceRate = elapsedSec > 0 ? Math.round((totalSilenceSec / elapsedSec) * 100) : 0;
+  const silenceClass = silenceRate >= 10 && silenceRate <= 30 ? 'ok' : silenceRate < 5 ? 'warn' : silenceRate > 50 ? 'bad' : 'warn';
+
+  // ── Update DOM ──
+  const setCard = (cardId, valId, barId, val, pct, cls, unit) => {
+    document.getElementById(valId).textContent = val;
+    const bar = document.getElementById(barId);
+    bar.style.width = Math.min(100, pct) + '%';
+    bar.className = 'mc-bar-fill ' + cls;
+    const card = document.getElementById(cardId);
+    card.className = 'metric-card ' + cls;
+  };
+
+  setCard('cardSpeed',  'speedVal',  'speedBar',  speed,       speedPct,               speedClass);
+  setCard('cardPause',  'pauseVal',  'pauseBar',  pauseCount,  pausePct,               pauseClass);
+  setCard('cardVol',    'volVal',    'volBar',    volDB,       volNorm,                volClass);
+  setCard('cardFiller', 'fillerVal', 'fillerBar', fillerCount, fillerPct,              fillerClass);
+  setCard('cardVocab',  'vocabVal',  'vocabBar',  vocabScore,  vocabScore,             vocabClass);
+  setCard('cardSilence','silenceVal','silenceBar',silenceRate, Math.min(100, silenceRate*2), silenceClass);
+
+  // ── Radar chart ──
+  updateRadar(speedPct, pausePct, volNorm, 100 - fillerPct, vocabScore, 100 - Math.abs(silenceRate - 20) * 2);
+
+  const panel = document.getElementById('metricsRow');
+  panel.classList.add('visible');
+
+  updateTranscriptDisplay(usedTranscript);
+
+  lastMetrics = {
+    isRoleplay: false,
+    transcript: usedTranscript,
+    speed, speedClass,
+    pauseCount, pauseClass,
+    volDB, volClass,
+    fillerCount, fillerClass, fillerList,
+    vocabScore, vocabClass,
+    silenceRate, silenceClass,
+    durationMin: elapsedMin, durationSec: Math.round(elapsedSec),
+    lang, topic: selectedTopic
+  };
+}
+
+function updateRadar(speed, pause, vol, fillerInv, vocab, silenceBalance) {
+  const cx = 110, cy = 110, maxR = 84;
+  const angles = [-90, -30, 30, 90, 150, 210];
+  const values = [speed, pause, vol, fillerInv, vocab, silenceBalance].map(v => Math.max(0, Math.min(100, v)));
+  const points = values.map((v, i) => {
+    const angle = (angles[i] * Math.PI) / 180;
+    const r = (v / 100) * maxR;
+    return [(cx + r * Math.cos(angle)).toFixed(1), (cy + r * Math.sin(angle)).toFixed(1)];
+  });
+  const poly = document.getElementById('radarPoly');
+  if (poly) poly.setAttribute('points', points.map(p => p.join(',')).join(' '));
+  points.forEach((p, i) => {
+    const dot = document.getElementById('rd' + i);
+    if (dot) { dot.setAttribute('cx', p[0]); dot.setAttribute('cy', p[1]); }
+  });
+}
+
+function updateTranscriptDisplay(text) {
+  const box = document.getElementById('transcriptBox');
+  box.className = 'transcript-box';
+  box.textContent = text || '（認識中…）';
+}
+
+// ── OpenAI ──────────────────────────────────────────
+async function callOpenAI(messages, systemPrompt) {
+  const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
+    body: JSON.stringify({ model: 'gpt-4o', max_tokens: 600, messages: [{ role: 'system', content: systemPrompt }, ...messages] })
+  });
+  const data = await resp.json();
+  if (data.error) throw new Error(data.error.message);
+  return data.choices[0].message.content;
+}
+
+async function sendMessage() {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text) return;
+  if (!apiKey) { addCoachMessage(t('APIキーを設定してください。', 'Please set your API key.')); return; }
+  input.value = '';
+
+  addUserMessage(text);
+  chatHistory.push({ role: 'user', content: text });
+  if (phase === 'prepare') prepareAnswered = true;
+
+  showTyping();
+  try {
+    const reply = await callOpenAI(chatHistory, buildCoachSystemPrompt());
+    hideTyping();
+    chatHistory.push({ role: 'assistant', content: reply });
+    addCoachMessage(reply);
+  } catch(e) {
+    hideTyping();
+    addCoachMessage(t('通信エラーが発生しました。APIキーとネットワーク接続を確認してください。', 'Connection error. Please check your API key and network.'));
+    chatHistory.pop();
+  }
+}
+
+function buildCoachSystemPrompt() {
+  const isEn = lang === 'en';
+  const base = isEn
+    ? `You are an AI coach for FOR ME NY, an expressive education method built on improvisation, psychological safety, and emotional intelligence.
+
+Core principles:
+- Prioritize questions that spark awareness over evaluation
+- Use numbers only as gentle starting points for reflection — never as scores
+- Always hold the attitude: "There are no right answers. Your voice has unique value."
+- Suggest only one next step, offered softly
+- Respond in a dialogue style with questions woven in
+- Keep responses to 50–100 words. Concise and warm.`
+    : `あなたはFOR ME NYのAIコーチです。FOR ME NYはインプロビゼーション×心理的安全性×感情知性を大切にする表現教育メソッドです。
+
+核心原則：
+- 評価より「気づき」を促す問いかけを優先する
+- 数値は気づきのきっかけとして添えるだけ。判定や採点はしない
+- 「正解はない」「あなたの声には固有の価値がある」という姿勢を常に保つ
+- 改善点は「次にやってみること」として1つだけ、柔らかく提案する
+- フィードバックは問いかけを交えた対話形式で行う
+- 返答は日本語で150〜300文字程度。自然な話し言葉で、簡潔に、温かく。`;
+
+  if (phase === 'prepare') {
+    return base + (isEn
+      ? `\n\nThis is the Prepare phase. Receive the user's feelings warmly and create a sense of safety. End by saying "start whenever you're ready".`
+      : `\n\n現在はPrepareフェーズ。ユーザーの気持ちを受け止め、安心感を作ってください。最後に「いつでも始めてください」と伝えてください。`);
+  }
+  if (phase === 'reflect' && lastMetrics) {
+    if (lastMetrics.isRoleplay) {
+      const hist = lastMetrics.roleplaysHistory || [];
+      const userLabel = isEn ? 'You' : 'あなた';
+      const summary = hist.slice(0,6).map(m => `${m.role === 'user' ? userLabel : lastMetrics.roleplaysRole}: "${m.content.slice(0,60)}${m.content.length>60?'…':''}"`).join('\n');
+      return base + (isEn
+        ? `\n\nThis is the Reflect phase (post-roleplay).
+
+Roleplay summary:
+- Role: ${lastMetrics.roleplaysRole}
+- Exchanges: ${lastMetrics.roleplaysRounds}
+- Excerpt:\n${summary}
+
+Approach:
+1. Receive the user's impressions with care
+2. Ask one question to spark awareness (e.g. "What was the hardest moment?" "Did anything surprise you about their response?")
+3. Suggest one thing to try next`
+        : `\n\n現在はReflectフェーズ（ロールプレイ後）。
+
+ロールプレイ概要：
+- 相手役：${lastMetrics.roleplaysRole}
+- 往復数：${lastMetrics.roleplaysRounds}回
+- タイムオーバー：${lastMetrics.timeoutCount || 0}回（返答なし）
+- フィラーワード：${lastMetrics.fillerCount || 0}回（${lastMetrics.fillerList?.join('・') || 'なし'}）
+- 語彙の多様性：${lastMetrics.vocabScore || 0}%
+- 発話ターン数：${lastMetrics.userTurns || 0}ターン
+- 対話抜粋：\n${summary}
+
+振り返りの進め方：
+1. ユーザーの感想をしっかり受け止める
+2. 分析データから1つ選んで気づきを促す問いを投げかける
+   例：「フィラーが${lastMetrics.fillerCount || 0}回出ました。どんな瞬間に出やすかったと思いますか？」
+   例：「一番難しかった瞬間はどこでしたか？」
+   例：「相手の反応で意外だったことはありましたか？」
+3. 「次にやってみること」を1つ具体的に提案する`);
+
+    } else {
+      const m = lastMetrics;
+      const speedRef = isEn ? `${m.speed} wpm (target 130–150)` : `${m.speed}字/分（目安350〜400）`;
+      return base + (isEn
+        ? `\n\nThis is the Reflect phase (post-speech).
+
+Recording data (reference only — don't push):
+- Topic: ${m.topic}
+- Speed: ${speedRef}
+- Pauses: ${m.pauseCount}
+- Transcript excerpt: "${m.transcript.slice(0,150)}${m.transcript.length>150?'…':''}"
+
+Approach:
+1. Receive the user's impressions
+2. Ask one awareness question based on the transcript or numbers
+3. For numbers, ask: "X came up — how does that feel to you?"
+4. Suggest only one thing to try next`
+        : `\n\n現在はReflectフェーズ（スピーチ後）。
+
+録音データ（参考情報。数値を押しつけず、気づきを促す問いかけに使う）：
+- トピック：${m.topic}（${m.durationSec}秒）
+- スピード：${speedRef}
+- 有意な間：${m.pauseCount}回
+- 音量：${m.volDB}dB（${m.volClass === 'ok' ? '安定' : m.volClass === 'warn' ? '要改善' : '不安定'}）
+- フィラー：${m.fillerCount}回（${m.fillerList?.join('・') || 'なし'}）
+- 語彙の多様性：${m.vocabScore}%
+- 沈黙率：${m.silenceRate}%
+- 書き起こし抜粋：「${m.transcript.slice(0,200)}${m.transcript.length>200?'…':''}」
+
+シナリオ別の目安（あくまで参考。正解ではない）：
+- スピード：300〜380字/分が一般的な会話の目安
+- フィラー：3回以下だと流暢に聞こえる。多い場合は「間」で代替できる
+- 語彙の多様性：70%以上だと豊かな表現
+- 沈黙率：10〜30%が自然な会話のリズム
+
+振り返りの進め方：
+1. まずユーザーの感想・気づきをしっかり受け止める
+2. 6つの数値のうち1〜2つを選んで問いかける形で触れる（「フィラーが${m.fillerCount}回出ました。自分で気づいていましたか？」など）
+3. フィラーがある場合は具体的にどんな言葉だったか伝える
+4. 数値よりもTranscriptの内容から「伝わり方」「声の質」について問いかけることを優先する
+5. 「次にやってみること」を1つだけ提案する（具体的に）`);
+
+    }
+  }
+  return base;
+}
+
+// ── Chat UI ──────────────────────────────────────────
+function addCoachMessage(text) {
+  const el = document.createElement('div');
+  el.className = 'msg ai';
+  el.innerHTML = `<div class="msg-role">AI Coach</div><div class="msg-bubble">${escHtml(text).replace(/\n/g,'<br>')}</div>`;
+  document.getElementById('chatMessages').appendChild(el);
+  scrollRightTo(el);
+}
+
+function addRoleMessage(text) {
+  const el = document.createElement('div');
+  el.className = 'msg role-player';
+  const role = selectedRoleplay ? selectedRoleplay.role : 'AI';
+  el.innerHTML = `<div class="msg-role">${escHtml(role)}</div><div class="msg-bubble">${escHtml(text).replace(/\n/g,'<br>')}</div>`;
+  document.getElementById('chatMessages').appendChild(el);
+  scrollRightTo(el);
+}
+
+function addUserMessage(text) {
+  const el = document.createElement('div');
+  el.className = 'msg user';
+  el.innerHTML = `<div class="msg-role">You</div><div class="msg-bubble">${escHtml(text)}</div>`;
+  document.getElementById('chatMessages').appendChild(el);
+  scrollRightTo(el);
+}
+
+let typingEl = null;
+function showTyping() {
+  typingEl = document.createElement('div');
+  typingEl.className = 'msg ai';
+  typingEl.id = 'typingIndicator';
+  typingEl.innerHTML = `<div class="msg-role">…</div><div class="msg-bubble"><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>`;
+  document.getElementById('chatMessages').appendChild(typingEl);
+  scrollRightTo(typingEl);
+}
+function hideTyping() { const el = document.getElementById('typingIndicator'); if (el) el.remove(); }
+
+function saveKey() {
+  const val = document.getElementById('apiKeyInput').value.trim();
+  if (!val || val === '••••••••') return;
+  apiKey = val;
+  localStorage.setItem('formeny_openai_key', val);
+  document.getElementById('apiKeyInput').value = '••••••••';
+  document.getElementById('keyStatus').textContent = t('設定済み ✓', 'Saved ✓');
+  document.getElementById('keyStatus').className = 'key-status ok';
+}
+
+function saveElevenKey() {
+  const val = document.getElementById('elevenKeyInput').value.trim();
+  if (!val || val === '••••••••') return;
+  localStorage.setItem('formeny_eleven_key', val);
+  document.getElementById('elevenKeyInput').value = '••••••••';
+  document.getElementById('elevenKeyStatus').textContent = t('保存済み（現在未使用）', 'Saved (not active yet)');
+}
+
+
+
+function setVoice(btn) {
+  document.querySelectorAll('.voice-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  selectedVoice = btn.dataset.voice;
+}
+
+// ── i18n helper ──────────────────────────────────────────
+function t(ja, en) { return lang === 'en' ? en : ja; }
+
+// body:overflow:hidden環境では scrollIntoView が効かないため
+// .left パネル内の要素は直接 .left をスクロールする
+function scrollLeftTo(el, offset) {
+  const left = document.querySelector('.left');
+  if (!left || !el) return;
+  left.scrollTo({ top: el.offsetTop - (offset || 20), behavior: 'smooth' });
+}
+function scrollRightTo(el) {
+  const msgs = document.getElementById('chatMessages');
+  if (!msgs || !el) return;
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function setLang(l) {
+  lang = l;
+  document.getElementById('langJA').classList.toggle('active', l === 'ja');
+  document.getElementById('langEN').classList.toggle('active', l === 'en');
+
+  // Section labels
+  document.getElementById('speedHint').textContent = t('目安 350–400', 'target 130–150');
+  document.getElementById('speedUnit').textContent = t('chars/min', 'words/min');
+  document.getElementById('labelVoice').textContent = t('AI Voice（ロールプレイ）', 'AI Voice (Roleplay)');
+  document.getElementById('scenarioLabel').textContent = mode === 'speech'
+    ? t('Topic / シナリオ', 'Topic / Scenario')
+    : t('ロールプレイ シナリオ', 'Roleplay Scenario');
+  document.getElementById('modeHint').textContent = mode === 'speech'
+    ? t('一人で話して計測・フィードバックを受ける', 'Speak alone — get metrics & feedback')
+    : t('AIが相手役になりきってリアルな対話を練習する', 'AI plays a role for realistic conversation practice');
+
+  // Mode tab labels
+  document.getElementById('modeLabelSpeech').textContent = t('スピーチ練習', 'Speech Practice');
+  document.getElementById('modeLabelRoleplay').textContent = t('ロールプレイ', 'Role Play');
+
+  // Save / send buttons
+  document.getElementById('btnSave').textContent = t('保存', 'Save');
+  document.getElementById('btnSend').textContent = t('送信', 'Send');
+
+  // Key status
+  if (apiKey) {
+    document.getElementById('keyStatus').textContent = t('設定済み ✓', 'Saved ✓');
+  } else {
+    document.getElementById('keyStatus').textContent = t('未設定', 'Not set');
+  }
+
+  // Speech topics
+  const st = {
+    't-intro': [t('自己紹介', 'Self-Introduction'), ''],
+    'tt-intro': ['', t('1分間スピーチ', '1-Minute Speech')],
+    't-pres': [t('提案プレゼン', 'Project Pitch'), ''],
+    'tt-pres': ['', t('3分間', '3 Minutes')],
+    'tt-fmny': ['', t('ワークショップ説明', 'Workshop Explanation')],
+    't-ai': [t('AI × 人間', 'AI × Human'), ''],
+    'tt-ai': ['', t('意見スピーチ', 'Opinion Speech')],
+  };
+  Object.entries(st).forEach(([id, [main, sub]]) => {
+    const el = document.getElementById(id);
+    if (el && main) el.textContent = main;
+    if (el && sub) el.textContent = sub;
+  });
+
+  // Custom topic placeholder
+  const csi = document.getElementById('customTopicSpeech');
+  if (csi) csi.placeholder = t('カスタムトピックを入力…', 'Enter custom topic…');
+  const cri = document.getElementById('customTopicRoleplay');
+  if (cri) cri.placeholder = t('カスタムシナリオを入力（例：医師への症状説明）…', 'Enter custom scenario (e.g. explaining symptoms to a doctor)…');
+
+  // Roleplay topics
+  const rt = {
+    'r-boss': t('上司へ提案', 'Propose to Boss'),
+    'rt-boss': t('アイデアを売り込む', 'Pitch an idea'),
+    'r-int': t('面接', 'Job Interview'),
+    'rt-int': t('自己PRと質疑応答', 'Self-PR & Q&A'),
+    'r-prof': t('教授へ相談', 'Meet with Professor'),
+    'rt-prof': t('研究・学習の報告', 'Research Check-in'),
+    'r-client': t('クライアント', 'Client Meeting'),
+    'rt-client': t('初対面・サービス説明', 'First Meeting'),
+    'r-conflict': t('意見対立', 'Disagreement'),
+    'rt-conflict': t('対話・交渉', 'Dialogue & Negotiation'),
+    'r-salary': t('昇給交渉', 'Salary Negotiation'),
+    'rt-salary': t('待遇・キャリア', 'Compensation & Career'),
+  };
+  Object.entries(rt).forEach(([id, text]) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = text;
+  });
+
+  // Voice tags
+  const vt = {
+    // Voice tags are in HTML directly for this version
+
+  };
+  Object.entries(vt).forEach(([id, text]) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = text;
+  });
+
+  // Record button label
+  if (!isRecording) {
+    document.getElementById('recordLabel').textContent =
+      mode === 'roleplay'
+        ? t('クリックして話す（録音）', 'Click to speak (record)')
+        : t('クリックして録音開始', 'Click to start recording');
+  }
+
+  // Chat input placeholder
+  const ci = document.getElementById('chatInput');
+  if (ci && phase === 'prepare') ci.placeholder = t('気持ちを教えてください…', 'Share how you feel…');
+  else if (ci && phase === 'reflect') ci.placeholder = t('感じたことを教えてください…', 'Share what you noticed…');
+  else if (ci) ci.placeholder = t('ここに入力…', 'Type here…');
+
+  // Recognition language update (takes effect on next recording)
+  if (recognition) recognition.lang = l === 'ja' ? 'ja-JP' : 'en-US';
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+
+<!-- Fixed record footer -->
+<div id="recFooter">
+  <div id="aiSpeakingIndicator" style="display:none;align-items:center;gap:8px;font-size:12px;color:var(--sage);font-weight:600;padding:6px 0 0;">
+    <div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>
+    <span id="aiSpeakingLabel">相手が話しています…</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:20px;padding:10px 24px 12px;">
+    <!-- Timer -->
+    <div class="timer" id="timer" style="font-size:28px;min-width:70px;">0:00</div>
+    <!-- Waveform -->
+    <div class="waveform" id="waveform" style="height:24px;">
+      <div class="wave-bar" id="wb0"></div><div class="wave-bar" id="wb1"></div>
+      <div class="wave-bar" id="wb2"></div><div class="wave-bar" id="wb3"></div>
+      <div class="wave-bar" id="wb4"></div><div class="wave-bar" id="wb5"></div>
+      <div class="wave-bar" id="wb6"></div><div class="wave-bar" id="wb7"></div>
+    </div>
+    <!-- REC Button -->
+    <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;">
+      <button id="recordBtn" onclick="toggleRecord()" style="
+        width:72px;height:72px;border-radius:50%;
+        background:var(--surface);border:3px solid var(--border2);
+        cursor:pointer;display:flex;flex-direction:column;
+        align-items:center;justify-content:center;gap:4px;
+        box-shadow:0 4px 16px rgba(0,0,0,0.1);transition:all 0.25s;">
+        <div id="dot" style="width:20px;height:20px;border-radius:50%;background:var(--terracotta);box-shadow:0 2px 8px rgba(196,112,90,0.4);transition:all 0.2s;"></div>
+        <div id="recText" style="font-family:'Bebas Neue',sans-serif;font-size:10px;letter-spacing:0.14em;color:var(--text-3);">REC</div>
+      </button>
+      <div id="recordLabel" style="font-size:11px;font-family:'Bebas Neue',sans-serif;letter-spacing:0.1em;color:var(--text-2);text-align:center;">クリックして録音開始</div>
+    </div>
+    <!-- End button (shown during roleplay) -->
+    <button class="end-roleplay-btn" id="endRoleplaysBtn" style="display:none" onclick="endRoleplay()">終了</button>
+  </div>
+  <!-- Hidden compat elements -->
+  <span id="countdownRing" style="display:none"></span>
+  <span id="countdownNum" style="display:none"></span>
+</div>
+
+</body></body>
+</html>

@@ -124,6 +124,48 @@
 
   /* ── Topic grid ── */
   .topic-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+  /* スピーチ大項目 — 3列 */
+  .speech-main-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .speech-main-btn {
+    background: var(--surface); border: 1.5px solid var(--border);
+    border-radius: 10px; padding: 12px 8px; cursor: pointer;
+    font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 700;
+    color: var(--text); text-align: center; transition: all 0.15s;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+  }
+  .speech-main-btn:hover { border-color: var(--terracotta); background: var(--terra-pale); }
+  .speech-main-btn.active { border-color: var(--terracotta); background: var(--terra-pale); color: var(--terracotta); box-shadow: 0 4px 12px rgba(196,112,90,0.12); }
+  .speech-main-btn .smb-icon { font-size: 22px; }
+  .speech-main-btn .smb-range { font-size: 9px; color: var(--text-3); font-weight: 400; }
+
+  /* シーン選択 */
+  .scene-list { display: flex; flex-direction: column; gap: 5px; }
+  .scene-btn {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 12px; cursor: pointer;
+    font-family: 'Nunito', sans-serif; font-size: 12px; color: var(--text-2);
+    text-align: left; transition: all 0.15s;
+  }
+  .scene-btn:hover { border-color: var(--terracotta); color: var(--text); }
+  .scene-btn.active { border-color: var(--terracotta); background: var(--terra-pale); color: var(--terracotta); font-weight: 700; }
+
+  /* 時間スライダー */
+  .time-slider-wrap { display: flex; flex-direction: column; gap: 6px; }
+  .time-slider-label { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--text-2); }
+  .time-slider-val { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: var(--terracotta); letter-spacing: 0.05em; }
+  input[type=range].speech-timer-range {
+    -webkit-appearance: none; width: 100%; height: 4px;
+    background: linear-gradient(to right, var(--terracotta) 0%, var(--terracotta) var(--pct, 50%), var(--border) var(--pct, 50%));
+    border-radius: 4px; outline: none; cursor: pointer;
+  }
+  input[type=range].speech-timer-range::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%;
+    background: var(--terracotta); box-shadow: 0 2px 6px rgba(196,112,90,0.4);
+  }
+  /* タイマー警告色 */
+  .timer.warning { color: var(--gold) !important; }
+  .timer.danger  { color: var(--terracotta) !important; }
   .topic-btn {
     background: var(--surface); border: 1.5px solid var(--border);
     color: var(--text-2); padding: 11px 12px; cursor: pointer;
@@ -817,13 +859,50 @@
 
       <!-- Speech scenarios -->
       <div id="speechScenarios">
-        <div class="topic-grid">
-          <button class="topic-btn active" data-topic="自己紹介（1分間）" onclick="selectTopic(this, 'speech')"><span id="t-intro">自己紹介</span><span class="topic-tag" id="tt-intro">1分間スピーチ</span></button>
-          <button class="topic-btn" data-topic="プロジェクト提案プレゼン（3分）" onclick="selectTopic(this, 'speech')"><span id="t-pres">提案プレゼン</span><span class="topic-tag" id="tt-pres">3分間</span></button>
-          <button class="topic-btn" data-topic="FOR ME NYのワークショップについて説明する" onclick="selectTopic(this, 'speech')"><span>FOR ME NY</span><span class="topic-tag" id="tt-fmny">ワークショップ説明</span></button>
-          <button class="topic-btn" data-topic="AIと人間の共存についての意見を述べる" onclick="selectTopic(this, 'speech')"><span id="t-ai">AI × 人間</span><span class="topic-tag" id="tt-ai">意見スピーチ</span></button>
+
+        <!-- Step 1: 大項目選択 -->
+        <div class="speech-main-grid">
+          <button class="speech-main-btn active" id="smb-intro" onclick="selectSpeechMain('intro')">
+            <span class="smb-icon">👤</span>自己紹介
+            <span class="smb-range">1〜3分</span>
+          </button>
+          <button class="speech-main-btn" id="smb-presentation" onclick="selectSpeechMain('presentation')">
+            <span class="smb-icon">📊</span>プレゼン
+            <span class="smb-range">3〜5分</span>
+          </button>
+          <button class="speech-main-btn" id="smb-speech" onclick="selectSpeechMain('speech')">
+            <span class="smb-icon">🎤</span>スピーチ
+            <span class="smb-range">2〜5分</span>
+          </button>
         </div>
-        <textarea class="custom-input" id="customTopicSpeech" placeholder="カスタムトピックを入力…" id="customTopicSpeechInput" oninput="onCustomTopic('speech')"></textarea>
+
+        <!-- Step 2: シーン選択 -->
+        <div id="speechSceneWrap" style="display:none;margin-top:10px;">
+          <div style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;">Scene <span style="color:var(--text-3);text-transform:none;letter-spacing:0;font-size:9px;">どんな場面ですか？</span></div>
+          <div class="scene-list" id="speechSceneList"></div>
+        </div>
+
+        <!-- Step 3: Scene Setting（編集可能）+ 時間スライダー -->
+        <div id="speechSettingWrap" style="display:none;margin-top:10px;">
+          <div style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);margin-bottom:4px;">Scene Setting <span style="color:var(--text-3);font-size:9px;text-transform:none;letter-spacing:0;">（編集可能）</span></div>
+          <textarea id="speechSceneSetting" rows="3" style="width:100%;background:rgba(196,112,90,0.05);border:1px solid rgba(196,112,90,0.25);border-radius:6px;padding:9px 10px;font-size:11px;color:var(--text);font-family:'Nunito',sans-serif;line-height:1.6;resize:vertical;outline:none;" oninput="selectedSpeechSetting=this.value"></textarea>
+
+          <!-- 時間スライダー -->
+          <div class="time-slider-wrap" style="margin-top:10px;">
+            <div class="time-slider-label">
+              <span>練習時間</span>
+              <span class="time-slider-val"><span id="speechTimerVal">2</span>分</span>
+            </div>
+            <input type="range" class="speech-timer-range" id="speechTimerSlider"
+              min="1" max="5" step="1" value="2"
+              oninput="updateSpeechTimerSlider(this)">
+            <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text-3);">
+              <span id="speechTimerMin">1分</span>
+              <span id="speechTimerMax">3分</span>
+            </div>
+          </div>
+        </div>
+
       </div>
 
       <!-- Roleplay scenarios -->
@@ -1050,6 +1129,11 @@
         <span>成長の記録</span>
         <span id="growthSessionCount" style="font-size:10px;color:var(--text-3);text-transform:none;letter-spacing:0;font-family:'Nunito',sans-serif;"></span>
       </div>
+      <!-- モード切替タブ -->
+      <div style="display:flex;gap:6px;margin-bottom:10px;">
+        <button id="growthTabSpeech" class="ev-tag active" onclick="switchGrowthMode('speech')" style="font-size:11px;padding:4px 12px;">🎙 スピーチ</button>
+        <button id="growthTabRoleplay" class="ev-tag" onclick="switchGrowthMode('roleplay')" style="font-size:11px;padding:4px 12px;">🎭 ロールプレイ</button>
+      </div>
       <!-- 項目セレクター -->
       <div id="growthMetricTabs" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px;"></div>
       <!-- SVGグラフ -->
@@ -1222,15 +1306,20 @@ function saveSessionHistory(metrics) {
       ts: Date.now(),
       mode: metrics.isRoleplay ? 'roleplay' : 'speech',
       scenario: metrics.isRoleplay ? (selectedRoleplay?.role || '') : (metrics.topic || ''),
-      pace: metrics.isRoleplay ? 0 : (metrics.speed || 0),
+      // 共通
       fillers: metrics.fillerCount || 0,
-      yesAnd: metrics.yesAndPct || 0,
-      emotion: metrics.emotionCount || 0,
-      openQ: metrics.openQPct || 0,
-      assert: metrics.assertPct || 0,
-      dialogProgress: 0, // AI判定結果は非同期なので後で更新
-      timeover: metrics.timeoutCount || 0,
-      turns: metrics.userTurns || 0,
+      // スピーチ用
+      pace:    metrics.speed       || 0,
+      pauses:  metrics.pauseCount  || 0,
+      volCtrl: metrics.volScore    || 0,
+      // ロールプレイ用
+      yesAnd:         metrics.yesAndPct      || 0,
+      emotion:        metrics.emotionCount   || 0,
+      openQ:          metrics.openQPct       || 0,
+      assert:         metrics.assertPct      || 0,
+      dialogProgress: 0,
+      timeover:       metrics.timeoutCount   || 0,
+      turns:          metrics.userTurns      || 0,
     };
     sessions.unshift(entry);
     const trimmed = sessions.slice(0, MAX_SESSIONS);
@@ -1256,32 +1345,59 @@ function getSessionHistory() {
 }
 
 // ── グラフ描画 ──────────────────────────────────────────
-const GROWTH_METRICS = [
-  { key: 'yesAnd',         label: 'Yes, And',   unit: '%',  max: 100, color: '#6a9b7e' },
-  { key: 'emotion',        label: '感情言語化',  unit: '回', max: 10,  color: '#c4705a' },
-  { key: 'fillers',        label: 'Fillers',    unit: '回', max: 15,  color: '#c9a84c', invert: true },
-  { key: 'assert',         label: '主張の明確さ', unit: '%', max: 100, color: '#9b7ea8' },
-  { key: 'openQ',          label: '質問の質',    unit: '%',  max: 100, color: '#4a8ab5' },
-  { key: 'dialogProgress', label: '論点の発展性', unit: '/5', max: 5,  color: '#c4705a' },
-];
+const GROWTH_METRICS = {
+  speech: [
+    { key: 'pace',    label: 'Pace',              unit: '字/分', max: 500, color: '#6a9b7e' },
+    { key: 'fillers', label: 'Fillers',            unit: '回',    max: 15,  color: '#c9a84c', invert: true },
+    { key: 'pauses',  label: '間（Pauses）',       unit: '回',    max: 10,  color: '#4a8ab5' },
+    { key: 'volCtrl', label: '音量コントロール',    unit: '',      max: 100, color: '#c4705a' },
+  ],
+  roleplay: [
+    { key: 'yesAnd',         label: 'Yes, And',    unit: '%',  max: 100, color: '#6a9b7e' },
+    { key: 'emotion',        label: '感情言語化',  unit: '回', max: 10,  color: '#c4705a' },
+    { key: 'fillers',        label: 'Fillers',     unit: '回', max: 15,  color: '#c9a84c', invert: true },
+    { key: 'assert',         label: '主張の明確さ', unit: '%', max: 100, color: '#9b7ea8' },
+    { key: 'openQ',          label: '質問の質',    unit: '%',  max: 100, color: '#4a8ab5' },
+    { key: 'dialogProgress', label: '論点の発展性', unit: '/5', max: 5,  color: '#e8a87c' },
+  ]
+};
 
 let activeGrowthMetric = 'yesAnd';
+let activeGrowthMode = 'roleplay'; // 'speech' | 'roleplay'
+
+function switchGrowthMode(m) {
+  activeGrowthMode = m;
+  // モードタブのアクティブ状態更新
+  document.getElementById('growthTabSpeech')?.classList.toggle('active', m === 'speech');
+  document.getElementById('growthTabRoleplay')?.classList.toggle('active', m === 'roleplay');
+  // 項目タブをリセット（モードが変わったので再生成）
+  const tabsEl = document.getElementById('growthMetricTabs');
+  if (tabsEl) tabsEl.innerHTML = '';
+  // デフォルト項目に切り替え
+  activeGrowthMetric = m === 'speech' ? 'pace' : 'yesAnd';
+  renderGrowthGraph(activeGrowthMetric);
+}
 
 function renderGrowthGraph(metricKey) {
   activeGrowthMetric = metricKey || activeGrowthMetric;
-  const sessions = getSessionHistory().slice(0, 10).reverse(); // 古い→新しい順
   const section = document.getElementById('growthSection');
   const svg = document.getElementById('growthSvg');
   const countEl = document.getElementById('growthSessionCount');
   if (!svg || !section) return;
 
+  // 現在モードのセッションのみフィルタ
   const allSessions = getSessionHistory();
-  countEl.textContent = `${allSessions.length}回の記録`;
+  const modeSessions = allSessions.filter(s => s.mode === activeGrowthMode);
+  const sessions = modeSessions.slice(0, 10).reverse(); // 古い→新しい順
 
-  // タブ描画
+  const modeLabel = activeGrowthMode === 'speech' ? 'スピーチ' : 'ロールプレイ';
+  countEl.textContent = `${modeLabel} ${modeSessions.length}回の記録`;
+
+  // 項目タブ描画（モード別）
+  const metrics = GROWTH_METRICS[activeGrowthMode] || GROWTH_METRICS.roleplay;
   const tabsEl = document.getElementById('growthMetricTabs');
   if (tabsEl && tabsEl.children.length === 0) {
-    GROWTH_METRICS.forEach(m => {
+    metrics.forEach(m => {
       const tab = document.createElement('button');
       tab.className = 'ev-tag' + (m.key === activeGrowthMetric ? ' active' : '');
       tab.textContent = m.label;
@@ -1300,12 +1416,12 @@ function renderGrowthGraph(metricKey) {
   }
 
   if (sessions.length < 2) {
-    svg.innerHTML = `<text x="260" y="70" text-anchor="middle" font-family="Nunito,sans-serif" font-size="12" fill="#a89d95">2回以上セッションを行うと推移グラフが表示されます</text>`;
+    svg.innerHTML = `<text x="260" y="70" text-anchor="middle" font-family="Nunito,sans-serif" font-size="12" fill="#a89d95">${modeLabel}を2回以上行うと推移グラフが表示されます</text>`;
     section.style.display = 'block';
     return;
   }
 
-  const metric = GROWTH_METRICS.find(m => m.key === activeGrowthMetric) || GROWTH_METRICS[0];
+  const metric = metrics.find(m => m.key === activeGrowthMetric) || metrics[0];
   const W = 520, H = 140;
   const padL = 32, padR = 16, padT = 16, padB = 30;
   const gW = W - padL - padR;
@@ -1424,8 +1540,18 @@ if (localStorage.getItem('formeny_eleven_key')) {
 }
 
 setTimeout(() => startPrepare(), 400);
-// 既存の履歴があれば成長グラフを初期表示
-setTimeout(() => { if (getSessionHistory().length >= 2) renderGrowthGraph('yesAnd'); }, 600);
+// スピーチシナリオの初期表示
+setTimeout(() => selectSpeechMain('intro'), 100);
+// 既存の履歴があれば成長グラフを初期表示（ロールプレイ優先）
+setTimeout(() => {
+  const sessions = getSessionHistory();
+  if (sessions.length >= 2) {
+    const hasRoleplay = sessions.some(s => s.mode === 'roleplay');
+    activeGrowthMode = hasRoleplay ? 'roleplay' : 'speech';
+    activeGrowthMetric = hasRoleplay ? 'yesAnd' : 'pace';
+    switchGrowthMode(activeGrowthMode);
+  }
+}, 600);
 
 // Show default avatar state on load
 (function initAvatarDisplay() {
@@ -1475,6 +1601,134 @@ function setMode(m) {
     document.getElementById('dot').style.background='var(--terracotta)'; document.getElementById('dot').style.boxShadow='0 2px 8px rgba(196,112,90,0.4)';
     document.getElementById('recordLabel').textContent = t('クリックして録音開始', 'Click to start recording');
   }
+}
+
+// ── スピーチ練習 シナリオデータ ──────────────────────────────────────────
+const SPEECH_TOPICS = {
+  intro: {
+    label: '自己紹介', icon: '👤',
+    minMin: 1, maxMin: 3, defaultMin: 1,
+    scenes: [
+      { label: '職場・初対面の同僚に',      setting: '職場で初めて会う同僚たちへの自己紹介。フォーマルすぎず、自分らしさを伝えたい。名前・役割・一言を1分以内でまとめる。' },
+      { label: 'ワークショップの参加者として', setting: 'ワークショップの冒頭。参加者は初対面が多い。安心して話せる雰囲気の中で、自分が何者かと、今日ここに来た理由を伝える。' },
+      { label: '異文化・多国籍のグループの前で', setting: '文化的背景の異なるメンバーが集まる場面。共通言語は日本語または英語。自分の名前・出身・文化的背景を丁寧に、かつ親しみやすく伝える。' },
+      { label: '初対面のクライアントに',    setting: '初めて会うクライアントへのビジネス自己紹介。信頼感と親しみやすさを同時に伝える必要がある。' },
+      { label: 'カスタム（自由記述）',       setting: '' },
+    ]
+  },
+  presentation: {
+    label: 'プレゼン', icon: '📊',
+    minMin: 3, maxMin: 5, defaultMin: 3,
+    scenes: [
+      { label: '初対面のクライアントへの提案', setting: '初めて会うクライアントへのサービス・提案のプレゼン。相手はまだ信頼関係がなく慎重。課題を引き出しながら提案の価値を伝える必要がある。' },
+      { label: '社内の上司・チームへの企画発表', setting: '社内の上司やチームへの新しい企画・アイデアの発表。論理的な根拠と熱量の両方が求められる。' },
+      { label: '学校・大学での研究発表',     setting: '授業やゼミでの研究・成果発表。教員や同僚に対して研究の目的・方法・結果を明確に説明する。' },
+      { label: '投資家へのピッチ',           setting: '投資家や審査員に対してビジネスアイデアを売り込む3〜5分のピッチ。限られた時間で価値と実現可能性を伝える。' },
+      { label: 'カスタム（自由記述）',       setting: '' },
+    ]
+  },
+  speech: {
+    label: 'スピーチ', icon: '🎤',
+    minMin: 2, maxMin: 5, defaultMin: 2,
+    scenes: [
+      { label: '職場のミーティングで',       setting: '職場のチームミーティングでの発言。自分の意見・提案・体験を同僚たちに伝える場面。' },
+      { label: '初対面のグループの前で',     setting: '初めて会う人たちの前でのスピーチ。緊張感がある中で自分の言葉を届ける練習。' },
+      { label: '親しい友人・同僚の前で',     setting: '信頼できる友人や同僚の前でのスピーチ。安心できる環境で感情や体験を率直に話す練習。' },
+      { label: '大勢の聴衆の前で（登壇・式典）', setting: '大人数の前での登壇スピーチ。緊張の中でも声のエネルギーと言葉を届ける練習。' },
+      { label: '異文化・多国籍のグループの前で', setting: '文化的背景の異なる人たちへのスピーチ。わかりやすい言葉で、感情を込めて伝える練習。' },
+      { label: '家族・身近な人の前で',       setting: '家族や身近な人への言葉。普段は言えないことを言葉にする練習。感謝・謝罪・気持ちの共有など。' },
+      { label: 'カスタム（自由記述）',       setting: '' },
+    ]
+  }
+};
+
+let selectedSpeechMain = 'intro';
+let selectedSpeechScene = null;
+let selectedSpeechSetting = '';
+let speechTimerMinutes = 1; // ユーザーが設定した目標時間（分）
+let speechTimerEndTime = null; // タイマー終了時刻
+let speechTimerWarningShown = false;
+
+function selectSpeechMain(key) {
+  selectedSpeechMain = key;
+  selectedSpeechScene = null;
+  selectedSpeechSetting = '';
+
+  // 大項目ボタンのアクティブ状態
+  document.querySelectorAll('.speech-main-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('smb-' + key)?.classList.add('active');
+
+  // シーンリストを生成
+  const topic = SPEECH_TOPICS[key];
+  const list = document.getElementById('speechSceneList');
+  list.innerHTML = '';
+  topic.scenes.forEach((scene, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'scene-btn';
+    btn.textContent = scene.label;
+    btn.onclick = () => selectSpeechScene(key, i, btn);
+    list.appendChild(btn);
+  });
+
+  // スライダーの範囲を更新
+  const slider = document.getElementById('speechTimerSlider');
+  const minLabel = document.getElementById('speechTimerMin');
+  const maxLabel = document.getElementById('speechTimerMax');
+  if (slider) {
+    slider.min = topic.minMin;
+    slider.max = topic.maxMin;
+    slider.value = topic.defaultMin;
+    speechTimerMinutes = topic.defaultMin;
+    document.getElementById('speechTimerVal').textContent = topic.defaultMin;
+    minLabel.textContent = topic.minMin + '分';
+    maxLabel.textContent = topic.maxMin + '分';
+    updateSpeechTimerSlider(slider);
+  }
+
+  // シーン選択を表示、Setting非表示
+  document.getElementById('speechSceneWrap').style.display = 'block';
+  document.getElementById('speechSettingWrap').style.display = 'none';
+
+  // selectedTopicを更新
+  selectedTopic = topic.label;
+}
+
+function selectSpeechScene(key, index, btn) {
+  const topic = SPEECH_TOPICS[key];
+  const scene = topic.scenes[index];
+
+  // シーンボタンのアクティブ状態
+  document.querySelectorAll('#speechSceneList .scene-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  selectedSpeechScene = index;
+
+  // カスタムの場合は空にして編集を促す
+  if (scene.setting === '') {
+    selectedSpeechSetting = '';
+    document.getElementById('speechSceneSetting').value = '';
+    document.getElementById('speechSceneSetting').placeholder = 'シーンを自由に入力してください…';
+  } else {
+    selectedSpeechSetting = scene.setting;
+    document.getElementById('speechSceneSetting').value = scene.setting;
+  }
+
+  // Setting + スライダーを表示
+  document.getElementById('speechSettingWrap').style.display = 'block';
+
+  // selectedTopicを更新
+  selectedTopic = `${topic.label}（${scene.label}）`;
+}
+
+function updateSpeechTimerSlider(slider) {
+  const val = parseInt(slider.value);
+  speechTimerMinutes = val;
+  document.getElementById('speechTimerVal').textContent = val;
+  // スライダーの塗り色を更新
+  const min = parseInt(slider.min);
+  const max = parseInt(slider.max);
+  const pct = ((val - min) / (max - min)) * 100;
+  slider.style.setProperty('--pct', pct + '%');
 }
 
 function selectTopic(btn, m) {
@@ -1696,17 +1950,46 @@ async function startRecording() {
   stopResponseCountdown(); // hide overlay when recording starts
   pendingComputeTimer = null;
   startTime = Date.now();
+  // スピーチモードの場合タイマー終了時刻を設定
+  if (mode === 'speech') {
+    speechTimerEndTime = startTime + speechTimerMinutes * 60 * 1000;
+    speechTimerWarningShown = false;
+  } else {
+    speechTimerEndTime = null;
+  }
 
   const btn = document.getElementById('recordBtn');
   btn.classList.add('recording');
-  // dot shape handled by CSS
   document.getElementById('recordLabel').textContent = mode === 'roleplay' ? 'クリックして停止（相手に渡す）' : 'クリックして停止';
   document.getElementById('waveform').classList.add('visible');
 
   timerInterval = setInterval(() => {
     const el = Math.floor((Date.now() - startTime) / 1000);
-    document.getElementById('timer').textContent = `${Math.floor(el/60)}:${(el%60).toString().padStart(2,'0')}`;
-    document.getElementById('timer').classList.add('active');
+    const timerEl = document.getElementById('timer');
+    timerEl.textContent = `${Math.floor(el/60)}:${(el%60).toString().padStart(2,'0')}`;
+    timerEl.classList.add('active');
+
+    // スピーチモードのタイマー警告・強制終了
+    if (mode === 'speech' && speechTimerEndTime) {
+      const remaining = speechTimerEndTime - Date.now();
+      if (remaining <= 30000 && !speechTimerWarningShown) {
+        // 残り30秒で警告色
+        timerEl.classList.add('warning');
+        speechTimerWarningShown = true;
+      }
+      if (remaining <= 10000) {
+        timerEl.classList.remove('warning');
+        timerEl.classList.add('danger');
+      }
+      if (remaining <= 0) {
+        // 時間切れ → 強制終了
+        timerEl.classList.remove('warning', 'danger');
+        addCoachMessage(t(`⏱ 時間になりました（${speechTimerMinutes}分）。`, `⏱ Time's up (${speechTimerMinutes} min).`));
+        stopRecording();
+        return;
+      }
+    }
+
     if (lastSpeechTime && currentSilenceStart === null && (Date.now() - lastSpeechTime) / 1000 > SILENCE_THRESHOLD) {
       currentSilenceStart = lastSpeechTime + SILENCE_THRESHOLD * 1000;
     }
@@ -1754,7 +2037,8 @@ function stopRecording() {
   const _rb2 = document.getElementById('recordBtn');
   if (_rb2) { _rb2.classList.remove('is-recording', 'roleplay-wait'); }
   // dot shape handled by CSS
-  document.getElementById('timer').classList.remove('active');
+  document.getElementById('timer').classList.remove('active', 'warning', 'danger');
+  speechTimerEndTime = null;
   document.getElementById('waveform').classList.remove('visible');
 
   if (snapMode === 'speech') {
@@ -2505,7 +2789,10 @@ async function startRoleplaysReflect() {
   // セッション履歴を保存（analyzeDialogProgressは上のthen内で更新済み）
   if (lastMetrics) {
     saveSessionHistory(lastMetrics);
-    setTimeout(() => renderGrowthGraph(activeGrowthMetric), 300);
+    activeGrowthMode = 'roleplay';
+    activeGrowthMetric = 'yesAnd';
+    document.getElementById('growthMetricTabs').innerHTML = '';
+    setTimeout(() => switchGrowthMode('roleplay'), 300);
   }
 
   const q = t(
@@ -2877,7 +3164,10 @@ function startReflect() {
   // セッション履歴を保存してグラフを更新
   if (lastMetrics) {
     saveSessionHistory(lastMetrics);
-    setTimeout(() => renderGrowthGraph(activeGrowthMetric), 300);
+    activeGrowthMode = 'speech';
+    activeGrowthMetric = 'pace';
+    document.getElementById('growthMetricTabs').innerHTML = '';
+    setTimeout(() => switchGrowthMode('speech'), 300);
   }
   addCoachMessage(t(`話し終えました。\n\nまず聞かせてください。今、どんな感覚がありますか？話してみてどうでしたか？`, `You've finished speaking.\n\nFirst, I'd like to hear from you — how did that feel? What did you notice?`));
   document.getElementById('chatInput').placeholder = t('感じたことを教えてください…', 'Share what you noticed…');

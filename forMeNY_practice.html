@@ -311,6 +311,21 @@
     font-size: 15px; font-style: italic; border-radius: 14px;
   }
   .transcript-box.placeholder { color: var(--text-3); font-style: normal; font-family: 'Nunito', sans-serif; font-size: 12px; }
+  .transcript-box mark { background: rgba(201,168,76,0.35); border-radius: 3px; padding: 0 2px; color: inherit; font-style: inherit; }
+  .transcript-turn { margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+  .transcript-turn:last-child { border-bottom: none; margin-bottom: 0; }
+  .transcript-speaker { font-family: 'Nunito', sans-serif; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); font-style: normal; margin-bottom: 3px; }
+
+  /* 検出語タグ */
+  .evidence-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; min-height: 0; }
+  .ev-tag {
+    font-family: 'Nunito', sans-serif; font-size: 10px; font-style: normal;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 2px 8px; cursor: pointer;
+    color: var(--text-2); transition: all 0.15s;
+  }
+  .ev-tag:hover { background: rgba(201,168,76,0.2); border-color: var(--gold); color: var(--text); }
+  .ev-tag.active { background: rgba(201,168,76,0.3); border-color: var(--gold); }
 
   /* ── Right panel ── */
   .right { display: flex; flex-direction: column; background: linear-gradient(180deg, var(--surface2) 0%, #fdfbf7 100%); overflow: hidden; height: 100%; min-height: 0; max-height: calc(100vh - 53px); }
@@ -985,6 +1000,7 @@
           <div class="mc-unit">回</div>
           <div class="mc-bar-track"><div class="mc-bar-fill" id="fillerBar" style="width:0%"></div></div>
           <div class="mc-ref">あー・えー・なんか</div>
+          <div class="evidence-tags" id="evFiller"></div>
         </div>
         <div class="metric-card" id="cardVocab">
           <div class="mc-label">Yes, And</div>
@@ -992,6 +1008,7 @@
           <div class="mc-unit">%</div>
           <div class="mc-bar-track"><div class="mc-bar-fill" id="vocabBar" style="width:0%"></div></div>
           <div class="mc-ref">受容語で始まった返答</div>
+          <div class="evidence-tags" id="evYesAnd"></div>
         </div>
         <div class="metric-card" id="cardSilence">
           <div class="mc-label">感情言語化</div>
@@ -999,6 +1016,7 @@
           <div class="mc-unit">回</div>
           <div class="mc-bar-track"><div class="mc-bar-fill" id="silenceBar" style="width:0%"></div></div>
           <div class="mc-ref">感情を言葉にした回数</div>
+          <div class="evidence-tags" id="evEmotion"></div>
         </div>
         <div class="metric-card" id="cardQ">
           <div class="mc-label">質問の質</div>
@@ -1006,6 +1024,7 @@
           <div class="mc-unit">%</div>
           <div class="mc-bar-track"><div class="mc-bar-fill" id="qBar" style="width:0%"></div></div>
           <div class="mc-ref">オープン質問の割合</div>
+          <div class="evidence-tags" id="evQ"></div>
         </div>
         <div class="metric-card" id="cardAssert">
           <div class="mc-label">主張の明確さ</div>
@@ -1013,13 +1032,14 @@
           <div class="mc-unit">%</div>
           <div class="mc-bar-track"><div class="mc-bar-fill" id="assertBar" style="width:0%"></div></div>
           <div class="mc-ref">断定表現の割合</div>
+          <div class="evidence-tags" id="evAssert"></div>
         </div>
       </div>
     </div>
 
-    <!-- Transcript -->
+    <!-- Transcript — 全発話表示 -->
     <div id="transcriptSection" style="display:none">
-      <div class="section-label">Transcript</div>
+      <div class="section-label">Transcript <span style="font-size:9px;color:var(--text-3);text-transform:none;letter-spacing:0;">（タグをクリックすると該当箇所をハイライト）</span></div>
       <div class="transcript-box placeholder" id="transcriptBox">録音後にここにテキストが表示されます</div>
     </div>
 
@@ -2150,74 +2170,120 @@ async function startRoleplaysReflect() {
     const totalChars = userTranscript.replace(/\s/g, '').length;
     const avgCharsPerTurn = userTurns.length > 0 ? Math.round(totalChars / userTurns.length) : 0;
 
-    // Transcriptに最後のユーザー発言を表示
+    // ── Transcriptを全発話（ユーザーのみ）表示 ──
     document.getElementById('transcriptSection').style.display = 'block';
-    document.getElementById('transcriptBox').textContent = userTurns[userTurns.length - 1] || '';
-    document.getElementById('transcriptBox').className = 'transcript-box';
+    const tBox = document.getElementById('transcriptBox');
+    tBox.className = 'transcript-box';
+    tBox.innerHTML = userTurns.map((turn, i) =>
+      `<div class="transcript-turn"><div class="transcript-speaker">Turn ${i + 1}</div><span class="transcript-text">${escHtml(turn)}</span></div>`
+    ).join('');
 
-    // ① Pace（字/分）
+    // ── ① Pace（字/分）──
     const paceVal = roleplaysRecordingMins > 0 ? Math.round(totalChars / roleplaysRecordingMins) : 0;
     const paceClass = paceVal >= 200 && paceVal <= 400 ? 'ok' : paceVal >= 100 ? 'warn' : 'bad';
     setCard8('cardSpeed', 'speedVal', 'speedBar', paceVal > 0 ? paceVal : '—', Math.min(100, (paceVal/500)*100), paceVal > 0 ? paceClass : 'warn');
 
-    // ② Timeover
+    // ── ② Timeover ──
     const toCount = roleplaysTimeoutCount;
     const toClass = toCount === 0 ? 'ok' : toCount <= 2 ? 'warn' : 'bad';
     setCard8('cardPause', 'pauseVal', 'pauseBar', toCount, Math.min(100, toCount * 33), toClass);
     document.querySelector('#cardPause .mc-ref').textContent = toCount === 0 ? '完璧！全ターン応答' : 'タイムオーバー回数';
 
-    // ③ 論点の発展性（AI判定 — 非同期で後から更新）
+    // ── ③ 論点の発展性（AI判定）──
     setCard8('cardVol', 'volVal', 'volBar', '…', 0, 'warn');
     document.getElementById('volRef').textContent = 'AI分析中…';
     analyzeDialogProgress(roleplaysHistory).then(result => {
-      setCard8('cardVol', 'volVal', 'volBar', result.score, result.score * 20, result.cls);
+      setCard8('cardVol', 'volVal', 'volBar', result.score, typeof result.score === 'number' ? result.score * 20 : 0, result.cls);
       document.getElementById('volRef').textContent = result.label;
     });
 
-    // ④ Fillers
-    const fillerPatterns = /(えーと|えっと|えー+|あー+|あのー?|あのう|うーん|まあ|なんか|なんかこう|ちょっと|そのー|なんていうか|要するに|つまり)/gi;
-    const fillerMatches = userTranscript.match(fillerPatterns) || [];
+    // ── ④ Fillers ──
+    // フィラーワードのみ（「思います」等は含まない）
+    const fillerRe = /(えーと|えっと|えー+|あー+|あのー?|あのう|うーん|なんか|なんかこう|そのー|なんていうか)/gi;
+    const fillerMatches = [];
+    userTurns.forEach((turn, ti) => {
+      let m;
+      const re = new RegExp(fillerRe.source, 'gi');
+      while ((m = re.exec(turn)) !== null) fillerMatches.push({ word: m[0], turn: ti, index: m.index });
+    });
     const fillerCount = fillerMatches.length;
-    const fillerList = [...new Set(fillerMatches.map(f => f.toLowerCase()))].slice(0, 5);
+    const fillerList = [...new Set(fillerMatches.map(f => f.word.toLowerCase()))].slice(0, 6);
     const fillerPct = Math.min(100, (fillerCount / 15) * 100);
     const fillerClass = fillerCount <= 3 ? 'ok' : fillerCount <= 8 ? 'warn' : 'bad';
     setCard8('cardFiller', 'fillerVal', 'fillerBar', fillerCount, fillerPct, fillerClass);
+    renderEvidenceTags('evFiller', fillerList, 'filler');
 
-    // ⑤ Yes, And（受容語で始まった返答の割合）
-    const yesAndPatterns = /^(なるほど|そうですね|そうですか|わかります|わかりました|確かに|おっしゃる通り|そうか|ですね|そうだね|うん|ええ|はい|そうそう|たしかに|理解|受け取|聞|聴)/;
-    const yesAndCount = userTurns.filter(t => yesAndPatterns.test(t.trim())).length;
+    // ── ⑤ Yes, And（受容語で始まった返答） ──
+    const yesAndRe = /^(なるほど|そうですね|そうですか|わかります|わかりました|確かに|おっしゃる通り|そうか|そうだね|そうそう|たしかに|ええ、|はい、|理解できます|受け取|それはそう|その通り)/;
+    const yesAndHits = userTurns.map((turn, i) => {
+      const m = turn.trim().match(/^([^\s、。]{2,10})/);
+      return { turn: i, matched: yesAndRe.test(turn.trim()), opener: m ? m[0] : '' };
+    }).filter(h => h.matched);
+    const yesAndCount = yesAndHits.length;
     const yesAndPct = userTurns.length > 0 ? Math.round((yesAndCount / userTurns.length) * 100) : 0;
     const yesAndClass = yesAndPct >= 50 ? 'ok' : yesAndPct >= 25 ? 'warn' : 'bad';
     setCard8('cardVocab', 'vocabVal', 'vocabBar', yesAndPct, yesAndPct, yesAndClass);
+    const yesAndWords = [...new Set(yesAndHits.map(h => h.opener))].slice(0, 4);
+    renderEvidenceTags('evYesAnd', yesAndWords, 'yesand');
 
-    // ⑥ 感情言語化（感情語の出現回数）
-    const emotionPatterns = /(感じ|思い|気持ち|不安|心配|怖|嬉し|悲し|辛|苦し|嫌|好き|嫌い|怒|悔し|寂し|驚|安心|信頼|誇り|恥|焦|緊張|落ち着|悩|迷|困|傷|喜|楽し|わくわく|ドキドキ|モヤモヤ|ソワソワ)/g;
-    const emotionMatches = userTranscript.match(emotionPatterns) || [];
+    // ── ⑥ 感情言語化 ──
+    // 「思います」「思う」は感情語ではなく意見表明なので除外
+    const emotionRe = /(気持ち|感じ(?!ます|られ)|不安|心配|怖い|怖く|嬉しい|嬉しく|悲しい|悲しく|辛い|辛く|苦しい|苦しく|嫌だ|嫌で|好きです|好きで|怒り|悔しい|悔しく|寂しい|寂しく|驚いた|驚き|安心|信頼|誇り|恥ずかし|焦り|焦って|緊張|落ち着かない|悩んで|迷って|困って|傷つ|喜び|楽しい|楽しく|わくわく|ドキドキ|モヤモヤ|ソワソワ)/gi;
+    const emotionMatches = [];
+    userTurns.forEach((turn, ti) => {
+      let m;
+      const re = new RegExp(emotionRe.source, 'gi');
+      while ((m = re.exec(turn)) !== null) emotionMatches.push({ word: m[0], turn: ti });
+    });
     const emotionCount = emotionMatches.length;
     const emotionClass = emotionCount >= 3 ? 'ok' : emotionCount >= 1 ? 'warn' : 'bad';
     setCard8('cardSilence', 'silenceVal', 'silenceBar', emotionCount, Math.min(100, emotionCount * 20), emotionClass);
+    const emotionWords = [...new Set(emotionMatches.map(e => e.word))].slice(0, 6);
+    renderEvidenceTags('evEmotion', emotionWords, 'emotion');
 
-    // ⑦ 質問の質（オープン質問の割合）
-    const allQuestions = userTurns.filter(t => t.includes('？') || t.includes('?'));
-    const openPatterns = /(なぜ|どう|どのよう|どんな|どこ|いつ|どれ|何が|何を|何で|どちら|いかが|どういう|どうして|何故)/;
-    const openQCount = allQuestions.filter(t => openPatterns.test(t)).length;
-    const openQPct = allQuestions.length > 0 ? Math.round((openQCount / allQuestions.length) * 100) : 0;
-    const openQClass = allQuestions.length === 0 ? 'warn' : openQPct >= 60 ? 'ok' : openQPct >= 30 ? 'warn' : 'bad';
-    const openQDisplay = allQuestions.length === 0 ? '—' : openQPct;
-    setCard8('cardQ', 'qVal', 'qBar', openQDisplay, openQPct, openQClass);
-    if (allQuestions.length === 0) document.querySelector('#cardQ .mc-ref').textContent = '質問なし';
+    // ── ⑦ 質問の質 ──
+    const questionTurns = userTurns.map((turn, i) => ({ turn: i, text: turn, hasQ: turn.includes('？') || turn.includes('?') })).filter(t => t.hasQ);
+    const openQRe = /(なぜ|どう|どのよう|どんな|どこ|いつ|どれ|何が|何を|何で|どちら|いかが|どういう|どうして|何故|どうすれば|どう考え|どう思|なんで)/;
+    const openQTurns = questionTurns.filter(t => openQRe.test(t.text));
+    const openQPct = questionTurns.length > 0 ? Math.round((openQTurns.length / questionTurns.length) * 100) : 0;
+    const openQClass = questionTurns.length === 0 ? 'warn' : openQPct >= 60 ? 'ok' : openQPct >= 30 ? 'warn' : 'bad';
+    setCard8('cardQ', 'qVal', 'qBar', questionTurns.length === 0 ? '—' : openQPct, openQPct, openQClass);
+    if (questionTurns.length === 0) {
+      document.querySelector('#cardQ .mc-ref').textContent = '質問なし';
+    }
+    // オープン質問の冒頭語を抽出
+    const openQWords = openQTurns.map(t => {
+      const m = t.text.match(openQRe);
+      return m ? m[0] : '';
+    }).filter(Boolean);
+    renderEvidenceTags('evQ', [...new Set(openQWords)].slice(0, 5), 'openq');
 
-    // ⑧ 主張の明確さ（断定表現の割合）
-    const vaguePatterns = /(と思います|と思う|かもしれません|かもしれない|ではないでしょうか|じゃないかな|じゃないですか|かな|っぽい|みたいな|らしい|ような気が)/g;
-    const assertPatterns = /(です|ます|べきです|必要があります|だと思います|でしょう|ください|すべき|に違いない|はずです|ことが大事|が重要)/g;
-    const vagueCount = (userTranscript.match(vaguePatterns) || []).length;
-    const assertCount = (userTranscript.match(assertPatterns) || []).length;
-    const total = vagueCount + assertCount;
-    const assertPct = total > 0 ? Math.round((assertCount / total) * 100) : 50;
-    const assertClass = assertPct >= 60 ? 'ok' : assertPct >= 40 ? 'warn' : 'bad';
+    // ── ⑧ 主張の明確さ ──
+    // 曖昧：と思います/かもしれない/ではないでしょうか 等
+    // 断定：です/ます/べき/必要/すべき（ただし「と思います」の中の「ます」は曖昧扱い）
+    const vagueRe = /(と思います|と思う|かもしれません|かもしれない|ではないでしょうか|じゃないかな|じゃないですか(?!か)|かな[^ー]|みたいな|らしい|ような気|っぽい)/g;
+    const assertRe = /(べきです|べきだ|必要があります|必要だ|すべきです|すべきだ|に違いない|はずです|はずだ|ことが大事|が重要|と確信|と断言|だと考えます)/g;
+    const vagueMatches = [];
+    const assertMatches = [];
+    userTurns.forEach((turn, ti) => {
+      let m;
+      const vRe = new RegExp(vagueRe.source, 'g');
+      while ((m = vRe.exec(turn)) !== null) vagueMatches.push({ word: m[0], turn: ti });
+      const aRe = new RegExp(assertRe.source, 'g');
+      while ((m = aRe.exec(turn)) !== null) assertMatches.push({ word: m[0], turn: ti });
+    });
+    const vagueCount = vagueMatches.length;
+    const assertCount2 = assertMatches.length;
+    const totalAV = vagueCount + assertCount2;
+    const assertPct = totalAV > 0 ? Math.round((assertCount2 / totalAV) * 100) : 50;
+    const assertClass = assertPct >= 60 ? 'ok' : assertPct >= 35 ? 'warn' : 'bad';
     setCard8('cardAssert', 'assertVal', 'assertBar', assertPct, assertPct, assertClass);
+    // 断定語・曖昧語両方表示（断定→緑系、曖昧→黄系）
+    const assertWords = [...new Set(assertMatches.map(a => a.word))].slice(0, 3);
+    const vagueWords = [...new Set(vagueMatches.map(v => v.word))].slice(0, 3);
+    renderEvidenceTags('evAssert', [...assertWords.map(w => '✓ '+w), ...vagueWords.map(w => '△ '+w)], 'assert');
 
-    // レーダーチャート更新（8項目 → 6軸にまとめる）
+    // ── レーダーチャート更新 ──
     const timeoutPenalty = Math.min(100, toCount * 33);
     updateRadar(
       paceVal > 0 ? Math.min(100, (paceVal / 500) * 100) : 50,
@@ -2233,7 +2299,7 @@ async function startRoleplaysReflect() {
     setTimeout(() => scrollLeftTo(panel, 20), 300);
 
     // lastMetrics更新
-    const vocabScore = yesAndPct; // for coach system prompt compatibility
+    const vocabScore = yesAndPct;
     const fillerList2 = fillerList;
     lastMetrics = {
       roleplaysHistory, roleplaysRole: selectedRoleplay.role,
@@ -2255,6 +2321,67 @@ async function startRoleplaysReflect() {
   );
   addCoachMessage(q);
   document.getElementById('chatInput').placeholder = t('感じたことを教えてください…', 'Share what you noticed…');
+}
+
+// ── Evidence Tags ──────────────────────────────────────────
+let activeHighlightWord = null;
+
+function renderEvidenceTags(containerId, words, type) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = '';
+  if (!words || words.length === 0) {
+    container.innerHTML = '<span style="font-size:10px;color:var(--text-3);font-style:normal;">検出なし</span>';
+    return;
+  }
+  words.forEach(word => {
+    const tag = document.createElement('span');
+    tag.className = 'ev-tag';
+    tag.textContent = word;
+    tag.onclick = () => highlightTranscript(word.replace(/^[✓△] /, ''), tag);
+    container.appendChild(tag);
+  });
+}
+
+function highlightTranscript(word, tagEl) {
+  const tBox = document.getElementById('transcriptBox');
+  if (!tBox) return;
+
+  // 同じタグを再クリックしたらハイライト解除
+  if (activeHighlightWord === word) {
+    activeHighlightWord = null;
+    document.querySelectorAll('.ev-tag').forEach(t => t.classList.remove('active'));
+    // ハイライトを全て解除
+    tBox.querySelectorAll('mark').forEach(m => {
+      m.replaceWith(document.createTextNode(m.textContent));
+    });
+    // 隣接テキストノードを結合
+    tBox.querySelectorAll('.transcript-text').forEach(el => el.normalize());
+    return;
+  }
+
+  // 既存のハイライトを全解除
+  tBox.querySelectorAll('mark').forEach(m => {
+    m.replaceWith(document.createTextNode(m.textContent));
+  });
+  tBox.querySelectorAll('.transcript-text').forEach(el => el.normalize());
+  document.querySelectorAll('.ev-tag').forEach(t => t.classList.remove('active'));
+
+  activeHighlightWord = word;
+  tagEl.classList.add('active');
+
+  // 各transcript-textにハイライトを適用
+  tBox.querySelectorAll('.transcript-text').forEach(el => {
+    if (!word || word.length < 1) return;
+    const html = el.innerHTML;
+    const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const re = new RegExp(`(${escaped})`, 'g');
+    el.innerHTML = html.replace(re, '<mark>$1</mark>');
+  });
+
+  // 最初のハイライト箇所にスクロール
+  const firstMark = tBox.querySelector('mark');
+  if (firstMark) firstMark.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 // ── setCard8 ヘルパー ──────────────────────────────────────────

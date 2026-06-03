@@ -3175,13 +3175,21 @@ function startReflect() {
 
 // ── Volume tracking ──────────────────────────────────────────
 function startVolumeTracking() {
-  const buf = new Uint8Array(analyser.frequencyBinCount);
+  const buf = new Uint8Array(analyser.fftSize);
   function tick() {
     if (animFrameId === -1) return;
-    analyser.getByteFrequencyData(buf);
-    const avg = buf.reduce((a,b) => a+b, 0) / buf.length;
-    volumeSamples.push(avg);
-    for (let i = 0; i < 8; i++) document.getElementById('wb'+i).style.height = (4 + Math.random() * avg * 0.5) + 'px';
+    analyser.getByteTimeDomainData(buf);
+    // RMS（実効値）で音量を計算（0〜128が無音、それ以上が音あり）
+    const rms = Math.sqrt(buf.reduce((a, b) => {
+      const v = (b - 128) / 128; // -1〜1に正規化
+      return a + v * v;
+    }, 0) / buf.length);
+    const rmsDB = rms > 0 ? Math.round(20 * Math.log10(rms) + 100) : 0; // 0〜100のスケール
+    // 無音（ノイズフロア以下）は除外してサンプルに入れない
+    if (rmsDB > 15) volumeSamples.push(rmsDB);
+    // 波形バーはRMSで動かす
+    const waveH = Math.min(40, rmsDB * 0.5);
+    for (let i = 0; i < 8; i++) document.getElementById('wb'+i).style.height = (4 + Math.random() * waveH) + 'px';
     animFrameId = requestAnimationFrame(tick);
   }
   animFrameId = 0;
@@ -3236,29 +3244,30 @@ function computeMetrics(snapStart, snapTranscript) {
   setCard8('cardPause', 'pauseVal', 'pauseBar', fillerCount, fillerPct, fillerClass);
   renderEvidenceTags('evSpeechFiller', fillerUnique, 'speechfiller');
 
-  // ── ③ 間（Pauses）──
+  // ── ③ 間（0.8秒以上の無音回数）──
   const pauseCount = silenceEvents.filter(s => s.duration >= SILENCE_THRESHOLD).length;
-  const pausePct   = Math.min(100, (pauseCount / 10) * 100);
-  const pauseClass = pauseCount >= 2 && pauseCount <= 8 ? 'ok' : pauseCount < 2 ? 'warn' : 'bad';
-  setCard8('cardVol', 'volVal', 'volBar', pauseCount, pausePct, pauseClass);
-  document.querySelector('#cardVol .mc-ref').textContent =
-    pauseCount === 0 ? '間がありませんでした' :
-    pauseCount <= 1  ? '間が少ない' :
-    pauseCount <= 8  ? '効果的な間' : '間が多すぎる';
+  setCard8('cardVol', 'volVal', 'volBar', pauseCount, Math.min(100, pauseCount * 10), 'warn');
+  document.querySelector('#cardVol .mc-ref').textContent = '0.8秒以上の無音回数';
 
   // ── ④ 音量のコントロール（変動係数で判定）──
   let volScore = 0, volClass = 'warn', volLabel = 'データなし';
-  if (volumeSamples.length > 10) {
+  if (volumeSamples.length > 5) {
     const avg = volumeSamples.reduce((a, b) => a + b, 0) / volumeSamples.length;
     const variance = volumeSamples.reduce((a, b) => a + Math.pow(b - avg, 2), 0) / volumeSamples.length;
     const stdDev = Math.sqrt(variance);
     const cv = avg > 0 ? (stdDev / avg) * 100 : 0; // 変動係数（%）
-    // cv 10〜40% → ok（適度な変化）/ cv < 10 → warn（単調）/ cv > 60 → bad（不安定）
-    volScore = Math.round(Math.min(100, cv * 2));
-    volClass = cv >= 10 && cv <= 40 ? 'ok' : cv < 10 ? 'warn' : cv <= 60 ? 'warn' : 'bad';
-    volLabel = cv < 10  ? '単調・抑揚なし' :
-               cv <= 40 ? '適度なコントロール' :
-               cv <= 60 ? 'やや不安定' : 'コントロール不安定';
+
+    // RMSベース：cv 15〜45% → 適度なコントロール（ok）
+    // cv < 15 → 単調・抑揚なし（warn）
+    // cv > 70 → コントロール不安定（bad）
+    volScore = Math.round(Math.min(100, cv * 1.5));
+    volClass = cv >= 15 && cv <= 45 ? 'ok' : cv < 15 ? 'warn' : cv <= 70 ? 'warn' : 'bad';
+    volLabel = cv < 15  ? `単調・抑揚なし (cv=${cv.toFixed(0)}%)` :
+               cv <= 45 ? `適度なコントロール (cv=${cv.toFixed(0)}%)` :
+               cv <= 70 ? `やや不安定 (cv=${cv.toFixed(0)}%)` :
+                          `コントロール不安定 (cv=${cv.toFixed(0)}%)`;
+  } else if (volumeSamples.length === 0) {
+    volLabel = 'マイク音量が小さすぎます';
   }
   setCard8('cardFiller', 'fillerVal', 'fillerBar', volScore, volScore, volClass);
   document.querySelector('#cardFiller .mc-ref').textContent = volLabel;
@@ -3295,7 +3304,7 @@ function setSpeechCardLabels() {
   const labels = {
     cardSpeed:  { label: 'Pace',                    unit: lang === 'ja' ? '字/分' : 'wpm', ref: lang === 'ja' ? '目安 300〜400字/分' : 'target 130–150 wpm' },
     cardPause:  { label: 'Fillers（不必要な言葉）', unit: '回',  ref: 'フィラー音・冗長・曖昧語' },
-    cardVol:    { label: '間（Pauses）',             unit: '回',  ref: '有意な沈黙の回数' },
+    cardVol:    { label: '間（Pauses）',             unit: '回',  ref: '0.8秒以上の無音回数' },
     cardFiller: { label: '音量のコントロール',       unit: '',    ref: 'データなし' },
   };
   Object.entries(labels).forEach(([id, { label, unit, ref }]) => {

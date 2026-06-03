@@ -2190,16 +2190,15 @@ async function generateAvatar(scenario, difficulty, voice) {
   const prompt = `Portrait illustration of a ${baseDesc}. ${diffDesc}. Clean vector art style, warm color palette, professional business setting background, face and upper body, square crop. Studio Ghibli influenced soft illustration style.`;
 
   try {
+    // gpt-image-1はブラウザから直接呼べないためdall-e-3を使用
     const resp = await fetch('https://api.openai.com/v1/images/generations', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
-      body: JSON.stringify({ model: 'gpt-image-1', prompt, n: 1, size: '1024x1024', quality: 'medium' })
+      body: JSON.stringify({ model: 'dall-e-3', prompt, n: 1, size: '1024x1024', quality: 'standard', response_format: 'url' })
     });
     const data = await resp.json();
     if (data.error) throw new Error(data.error.message);
-    // gpt-image-1 returns base64, dall-e-3 returned URL
-    const imgData = data.data[0];
-    const url = imgData.url || ('data:image/png;base64,' + imgData.b64_json);
+    const url = data.data[0].url;
     avatarCache[cacheKey] = url;
     return url;
   } catch(e) {

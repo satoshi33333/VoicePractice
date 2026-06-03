@@ -1043,6 +1043,21 @@
       <div class="transcript-box placeholder" id="transcriptBox">録音後にここにテキストが表示されます</div>
     </div>
 
+    <!-- Growth Graph -->
+    <div id="growthSection" style="display:none">
+      <div class="section-label" style="display:flex;align-items:center;justify-content:space-between;">
+        <span>成長の記録</span>
+        <span id="growthSessionCount" style="font-size:10px;color:var(--text-3);text-transform:none;letter-spacing:0;font-family:'Nunito',sans-serif;"></span>
+      </div>
+      <!-- 項目セレクター -->
+      <div id="growthMetricTabs" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px;"></div>
+      <!-- SVGグラフ -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 8px 8px;">
+        <svg id="growthSvg" width="100%" viewBox="0 0 520 140" style="overflow:visible;"></svg>
+      </div>
+      <div style="font-size:10px;color:var(--text-3);margin-top:6px;font-family:'Nunito',sans-serif;">直近10セッションの推移</div>
+    </div>
+
   </div>
 
   <!-- RIGHT PANEL -->
@@ -1194,6 +1209,156 @@ const GS = {
   getState() { return this.load(); }
 };
 
+// ── セッション履歴管理 ──────────────────────────────────────────
+const SESSION_HISTORY_KEY = 'formeny_sessions';
+const MAX_SESSIONS = 30;
+
+function saveSessionHistory(metrics) {
+  try {
+    const sessions = getSessionHistory();
+    const entry = {
+      date: new Date().toISOString().slice(0, 10),
+      ts: Date.now(),
+      mode: metrics.isRoleplay ? 'roleplay' : 'speech',
+      scenario: metrics.isRoleplay ? (selectedRoleplay?.role || '') : (metrics.topic || ''),
+      pace: metrics.isRoleplay ? 0 : (metrics.speed || 0),
+      fillers: metrics.fillerCount || 0,
+      yesAnd: metrics.yesAndPct || 0,
+      emotion: metrics.emotionCount || 0,
+      openQ: metrics.openQPct || 0,
+      assert: metrics.assertPct || 0,
+      dialogProgress: 0, // AI判定結果は非同期なので後で更新
+      timeover: metrics.timeoutCount || 0,
+      turns: metrics.userTurns || 0,
+    };
+    sessions.unshift(entry);
+    const trimmed = sessions.slice(0, MAX_SESSIONS);
+    localStorage.setItem(SESSION_HISTORY_KEY, JSON.stringify(trimmed));
+    return trimmed;
+  } catch(e) { return []; }
+}
+
+function updateLastSessionDialogProgress(score) {
+  try {
+    const sessions = getSessionHistory();
+    if (sessions.length > 0 && typeof score === 'number') {
+      sessions[0].dialogProgress = score;
+      localStorage.setItem(SESSION_HISTORY_KEY, JSON.stringify(sessions));
+    }
+  } catch(e) {}
+}
+
+function getSessionHistory() {
+  try {
+    return JSON.parse(localStorage.getItem(SESSION_HISTORY_KEY)) || [];
+  } catch(e) { return []; }
+}
+
+// ── グラフ描画 ──────────────────────────────────────────
+const GROWTH_METRICS = [
+  { key: 'yesAnd',         label: 'Yes, And',   unit: '%',  max: 100, color: '#6a9b7e' },
+  { key: 'emotion',        label: '感情言語化',  unit: '回', max: 10,  color: '#c4705a' },
+  { key: 'fillers',        label: 'Fillers',    unit: '回', max: 15,  color: '#c9a84c', invert: true },
+  { key: 'assert',         label: '主張の明確さ', unit: '%', max: 100, color: '#9b7ea8' },
+  { key: 'openQ',          label: '質問の質',    unit: '%',  max: 100, color: '#4a8ab5' },
+  { key: 'dialogProgress', label: '論点の発展性', unit: '/5', max: 5,  color: '#c4705a' },
+];
+
+let activeGrowthMetric = 'yesAnd';
+
+function renderGrowthGraph(metricKey) {
+  activeGrowthMetric = metricKey || activeGrowthMetric;
+  const sessions = getSessionHistory().slice(0, 10).reverse(); // 古い→新しい順
+  const section = document.getElementById('growthSection');
+  const svg = document.getElementById('growthSvg');
+  const countEl = document.getElementById('growthSessionCount');
+  if (!svg || !section) return;
+
+  const allSessions = getSessionHistory();
+  countEl.textContent = `${allSessions.length}回の記録`;
+
+  // タブ描画
+  const tabsEl = document.getElementById('growthMetricTabs');
+  if (tabsEl && tabsEl.children.length === 0) {
+    GROWTH_METRICS.forEach(m => {
+      const tab = document.createElement('button');
+      tab.className = 'ev-tag' + (m.key === activeGrowthMetric ? ' active' : '');
+      tab.textContent = m.label;
+      tab.dataset.key = m.key;
+      tab.onclick = () => {
+        document.querySelectorAll('#growthMetricTabs .ev-tag').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        renderGrowthGraph(m.key);
+      };
+      tabsEl.appendChild(tab);
+    });
+  } else if (tabsEl) {
+    tabsEl.querySelectorAll('.ev-tag').forEach(t => {
+      t.classList.toggle('active', t.dataset.key === activeGrowthMetric);
+    });
+  }
+
+  if (sessions.length < 2) {
+    svg.innerHTML = `<text x="260" y="70" text-anchor="middle" font-family="Nunito,sans-serif" font-size="12" fill="#a89d95">2回以上セッションを行うと推移グラフが表示されます</text>`;
+    section.style.display = 'block';
+    return;
+  }
+
+  const metric = GROWTH_METRICS.find(m => m.key === activeGrowthMetric) || GROWTH_METRICS[0];
+  const W = 520, H = 140;
+  const padL = 32, padR = 16, padT = 16, padB = 30;
+  const gW = W - padL - padR;
+  const gH = H - padT - padB;
+
+  const vals = sessions.map(s => {
+    const v = s[metric.key] ?? 0;
+    return metric.invert ? metric.max - v : v;
+  });
+  const maxVal = metric.max;
+
+  // グリッド線
+  let svgContent = '';
+  [0, 25, 50, 75, 100].forEach(pct => {
+    const y = padT + gH - (pct / 100) * gH;
+    const val = Math.round((pct / 100) * maxVal);
+    svgContent += `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${W - padR}" y2="${y.toFixed(1)}" stroke="#e8dfd0" stroke-width="0.8"/>`;
+    svgContent += `<text x="${padL - 4}" y="${(y + 4).toFixed(1)}" text-anchor="end" font-family="Nunito,sans-serif" font-size="9" fill="#a89d95">${val}</text>`;
+  });
+
+  // 折れ線とドット
+  const points = sessions.map((s, i) => {
+    const x = padL + (i / (sessions.length - 1)) * gW;
+    const v = Math.min(maxVal, Math.max(0, s[metric.key] ?? 0));
+    const normalizedV = metric.invert ? maxVal - v : v;
+    const y = padT + gH - (normalizedV / maxVal) * gH;
+    return { x, y, v, date: s.date, scenario: s.scenario };
+  });
+
+  // エリア塗りつぶし
+  const areaPath = `M${points[0].x.toFixed(1)},${(padT + gH).toFixed(1)} ` +
+    points.map(p => `L${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ') +
+    ` L${points[points.length-1].x.toFixed(1)},${(padT + gH).toFixed(1)} Z`;
+  svgContent += `<path d="${areaPath}" fill="${metric.color}" opacity="0.08"/>`;
+
+  // 折れ線
+  const linePath = 'M' + points.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' L');
+  svgContent += `<path d="${linePath}" fill="none" stroke="${metric.color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
+
+  // ドット・日付ラベル・値ラベル
+  points.forEach((p, i) => {
+    svgContent += `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="4" fill="${metric.color}" stroke="#fff" stroke-width="1.5"/>`;
+    // 値ラベル
+    svgContent += `<text x="${p.x.toFixed(1)}" y="${(p.y - 8).toFixed(1)}" text-anchor="middle" font-family="Bebas Neue,sans-serif" font-size="11" fill="${metric.color}">${p.v}${metric.unit}</text>`;
+    // 日付ラベル（MM/DD形式）
+    const dateShort = p.date ? p.date.slice(5) : '';
+    svgContent += `<text x="${p.x.toFixed(1)}" y="${(padT + gH + 16).toFixed(1)}" text-anchor="middle" font-family="Nunito,sans-serif" font-size="9" fill="#a89d95">${dateShort}</text>`;
+  });
+
+  svg.innerHTML = svgContent;
+  section.style.display = 'block';
+}
+
+
 function showBadgePopup(badge) {
   const isSpecial = ['hard_clear','hard_perfect'].includes(badge.id);
   const el = document.createElement('div');
@@ -1258,6 +1423,8 @@ if (localStorage.getItem('formeny_eleven_key')) {
 }
 
 setTimeout(() => startPrepare(), 400);
+// 既存の履歴があれば成長グラフを初期表示
+setTimeout(() => { if (getSessionHistory().length >= 2) renderGrowthGraph('yesAnd'); }, 600);
 
 // Show default avatar state on load
 (function initAvatarDisplay() {
@@ -2192,9 +2359,13 @@ async function startRoleplaysReflect() {
     // ── ③ 論点の発展性（AI判定）──
     setCard8('cardVol', 'volVal', 'volBar', '…', 0, 'warn');
     document.getElementById('volRef').textContent = 'AI分析中…';
+    // 1回の呼び出しでカード表示・セッション保存の両方に使う
     analyzeDialogProgress(roleplaysHistory).then(result => {
       setCard8('cardVol', 'volVal', 'volBar', result.score, typeof result.score === 'number' ? result.score * 20 : 0, result.cls);
       document.getElementById('volRef').textContent = result.label;
+      // セッション履歴のdialogProgressを更新
+      if (typeof result.score === 'number') updateLastSessionDialogProgress(result.score);
+      setTimeout(() => renderGrowthGraph(activeGrowthMetric), 300);
     });
 
     // ── ④ Fillers ──
@@ -2329,6 +2500,12 @@ async function startRoleplaysReflect() {
   const roundsText = ['', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'][roleplaysRoundCount] || String(roleplaysRoundCount);
   GS.recordRoleplay(roleplaysRoundCount, roleplaysdifficulty, roleplaysTimeoutCount);
   updateStreakDisplay(GS.getState());
+
+  // セッション履歴を保存（analyzeDialogProgressは上のthen内で更新済み）
+  if (lastMetrics) {
+    saveSessionHistory(lastMetrics);
+    setTimeout(() => renderGrowthGraph(activeGrowthMetric), 300);
+  }
 
   const q = t(
     `ロールプレイお疲れ様でした。${roundsText}往復の対話でした。\n\nまず、やってみてどうでしたか？どんな瞬間が難しかったですか、あるいは手応えを感じましたか？`,
@@ -2693,10 +2870,14 @@ function endRoleplay() {
 }
 function startReflect() {
   setPhase('reflect');
-  // Record speech session in game system
   const fillerCount = lastMetrics?.fillerCount ?? 999;
   GS.recordSpeech(fillerCount);
   updateStreakDisplay(GS.getState());
+  // セッション履歴を保存してグラフを更新
+  if (lastMetrics) {
+    saveSessionHistory(lastMetrics);
+    setTimeout(() => renderGrowthGraph(activeGrowthMetric), 300);
+  }
   addCoachMessage(t(`話し終えました。\n\nまず聞かせてください。今、どんな感覚がありますか？話してみてどうでしたか？`, `You've finished speaking.\n\nFirst, I'd like to hear from you — how did that feel? What did you notice?`));
   document.getElementById('chatInput').placeholder = t('感じたことを教えてください…', 'Share what you noticed…');
 }

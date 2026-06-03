@@ -455,13 +455,13 @@
 
   /* Override metrics-cards to 3-column full width */
   .metrics-panel .metrics-cards {
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
     gap: 8px;
   }
   .metrics-panel .metric-card {
-    padding: 14px 16px;
+    padding: 12px 14px;
   }
-  .metrics-panel .mc-value { font-size: 32px; }
+  .metrics-panel .mc-value { font-size: 28px; }
 
   /* ── Badge shelf redesign ── */
   .badge-shelf {
@@ -959,25 +959,25 @@
       <!-- 6 metric cards full width -->
       <div class="metrics-cards">
         <div class="metric-card" id="cardSpeed">
-          <div class="mc-label">Speed</div>
+          <div class="mc-label">Pace</div>
           <div class="mc-value" id="speedVal">—</div>
-          <div class="mc-unit" id="speedUnit">chars/min</div>
+          <div class="mc-unit" id="speedUnit">字/分</div>
           <div class="mc-bar-track"><div class="mc-bar-fill" id="speedBar" style="width:0%"></div></div>
-          <div class="mc-ref" id="speedHint">目安 300–400</div>
+          <div class="mc-ref" id="speedHint">目安 200〜400字/分</div>
         </div>
         <div class="metric-card" id="cardPause">
-          <div class="mc-label">Pauses</div>
+          <div class="mc-label">Timeover</div>
           <div class="mc-value" id="pauseVal">—</div>
           <div class="mc-unit">回</div>
           <div class="mc-bar-track"><div class="mc-bar-fill" id="pauseBar" style="width:0%"></div></div>
-          <div class="mc-ref">有意な間</div>
+          <div class="mc-ref">時間切れ回数</div>
         </div>
         <div class="metric-card" id="cardVol">
-          <div class="mc-label">Volume</div>
+          <div class="mc-label">論点の発展性</div>
           <div class="mc-value" id="volVal">—</div>
-          <div class="mc-unit">dB avg</div>
+          <div class="mc-unit">/ 5</div>
           <div class="mc-bar-track"><div class="mc-bar-fill" id="volBar" style="width:0%"></div></div>
-          <div class="mc-ref">音量安定度</div>
+          <div class="mc-ref" id="volRef">AI分析中…</div>
         </div>
         <div class="metric-card" id="cardFiller">
           <div class="mc-label">Fillers</div>
@@ -987,18 +987,32 @@
           <div class="mc-ref">あー・えー・なんか</div>
         </div>
         <div class="metric-card" id="cardVocab">
-          <div class="mc-label">Vocab</div>
+          <div class="mc-label">Yes, And</div>
           <div class="mc-value" id="vocabVal">—</div>
-          <div class="mc-unit">% 多様性</div>
+          <div class="mc-unit">%</div>
           <div class="mc-bar-track"><div class="mc-bar-fill" id="vocabBar" style="width:0%"></div></div>
-          <div class="mc-ref">語彙の豊かさ</div>
+          <div class="mc-ref">受容語で始まった返答</div>
         </div>
         <div class="metric-card" id="cardSilence">
-          <div class="mc-label">Silence</div>
+          <div class="mc-label">感情言語化</div>
           <div class="mc-value" id="silenceVal">—</div>
-          <div class="mc-unit">%</div>
+          <div class="mc-unit">回</div>
           <div class="mc-bar-track"><div class="mc-bar-fill" id="silenceBar" style="width:0%"></div></div>
-          <div class="mc-ref">沈黙率 目安10–30%</div>
+          <div class="mc-ref">感情を言葉にした回数</div>
+        </div>
+        <div class="metric-card" id="cardQ">
+          <div class="mc-label">質問の質</div>
+          <div class="mc-value" id="qVal">—</div>
+          <div class="mc-unit">%</div>
+          <div class="mc-bar-track"><div class="mc-bar-fill" id="qBar" style="width:0%"></div></div>
+          <div class="mc-ref">オープン質問の割合</div>
+        </div>
+        <div class="metric-card" id="cardAssert">
+          <div class="mc-label">主張の明確さ</div>
+          <div class="mc-value" id="assertVal">—</div>
+          <div class="mc-unit">%</div>
+          <div class="mc-bar-track"><div class="mc-bar-fill" id="assertBar" style="width:0%"></div></div>
+          <div class="mc-ref">断定表現の割合</div>
         </div>
       </div>
     </div>
@@ -1294,7 +1308,22 @@ function selectRoleplay(btn) {
   const infoWrap = document.getElementById('roleplaysInfoWrap');
   const infoTA = document.getElementById('roleplaysInfo');
   infoWrap.style.display = 'flex';
+
+  // まずベーステキストを表示しておき、AIでバリエーションを生成して上書き
   infoTA.value = selectedRoleplay.situation;
+  infoTA.style.opacity = '0.5';
+
+  if (anthropicKey) {
+    generateVariedSceneSetting(btn.dataset.situation, btn.dataset.role).then(varied => {
+      if (varied) {
+        infoTA.value = varied;
+        selectedRoleplay.situation = varied;
+      }
+      infoTA.style.opacity = '1';
+    });
+  } else {
+    infoTA.style.opacity = '1';
+  }
   // Show start button
   const startBtn = document.getElementById('roleplaysStartBtn');
   if (startBtn) {
@@ -1772,6 +1801,57 @@ function startRoleplaysFromButton() {
   }, 300);
 }
 
+async function generateVariedSceneSetting(baseSituation, role) {
+  // ランダムな変化要素を注入
+  const variations = lang === 'ja' ? [
+    '相手は今日少し急いでいる',
+    '相手は今日比較的余裕がある',
+    '相手は最近少しストレスを抱えている',
+    '相手は今日は機嫌がいい',
+    '相手は先週の出来事でやや慎重になっている',
+    '相手は今日は初めて話す気分ではなかったが時間を作ってくれた',
+    '相手は最近この話題について既に考えていた',
+    '相手は今日別の大事なミーティングの前で少し上の空',
+  ] : [
+    'the other person is in a hurry today',
+    'the other person has some extra time today',
+    'the other person has been a bit stressed lately',
+    'the other person is in a good mood today',
+    'the other person has been cautious after recent events',
+    'the other person made time despite not feeling like it',
+    'the other person has already been thinking about this topic',
+    'the other person is slightly distracted before another meeting',
+  ];
+  const v = variations[Math.floor(Math.random() * variations.length)];
+
+  try {
+    const prompt = lang === 'ja'
+      ? `以下のロールプレイシナリオを、今日の特別な状況（「${v}」）を自然に織り込んで、2〜4文で書き直してください。元の設定の本質は変えずに、今日ならではのニュアンスを加えること。箇条書き不要、地の文で。\n\n元のシナリオ：${baseSituation}`
+      : `Rewrite the following roleplay scenario (2-4 sentences) naturally incorporating today's special context: "${v}". Keep the core setting intact but add today's nuance. Plain prose, no bullet points.\n\nOriginal: ${baseSituation}`;
+
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': anthropicKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 200,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await resp.json();
+    if (data.error) return null;
+    return data.content[0].text.trim();
+  } catch(e) {
+    return null;
+  }
+}
+
+
 async function startRoleplaysScene() {
   roleplaysHistory = [];
   roleplaysRoundCount = 0;
@@ -1804,8 +1884,8 @@ async function startRoleplaysScene() {
   try {
     const opener = await callOpenAI([
       { role: 'user', content: t(
-        'シーンを始めてください。最初の一言を、自然な話し言葉で短く言ってください。毎回少し違う状況・切り口・雰囲気で始めること（同じ言い回しを繰り返さない）。',
-        'Please start the scene. Say your opening line naturally and briefly. Vary the situation, angle, or mood slightly each time — never repeat the same phrasing.'
+        'シーンを始めてください。最初の一言を、自然な話し言葉で短く言ってください。',
+        'Please start the scene. Say your opening line naturally and briefly.'
       )}
     ], buildRoleplaysSystemPrompt());
     hideTyping();
@@ -2048,6 +2128,7 @@ ${selectedRoleplay.situation}
 
 【バリエーション指示】
 毎回少し違う入り方・展開にすること。同じ言い回し・同じ質問の順番を繰り返さない。気分・状況・話の切り口を毎回少しずらす。
+openerで渡された「今日の状態ヒント」を必ず演技に反映させること。
 
 【現在の機嫌レベル：` + getMoodInstruction() + `】`;
 }
@@ -2063,30 +2144,10 @@ async function startRoleplaysReflect() {
   const userTranscript = userTurns.join(' ');
 
   if (!userTranscript.trim()) {
-    // No real speech — show message but continue to reflect
     const panel = document.getElementById('metricsRow');
     panel.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-3);font-size:13px;">📊 発話データがありません。ロールプレイで返答してから分析できます。</div>';
     panel.classList.add('visible');
-    // fall through to addCoachMessage below
   } else {
-    // フィラーワード
-    const fillerPatterns = /(えーと|えっと|えー+|あー+|あのー?|あのう|うーん|まあ|なんか|なんかこう|ちょっと|そのー|なんていうか|要するに|つまり)/gi;
-    const fillerMatches = userTranscript.match(fillerPatterns) || [];
-    const fillerCount = fillerMatches.length;
-    const fillerList = [...new Set(fillerMatches.map(f => f.toLowerCase()))].slice(0, 5);
-    const fillerPct = Math.min(100, (fillerCount / 15) * 100);
-    const fillerClass = fillerCount <= 3 ? 'ok' : fillerCount <= 8 ? 'warn' : 'bad';
-
-    // 語彙の多様性
-    const words = userTranscript.replace(/[、。！？\s]/g, ' ').split(/\s+/).filter(w => w.length > 1);
-    const uniqueWords = new Set(words.map(w => w.toLowerCase()));
-    // Need at least 20 words for meaningful vocab diversity
-    const vocabScore = words.length >= 20
-      ? Math.round((uniqueWords.size / words.length) * 100)
-      : words.length >= 5 ? Math.round((uniqueWords.size / words.length) * 100) : -1;
-    const vocabClass = vocabScore < 0 ? 'warn' : vocabScore >= 70 ? 'ok' : vocabScore >= 50 ? 'warn' : 'bad';
-
-    // 発話量（文字数）
     const totalChars = userTranscript.replace(/\s/g, '').length;
     const avgCharsPerTurn = userTurns.length > 0 ? Math.round(totalChars / userTurns.length) : 0;
 
@@ -2095,96 +2156,97 @@ async function startRoleplaysReflect() {
     document.getElementById('transcriptBox').textContent = userTurns[userTurns.length - 1] || '';
     document.getElementById('transcriptBox').className = 'transcript-box';
 
-    // 分析パネルを表示（スピード・ポーズ・音量はロールプレイでは計測不可なのでN/A）
-    // Pace（話速：字/分） — actual recording time based
+    // ① Pace（字/分）
     const paceVal = roleplaysRecordingMins > 0 ? Math.round(totalChars / roleplaysRecordingMins) : 0;
     const paceClass = paceVal >= 200 && paceVal <= 400 ? 'ok' : paceVal >= 100 ? 'warn' : 'bad';
-    document.getElementById('speedVal').textContent = paceVal > 0 ? paceVal : '—';
-    document.getElementById('speedUnit').textContent = '字/分';
-    document.getElementById('speedHint').textContent = '目安 200〜400字/分';
-    document.getElementById('speedBar').style.width = Math.min(100, (paceVal / 500) * 100) + '%';
-    document.getElementById('speedBar').className = 'mc-bar-fill ' + (paceVal > 0 ? paceClass : 'warn');
-    document.getElementById('cardSpeed').className = 'metric-card ' + (paceVal > 0 ? paceClass : 'warn');
-    document.querySelector('#cardSpeed .mc-label').textContent = 'Pace';
+    setCard8('cardSpeed', 'speedVal', 'speedBar', paceVal > 0 ? paceVal : '—', Math.min(100, (paceVal/500)*100), paceVal > 0 ? paceClass : 'warn');
 
-    // Turns（返答回数）
-    const turnsClass = userTurns.length >= 3 ? 'ok' : 'warn';
-    document.getElementById('pauseVal').textContent = userTurns.length;
-    document.getElementById('pauseBar').style.width = Math.min(100, userTurns.length * 12) + '%';
-    document.getElementById('pauseBar').className = 'mc-bar-fill ' + turnsClass;
-    document.getElementById('cardPause').className = 'metric-card ' + turnsClass;
-    document.querySelector('#cardPause .mc-label').textContent = 'Turns';
-    document.querySelector('#cardPause .mc-unit').textContent = '回';
-    document.querySelector('#cardPause .mc-ref').textContent = '返答した回数';
-
-    document.getElementById('volVal').textContent = totalChars;
-    document.getElementById('volBar').style.width = Math.min(100, totalChars / 5) + '%';
-    document.getElementById('volBar').className = 'mc-bar-fill ok';
-    document.getElementById('cardVol').className = 'metric-card ok';
-    document.querySelector('#cardVol .mc-label').textContent = 'Volume';
-    document.querySelector('#cardVol .mc-unit').textContent = '総文字数';
-    document.querySelector('#cardVol .mc-ref').textContent = '発話の総量';
-
-    document.getElementById('fillerVal').textContent = fillerCount;
-    document.getElementById('fillerBar').style.width = fillerPct + '%';
-    document.getElementById('fillerBar').className = 'mc-bar-fill ' + fillerClass;
-    document.getElementById('cardFiller').className = 'metric-card ' + fillerClass;
-
-    const vocabDisplay = vocabScore < 0 ? '—' : vocabScore;
-    const vocabBarWidth = vocabScore < 0 ? 0 : vocabScore;
-    document.getElementById('vocabVal').textContent = vocabDisplay;
-    document.getElementById('vocabBar').style.width = vocabBarWidth + '%';
-    document.getElementById('vocabBar').className = 'mc-bar-fill ' + vocabClass;
-    document.getElementById('cardVocab').className = 'metric-card ' + (vocabScore < 0 ? 'warn' : vocabClass);
-    if (vocabScore < 0) document.querySelector('#cardVocab .mc-ref').textContent = '発話量が少なすぎます';
-
-    // 沈黙率はロールプレイでは「相手の発言数との比率」で代替
-    const aiTurns = roleplaysHistory.filter(m => m.role === 'assistant').length;
-    // Balance only meaningful with 3+ exchanges
-    const totalTurns = aiTurns + userTurns.length;
-    const turnRatio = totalTurns >= 4
-      ? Math.round((userTurns.length / totalTurns) * 100) : -1;
-    const turnRatioClass = turnRatio < 0 ? 'warn' : turnRatio >= 35 && turnRatio <= 65 ? 'ok' : 'warn';
-    const balanceDisplay = turnRatio < 0 ? '—' : turnRatio;
-    const balanceBarWidth = turnRatio < 0 ? 0 : turnRatio;
-    document.getElementById('silenceVal').textContent = balanceDisplay;
-    document.getElementById('silenceBar').style.width = balanceBarWidth + '%';
-    document.getElementById('silenceBar').className = 'mc-bar-fill ' + turnRatioClass;
-    document.getElementById('cardSilence').className = 'metric-card ' + turnRatioClass;
-    document.querySelector('#cardSilence .mc-label').textContent = 'Balance';
-    document.querySelector('#cardSilence .mc-unit').textContent = turnRatio < 0 ? '' : '%発話比率';
-    document.querySelector('#cardSilence .mc-ref').textContent = turnRatio < 0 ? '往復が少なすぎます' : '自分の発話割合';
-
-    // Timeout card — replace Pauses metric with timeout count
+    // ② Timeover
     const toCount = roleplaysTimeoutCount;
     const toClass = toCount === 0 ? 'ok' : toCount <= 2 ? 'warn' : 'bad';
-    document.getElementById('pauseVal').textContent = toCount;
-    document.getElementById('pauseBar').style.width = Math.min(100, toCount * 33) + '%';
-    document.getElementById('pauseBar').className = 'mc-bar-fill ' + toClass;
-    document.getElementById('cardPause').className = 'metric-card ' + toClass;
-    document.querySelector('#cardPause .mc-label').textContent = 'Timeout';
-    document.querySelector('#cardPause .mc-unit').textContent = '回';
+    setCard8('cardPause', 'pauseVal', 'pauseBar', toCount, Math.min(100, toCount * 33), toClass);
     document.querySelector('#cardPause .mc-ref').textContent = toCount === 0 ? '完璧！全ターン応答' : 'タイムオーバー回数';
 
-    // レーダーチャート更新
-    const timeoutPenalty = Math.min(100, roleplaysTimeoutCount * 33);
+    // ③ 論点の発展性（AI判定 — 非同期で後から更新）
+    setCard8('cardVol', 'volVal', 'volBar', '…', 0, 'warn');
+    document.getElementById('volRef').textContent = 'AI分析中…';
+    analyzeDialogProgress(roleplaysHistory).then(result => {
+      setCard8('cardVol', 'volVal', 'volBar', result.score, result.score * 20, result.cls);
+      document.getElementById('volRef').textContent = result.label;
+    });
+
+    // ④ Fillers
+    const fillerPatterns = /(えーと|えっと|えー+|あー+|あのー?|あのう|うーん|まあ|なんか|なんかこう|ちょっと|そのー|なんていうか|要するに|つまり)/gi;
+    const fillerMatches = userTranscript.match(fillerPatterns) || [];
+    const fillerCount = fillerMatches.length;
+    const fillerList = [...new Set(fillerMatches.map(f => f.toLowerCase()))].slice(0, 5);
+    const fillerPct = Math.min(100, (fillerCount / 15) * 100);
+    const fillerClass = fillerCount <= 3 ? 'ok' : fillerCount <= 8 ? 'warn' : 'bad';
+    setCard8('cardFiller', 'fillerVal', 'fillerBar', fillerCount, fillerPct, fillerClass);
+
+    // ⑤ Yes, And（受容語で始まった返答の割合）
+    const yesAndPatterns = /^(なるほど|そうですね|そうですか|わかります|わかりました|確かに|おっしゃる通り|そうか|ですね|そうだね|うん|ええ|はい|そうそう|たしかに|理解|受け取|聞|聴)/;
+    const yesAndCount = userTurns.filter(t => yesAndPatterns.test(t.trim())).length;
+    const yesAndPct = userTurns.length > 0 ? Math.round((yesAndCount / userTurns.length) * 100) : 0;
+    const yesAndClass = yesAndPct >= 50 ? 'ok' : yesAndPct >= 25 ? 'warn' : 'bad';
+    setCard8('cardVocab', 'vocabVal', 'vocabBar', yesAndPct, yesAndPct, yesAndClass);
+
+    // ⑥ 感情言語化（感情語の出現回数）
+    const emotionPatterns = /(感じ|思い|気持ち|不安|心配|怖|嬉し|悲し|辛|苦し|嫌|好き|嫌い|怒|悔し|寂し|驚|安心|信頼|誇り|恥|焦|緊張|落ち着|悩|迷|困|傷|喜|楽し|わくわく|ドキドキ|モヤモヤ|ソワソワ)/g;
+    const emotionMatches = userTranscript.match(emotionPatterns) || [];
+    const emotionCount = emotionMatches.length;
+    const emotionClass = emotionCount >= 3 ? 'ok' : emotionCount >= 1 ? 'warn' : 'bad';
+    setCard8('cardSilence', 'silenceVal', 'silenceBar', emotionCount, Math.min(100, emotionCount * 20), emotionClass);
+
+    // ⑦ 質問の質（オープン質問の割合）
+    const allQuestions = userTurns.filter(t => t.includes('？') || t.includes('?'));
+    const openPatterns = /(なぜ|どう|どのよう|どんな|どこ|いつ|どれ|何が|何を|何で|どちら|いかが|どういう|どうして|何故)/;
+    const openQCount = allQuestions.filter(t => openPatterns.test(t)).length;
+    const openQPct = allQuestions.length > 0 ? Math.round((openQCount / allQuestions.length) * 100) : 0;
+    const openQClass = allQuestions.length === 0 ? 'warn' : openQPct >= 60 ? 'ok' : openQPct >= 30 ? 'warn' : 'bad';
+    const openQDisplay = allQuestions.length === 0 ? '—' : openQPct;
+    setCard8('cardQ', 'qVal', 'qBar', openQDisplay, openQPct, openQClass);
+    if (allQuestions.length === 0) document.querySelector('#cardQ .mc-ref').textContent = '質問なし';
+
+    // ⑧ 主張の明確さ（断定表現の割合）
+    const vaguePatterns = /(と思います|と思う|かもしれません|かもしれない|ではないでしょうか|じゃないかな|じゃないですか|かな|っぽい|みたいな|らしい|ような気が)/g;
+    const assertPatterns = /(です|ます|べきです|必要があります|だと思います|でしょう|ください|すべき|に違いない|はずです|ことが大事|が重要)/g;
+    const vagueCount = (userTranscript.match(vaguePatterns) || []).length;
+    const assertCount = (userTranscript.match(assertPatterns) || []).length;
+    const total = vagueCount + assertCount;
+    const assertPct = total > 0 ? Math.round((assertCount / total) * 100) : 50;
+    const assertClass = assertPct >= 60 ? 'ok' : assertPct >= 40 ? 'warn' : 'bad';
+    setCard8('cardAssert', 'assertVal', 'assertBar', assertPct, assertPct, assertClass);
+
+    // レーダーチャート更新（8項目 → 6軸にまとめる）
+    const timeoutPenalty = Math.min(100, toCount * 33);
     updateRadar(
-      Math.min(100, avgCharsPerTurn / 1.5),
-      100 - timeoutPenalty,  // Timeout: 0回=100%, 1回=67%, 2回=33%, 3回+=0%
-      Math.min(100, totalChars / 4),
+      paceVal > 0 ? Math.min(100, (paceVal / 500) * 100) : 50,
+      100 - timeoutPenalty,
+      yesAndPct,
       100 - fillerPct,
-      vocabScore,
-      100 - Math.abs(turnRatio - 50) * 2
+      Math.min(100, emotionCount * 20),
+      assertPct
     );
 
     const panel = document.getElementById('metricsRow');
     panel.classList.add('visible');
     setTimeout(() => scrollLeftTo(panel, 20), 300);
+
+    // lastMetrics更新
+    const vocabScore = yesAndPct; // for coach system prompt compatibility
+    const fillerList2 = fillerList;
+    lastMetrics = {
+      roleplaysHistory, roleplaysRole: selectedRoleplay.role,
+      roleplaysRounds: roleplaysRoundCount, timeoutCount: toCount,
+      isRoleplay: true,
+      fillerCount, fillerList: fillerList2, vocabScore,
+      yesAndPct, emotionCount, openQPct, assertPct,
+      userTurns: userTurns.length, totalChars
+    };
   }
 
   const roundsText = ['', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'][roleplaysRoundCount] || String(roleplaysRoundCount);
-
-  // Record roleplay session in game system
   GS.recordRoleplay(roleplaysRoundCount, roleplaysdifficulty, roleplaysTimeoutCount);
   updateStreakDisplay(GS.getState());
 
@@ -2194,23 +2256,60 @@ async function startRoleplaysReflect() {
   );
   addCoachMessage(q);
   document.getElementById('chatInput').placeholder = t('感じたことを教えてください…', 'Share what you noticed…');
-
-  // Store for reflect
-  lastMetrics = {
-    roleplaysHistory: roleplaysHistory,
-    roleplaysRole: selectedRoleplay.role,
-    roleplaysRounds: roleplaysRoundCount,
-    timeoutCount: roleplaysTimeoutCount,
-    isRoleplay: true,
-    fillerCount: typeof fillerCount !== 'undefined' ? fillerCount : 0,
-    fillerList: typeof fillerList !== 'undefined' ? fillerList : [],
-    vocabScore: typeof vocabScore !== 'undefined' ? vocabScore : 0,
-    userTurns: userTurns.length,
-    totalChars: typeof totalChars !== 'undefined' ? totalChars : 0
-  };
 }
 
-// ── Speech Synthesis — ElevenLabs TTS (highest quality Japanese) ──────────────────────────────────────────
+// ── setCard8 ヘルパー ──────────────────────────────────────────
+function setCard8(cardId, valId, barId, val, barPct, cls) {
+  const card = document.getElementById(cardId);
+  const valEl = document.getElementById(valId);
+  const barEl = document.getElementById(barId);
+  if (card) card.className = 'metric-card ' + cls;
+  if (valEl) valEl.textContent = val;
+  if (barEl) {
+    barEl.style.width = Math.min(100, Math.max(0, barPct)) + '%';
+    barEl.className = 'mc-bar-fill ' + cls;
+  }
+}
+
+// ── 論点の発展性 — Claude API判定 ──────────────────────────────────────────
+async function analyzeDialogProgress(history) {
+  if (!anthropicKey) return { score: '—', cls: 'warn', label: 'APIキー未設定' };
+  const filtered = history.filter(m => m.content !== '__TIMEOUT__');
+  if (filtered.length < 4) return { score: '—', cls: 'warn', label: '往復が少なすぎます' };
+
+  const dialogText = filtered.map(m =>
+    `${m.role === 'user' ? 'ユーザー' : 'AI'}：${m.content}`
+  ).join('\n');
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': anthropicKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 100,
+        messages: [{
+          role: 'user',
+          content: `以下の会話を読み、「論点の発展性」を1〜5で評価してください。\n\n評価基準：\n1 = 完全に平行線。同じ主張の繰り返し、一切進展なし\n2 = ほぼ平行線。わずかな変化のみ\n3 = 部分的な発展。新しい視点や論点が1〜2個出た\n4 = 発展あり。複数の新視点、相互理解が見られる\n5 = 大きな発展。立場の変化や共通点の発見あり\n\n返答は必ず以下のJSON形式のみ（他の文章不要）：\n{"score":3,"label":"部分的な発展"}\n\n会話：\n${dialogText}`
+        }]
+      })
+    });
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error.message);
+    const text = data.content[0].text.trim();
+    const json = JSON.parse(text.replace(/```json|```/g, '').trim());
+    const score = Math.max(1, Math.min(5, parseInt(json.score)));
+    const cls = score >= 4 ? 'ok' : score >= 3 ? 'warn' : 'bad';
+    return { score, cls, label: json.label || '' };
+  } catch(e) {
+    return { score: '—', cls: 'warn', label: '分析エラー' };
+  }
+}
 let currentAudio = null;
 let onSpeechEndCallback = null;
 

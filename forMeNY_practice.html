@@ -947,12 +947,12 @@
           <circle id="rd4" cx="110" cy="110" r="4" fill="var(--gold)"       opacity="0.9"/>
           <circle id="rd5" cx="110" cy="110" r="4" fill="var(--gold)"       opacity="0.9"/>
           <!-- Axis labels -->
-          <text x="110" y="18"  text-anchor="middle" fill="var(--text-2)" font-size="11" font-family="Bebas Neue,sans-serif" letter-spacing="1">SPEED</text>
-          <text x="178" y="57"  text-anchor="start"  fill="var(--text-2)" font-size="11" font-family="Bebas Neue,sans-serif" letter-spacing="1">PAUSE</text>
-          <text x="178" y="130" text-anchor="start"  fill="var(--text-2)" font-size="11" font-family="Bebas Neue,sans-serif" letter-spacing="1">VOL</text>
+          <text x="110" y="18"  text-anchor="middle" fill="var(--text-2)" font-size="11" font-family="Bebas Neue,sans-serif" letter-spacing="1">PACE</text>
+          <text x="178" y="57"  text-anchor="start"  fill="var(--text-2)" font-size="11" font-family="Bebas Neue,sans-serif" letter-spacing="1">TIMEOVER</text>
+          <text x="178" y="130" text-anchor="start"  fill="var(--text-2)" font-size="11" font-family="Bebas Neue,sans-serif" letter-spacing="1">YES,AND</text>
           <text x="110" y="176" text-anchor="middle" fill="var(--text-2)" font-size="11" font-family="Bebas Neue,sans-serif" letter-spacing="1">FILLER</text>
-          <text x="42"  y="130" text-anchor="end"    fill="var(--text-2)" font-size="11" font-family="Bebas Neue,sans-serif" letter-spacing="1">VOCAB</text>
-          <text x="42"  y="57"  text-anchor="end"    fill="var(--text-2)" font-size="11" font-family="Bebas Neue,sans-serif" letter-spacing="1">SILENCE</text>
+          <text x="42"  y="130" text-anchor="end"    fill="var(--text-2)" font-size="11" font-family="Bebas Neue,sans-serif" letter-spacing="1">感情</text>
+          <text x="42"  y="57"  text-anchor="end"    fill="var(--text-2)" font-size="11" font-family="Bebas Neue,sans-serif" letter-spacing="1">主張</text>
         </svg>
       </div>
 
@@ -1331,7 +1331,6 @@ function selectRoleplay(btn) {
     startBtn.classList.toggle('hard-mode', roleplaysdifficulty === 'hard');
     const diffEmoji = {easy:'🌱 Easy',normal:'🔥 Normal',hard:'⚡ Hard'}[roleplaysdifficulty] || '';
     document.getElementById('startBtnSub').textContent = `${diffEmoji} — ${selectedRoleplay.role} 役 との対話を開始`;
-    scrollLeftTo(startBtn, 20);
   }
   // Reset roleplay state so new scenario starts fresh
   roleplaysRoundCount = 0;
